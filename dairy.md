@@ -1,0 +1,309 @@
+# Development diary
+
+## 2026-11-09
+
+- **Prompt:** `prompts/2026-11-09-001-bootstrap-project-guidelines.md`
+- **Discussion:** Requested a reusable starter for idea notes, finalized tasks and tech debt, repair consent, clarifying questions, prompt history, and daily notes.
+- **Changes:** Created the starter instructions and record templates.
+- **Verification:** Checked that the requested files and supporting notes exist.
+- **Next:** Fill in project details and use these records for subsequent prompts.
+
+- **Prompt:** `prompts/2026-11-09-002-personal-assistant-planning.md`
+- **Discussion:** Scoped seven ideas for an Android and AWS personal assistant: chat/voice, graph memory, confidential access, English practice, ambient recording, wake phrase/battery, and Gmail summaries. No idea was finalized.
+- **Research:** Reviewed official Android, Google, and AWS documentation. Identified Android microphone/wake limitations, Gmail OAuth and company-policy gates, battery/cost tradeoffs, and server-side access-control needs.
+- **Changes:** Added IDEA-001 through IDEA-007 to `notes/ideas.md` and a sourced planning document in `notes/planning.md`. Left `notes/todo.md` and `notes/tech-debt.md` unchanged because no idea has been finalized.
+- **Verification:** Confirmed the notes and prompt log exist and no application code or infrastructure was changed.
+- **Next:** Await answers on recording scope, phone/version, company Gmail permission, installation method, budget, AWS region, retention, and wake/authentication preferences.
+
+- **Prompt:** `prompts/2026-11-09-003-planning-clarifications.md`
+- **Discussion:** User clarified that automatic graph memory covers conversations with Victor only, reports company Gmail use is permitted, wants essential high-level email storage, and chose private Android installation.
+- **Changes:** Updated IDEA-001, IDEA-002, IDEA-005, IDEA-007 and `notes/planning.md`. Ambient recording remains a separate open question. No ideas were marked finalized, so task and tech-debt notes remain unchanged.
+- **Verification:** Checked that the clarified scope and remaining questions appear consistently in the planning notes.
+- **Next:** Confirm the ambient-recording scope, exact device, minimal email summary fields, budget, region, and retention.
+
+- **Prompt:** `prompts/2026-11-09-004-recording-devices-budget.md`
+- **Discussion:** User confirmed Auto Record should capture ambient microphone sound, including conversations, meetings, and TV, when enabled. The app may run on multiple recent Android phones. Company email retention is limited to sender, subject, date, short summary, and action items. AWS target is $25–$100/month.
+- **Research:** Reviewed Android foreground/boot restrictions and AWS Transcribe pricing. At an illustrative US East rate of $0.024/minute, two recorded hours/day would cost about $86.40/month for transcription alone.
+- **Changes:** Updated relevant idea entries and `notes/planning.md` with a post-processing proposal and cost scenarios. No idea was marked finalized, so task and tech-debt notes remain unchanged.
+- **Verification:** Checked source support and note consistency; no code or AWS resources were changed.
+- **Next:** Resolve daily recording volume, over-budget policy, graph separation, retention, region, and device-specific behavior.
+
+- **Prompt:** `prompts/2026-11-09-005-recording-processing-decisions.md`
+- **Discussion:** User expects under one hour/day of Auto Record use across phones; chose to queue over-allowance audio for manual selection, keep ambient findings separate from Victor's graph unless manually saved, and delete raw ambient audio seven days after analysis.
+- **Changes:** Updated IDEA-005 and `notes/planning.md` with these choices. The idea remains in discussion; no implementation tasks or tech debt were added.
+- **Verification:** Checked that the choices and remaining questions appear consistently in the notes; no code or AWS resources were changed.
+- **Next:** Set the exact spending cap, expiry for unprocessed audio, AWS region, transcript/summary retention, and recording consent practice.
+
+- **Prompt:** `prompts/2026-11-09-006-budget-region-retention.md`
+- **Discussion:** User chose a $50/month app processing limit, seven-day expiry for unprocessed audio, Mumbai (`ap-south-1`) for personal data and recordings, and indefinite retention of ambient transcripts/summaries until user deletion.
+- **Research:** Verified Transcribe availability in Mumbai and AWS Budgets' delayed updates; budget alerts and actions do not guarantee a hard bill cap. The earlier $43/month transcription illustration is for US East, not a Mumbai quote.
+- **Changes:** Updated IDEA-001, IDEA-005, and `notes/planning.md`. Flagged that an over-budget recording can expire before the next month begins. No idea was marked finalized, so task and tech-debt notes remain unchanged.
+- **Verification:** Checked the choices against the idea and planning notes; no code or AWS resources were changed.
+- **Next:** Clarify recording consent/location, authentication, wake phrase, languages, and the queue-expiry tradeoff.
+
+- **Prompt:** `prompts/2026-11-09-007-india-recording-auth-language.md`
+- **Discussion:** User said Auto Record would be used in India without informing others, for personal meeting notes and attention support. Chose passkey or biometric plus server check for confidential answers, Google Assistant launch for v1, and English-only initial transcription.
+- **Research:** Reviewed official Indian DPDP commencement sources and a 2025 Supreme Court judgment about admissibility of a covert recording. Neither establishes blanket permission for unannounced meeting recording/upload. Reviewed official Android/passkey and Cognito guidance.
+- **Changes:** Updated relevant ideas and `notes/planning.md` with the confirmed choices and unresolved company meeting-recording permission. No idea was marked finalized; task and tech-debt notes remain unchanged.
+- **Verification:** Checked source links and note consistency; no app code or AWS resources were changed.
+- **Next:** Confirm work-meeting recording policy, confidential-data categories and voice behavior, and the remaining retention/budget tradeoffs.
+
+- **Prompt:** `prompts/2026-11-09-008-meeting-permission-confidential-voice.md`
+- **Discussion:** User reports explicit permission to record work meetings and upload audio/transcripts to personal AWS. User will define confidential categories. After fresh authentication, Victor may speak confidential information only when explicitly asked.
+- **Changes:** Updated IDEA-003, IDEA-005, and `notes/planning.md`. Clarified that seven-day unprocessed-audio expiry applies even if a new monthly allowance has not started. No ideas were marked finalized; task and tech-debt notes remain unchanged.
+- **Verification:** Checked the notes against the replies; no code or AWS resources were changed.
+- **Next:** Determine processing priority, Gmail/graph retention, passkey freshness, and later the user-defined confidential categories.
+
+- **Prompt:** `prompts/2026-11-09-009-processing-retention-auth-window.md`
+- **Discussion:** User chose to transcribe speech/meetings first and TV only on request, retain Gmail summaries for 90 days, retain Victor graph facts until corrected or deleted, and use a 15-minute confidential-access window after a successful passkey check.
+- **Changes:** Updated IDEA-002, IDEA-003, IDEA-005, IDEA-007 and `notes/planning.md`; created a review draft in `notes/v1-scope.md` with acceptance checks and remaining design gates. No ideas were marked finalized, so task and tech-debt notes remain unchanged.
+- **Verification:** Cross-checked the four choices in the notes; no code or AWS resources were changed.
+- **Next:** Review the v1 scope, define confidential categories, select a target phone, and resolve the remaining memory, retention, and recording-policy details.
+
+- **Prompt:** `prompts/2026-11-09-010-what-next.md`
+- **Discussion:** User asked what to do next after reviewing the v1 scope draft.
+- **Changes:** Logged the prompt and identified the immediate decisions needed for an implementation-ready scope. No product idea was finalized; `notes/todo.md` and `notes/tech-debt.md` remain unchanged.
+- **Verification:** Reviewed `notes/v1-scope.md`; no code or AWS resources were changed.
+- **Next:** Receive confidential categories, fact-save policy, and source-conversation retention; then ask for explicit v1 scope approval and convert it into tasks and any known tech-debt entries.
+
+- **Prompt:** `prompts/2026-11-09-011-confidential-categories-memory.md`
+- **Discussion:** User selected financial/bank-account information and personal passwords as the only confidential categories, immediate graph insertion for extracted facts, and retention of full Victor source conversations until deletion.
+- **Research:** Reviewed OWASP and AWS guidance on password/secrets handling, model invocation logging, and per-secret pricing. Identified that typed password values could otherwise propagate to retained chat transcripts, graph entries, model requests, and logs.
+- **Changes:** Updated IDEA-002, IDEA-003, `notes/planning.md`, and `notes/v1-scope.md`. Proposed a separate vault/reference boundary for actual password values pending the user's decision. No idea was marked finalized, so task and tech-debt notes remain unchanged.
+- **Verification:** Checked the choices and open security decision across the notes; no app code or AWS resources were changed.
+- **Next:** Decide whether Victor stores actual passwords, how to handle passwords entered in chat, whether to speak passwords, and exact financial fields needing step-up; then finalize the v1 scope if approved.
+
+- **Prompt:** `prompts/2026-11-09-012-password-storage-voice.md`
+- **Discussion:** User chose to store actual passwords entered in chat, retain the full value behind passkey access, permit explicit spoken-password requests within the 15-minute window, and protect account numbers and financial credentials.
+- **Research:** Reviewed AWS attribute encryption and Android offline text-to-speech capabilities. Planned encrypted secret spans and direct retrieval without exposing detected values to the LLM.
+- **Changes:** Updated IDEA-003, `notes/planning.md`, and `notes/v1-scope.md`. No idea was marked finalized; task and tech-debt notes remain unchanged.
+- **Verification:** Checked choices in the notes; no app code or AWS resources were changed.
+- **Next:** Resolve how ordinary chat identifies password values and the offline speech fallback.
+
+- **Prompt:** `prompts/2026-11-09-013-automatic-password-detection.md`
+- **Discussion:** User chose automatic password detection in any chat message, with no required secret-entry command.
+- **Research:** AWS describes sensitive-information filtering as probabilistic; automatic detection may miss unmarked passwords.
+- **Changes:** Updated IDEA-003 and the planning/scope notes with pre-model detection, encrypted graph/source values, masked ordinary views, and the residual missed-detection risk. No idea was marked finalized; task and tech-debt notes remain unchanged.
+- **Verification:** Checked the risk and choice across notes; no app code or AWS resources were changed.
+- **Next:** Decide whether uncertain messages pause for confirmation and what happens if offline password speech is unavailable.
+
+- **Prompt:** `prompts/2026-11-09-014-uncertain-secret-offline-speech.md`
+- **Discussion:** User chose to pause uncertain password-containing chat messages for confirmation and to display passwords privately if an offline speech voice is unavailable.
+- **Changes:** Updated IDEA-003, `notes/planning.md`, and `notes/v1-scope.md`. Added revisable defaults for Gmail summary expiry, English Practice retention, and failed-audio cleanup. The v1 scope is ready for explicit user decision; no idea was marked finalized yet, so task and tech-debt notes remain unchanged.
+- **Verification:** Checked choices, fallback behavior, and residual automatic-detection risk in the notes; no app code or AWS resources were changed.
+- **Next:** Have the user review the v1 scope and either approve it as the build baseline or request changes. If approved, mark the ideas finalized and update the to-do and tech-debt notes before implementation.
+
+- **Prompt:** `prompts/2026-11-09-015-start-phase-1.md`
+- **Discussion:** User approved the v1 scope and authorized Phase 1. Marked IDEA-001–IDEA-007 Finalized and opened TASK-001–TASK-010, DEBT-001–DEBT-004.
+- **Changes:** Added Phase 1 SAM template, Python API and memory logic, Android Kotlin app scaffold, tests, and setup documentation.
+- **Verification:** Python compileall passed. Backend tests had 3 passes and 2 failures; both expose same-millisecond message ordering. No JDK, Gradle, SAM, AWS account connection, or device is available for build/deployment checks.
+- **Finding and consent:** Explained the ordering defect and its impact; proposed explicit turn order in the storage key and requested user consent before repair. Consent pending.
+- **Next:** If approved, repair the ordering and rerun tests; then validate build/deployment on configured AWS account and Android phone.
+
+- **Prompt:** `prompts/2026-11-09-016-approve-message-order-fix.md`
+- **Discussion and consent:** User explicitly approved the proposed message-order repair after the failing test evidence and impact were explained.
+- **Repair:** Added a shared turn timestamp and explicit user-before-assistant order in the DynamoDB message sort key.
+- **Verification:** All five backend unit tests passed; Python compileall passed.
+- **Next:** Validate the Android build and AWS SAM template, then test sign-in, chat, isolation, and memory review on a configured phone and AWS account. No deployment has occurred.
+
+- **Prompts:** `prompts/2026-11-09-017-continue-phase-1.md`, `prompts/2026-11-09-018-aws-resource-plan.md`, `prompts/2026-11-09-019-approve-android-patch-fix.md`
+- **Discussion:** User asked to continue Phase 1 and requested the AWS service plan. Recorded current and later services in `notes/aws-resources.md`; no deployment occurred. Asked whether AI prompts must be processed strictly in Mumbai or may route elsewhere in India, since some Bedrock profiles can route Mumbai requests to Hyderabad.
+- **Finding and consent:** Android's `HttpURLConnection` does not support PATCH, so fact corrections would fail before reaching the API. Explained the evidence, impact, and proposed client replacement. User explicitly approved.
+- **Repair:** Switched Android requests to OkHttp 5.5.1, which supports PATCH, while preserving API endpoints.
+- **Verification:** Static source check confirmed the PATCH path; all five backend tests passed. Android build/device and SAM validation remain unavailable without local tooling and an AWS account connection.
+- **Next:** Build the Android app, validate the SAM stack, implement the pre-deployment chat cost gate, and test on an installed phone in the user's AWS account.
+
+- **Prompt:** `prompts/2026-11-09-020-cli-setup-mumbai-only.md`
+- **Discussion:** User requested AWS CLI/SSO guidance, will have a friend build the Android app later, and required AI processing strictly in Mumbai. User currently signs in to AWS as root.
+- **Changes:** Added a Windows AWS CLI/Identity Center guide. Restricted the SAM model parameter to direct Mumbai foundation-model ARNs and documented a possible Mumbai model candidate without selecting it. Added atomic monthly chat reservations against the $50 app allowance; this is an estimate and does not cover later jobs or all AWS charges.
+- **Verification:** Direct Mumbai ARN matched the template constraint; an inference-profile ARN did not. Seven backend tests and Python compileall passed. AWS CLI and Android build tools are absent locally; no AWS resources were deployed.
+- **Next:** User installs AWS CLI v2 and verifies its version, then sets up a non-root SSO profile. Continue source work and validate model price/quality before deployment.
+
+- **Prompt:** `prompts/2026-11-09-021-aws-access-requirements.md`
+- **Discussion:** User asked when AWS credentials are needed and which privileges the project requires.
+- **Changes:** Created `aws-requirement.md` with a local SSO access timeline, scoped Phase 1 deployer/CloudFormation/runtime roles, and future-phase access boundaries; linked it from the README.
+- **Verification:** Matched the permission plan to the current SAM template and official AWS CloudFormation/SAM/Bedrock guidance. No credentials were accessed; no AWS resources were deployed.
+- **Next:** Complete AWS CLI/SSO setup, verify account and Mumbai Region, then review the final stack and permissions before deployment.
+
+- **Prompt:** `prompts/2026-11-09-022-cli-installed.md`
+- **Discussion:** User reported AWS CLI v2 installation. Asked them to check whether IAM Identity Center is enabled in their Mumbai AWS console.
+- **Verification:** Found AWS CLI v2.39.6 installed. The agent session's restricted proxy prevented an AWS CLI network request; no account state was read or changed.
+- **Next:** Use the user's console status to guide non-root SSO profile setup. Keep credentials and sign-in codes local.
+
+- **Prompt:** `prompts/2026-11-09-023-identity-center-enabled.md`
+- **Discussion:** User reported IAM Identity Center is already enabled. Asked whether multi-account AWS-account access is visible and whether their user is assigned; guided them to check assigned users and the access portal URL.
+- **Verification:** Based on user-reported console state only; the agent's AWS network access remains restricted. No AWS settings changed.
+- **Next:** Use the assignment result to guide the SSO CLI profile without duplicating users or permissions.
+
+- **Prompt:** `prompts/2026-11-09-024-check-identity-assignment.md`
+- **Discussion:** User confirmed IAM Identity Center shows AWS accounts but was unsure of their account assignment. Guided checks for their own active user and the personal account's Assigned Users and Groups entry.
+- **Verification:** Cross-checked console navigation against AWS Identity Center documentation. No AWS settings changed; awaiting user-reported results.
+- **Next:** If the user and assignment exist, configure the `victor` SSO CLI profile; otherwise guide only the missing setup.
+
+- **Prompt:** `prompts/2026-11-09-025-create-identity-center-user.md`
+- **Discussion:** User reported no Identity Center user and no personal-account assignment. Guided creation of their own user through an email invitation and asked which permission-set approach to use.
+- **Verification:** Guidance checked against AWS Identity Center documentation; no agent AWS access, credentials, or deployment.
+- **Next:** After the user is active and permission preference is known, guide account assignment and `aws configure sso`.
+
+- **Prompt:** `prompts/2026-11-09-026-root-email-identity-user.md`
+- **Discussion:** User chose temporary AdministratorAccess for bootstrap and asked whether the new Identity Center user may share the root mailbox. Explained that the sign-ins are separate and the email must be unique within the Identity Center directory; asked for creation status.
+- **Changes:** Recorded the bootstrap permission decision and email guidance in the AWS requirement and CLI setup documents.
+- **Verification:** Cross-checked AWS identity and uniqueness guidance. No user, role, or AWS resource was changed by the agent.
+- **Next:** Once the user is active, assign the chosen permission set to the personal account and configure the non-root SSO CLI profile.
+
+- **Prompt:** `prompts/2026-11-09-027-identity-user-active.md`
+- **Discussion:** User reported their Identity Center user is active. Guided temporary AdministratorAccess assignment to the personal AWS account and the local SSO CLI configuration/verification sequence.
+- **Verification:** User-reported active status only; assignment completion is pending. No agent AWS access or account changes.
+- **Next:** Confirm assignment, then verify the `victor` SSO profile points to the intended account and Mumbai Region.
+
+- **Prompt:** `prompts/2026-11-09-028-account-assignment-complete.md`
+- **Discussion:** User reported the temporary AdministratorAccess account assignment completed. Guided `victor` CLI SSO profile configuration and asked for account/Region verification without exposing IDs or credentials.
+- **Verification:** Assignment status user-reported; SSO profile verification pending. No AWS resources deployed.
+- **Next:** Confirm the profile targets the personal account and `ap-south-1`; then continue Phase 1 pre-deployment checks.
+
+- **Prompts:** `prompts/2026-11-09-029-sso-profile-verified.md`, `prompts/2026-11-09-030-approve-yaml-route-fix.md`
+- **Discussion:** User confirmed the `victor` SSO profile targets the intended account and Mumbai Region. Read-only account checks confirmed STS access and that Ministral 14B 3.0 is active, on-demand, and authorized/available in Mumbai. The model remains a candidate; no inference or deployment occurred.
+- **Finding and consent:** CloudFormation `ValidateTemplate` rejected the template at line 133 because `/facts/{id}` was unquoted in an inline YAML mapping. Explained the blocker and proposed repair; user explicitly approved quoting both routes and revalidation.
+- **Repair and verification:** Quoted PATCH and DELETE paths. Read-only CloudFormation validation then passed and returned the expected four parameters; all seven backend unit tests passed. SAM build/change-set validation remains pending because SAM CLI is not installed locally.
+- **Changes:** Updated `backend/template.yaml` and the AWS resource plan.
+- **Next:** Install or access SAM tooling, build/validate the application package, review the concrete model/cost and stack change set before deployment; Android device build remains with the user's friend.
+
+- **Prompt:** `prompts/2026-11-09-031-sam-installed.md`
+- **Discussion:** User reported installing AWS SAM CLI. Verified version 1.171.0 at its full path; the current PowerShell session had not refreshed `PATH`.
+- **Verification:** SAM basic and lint validation passed on the source template. Docker's ARM64 builder failed with `exec format error` on the x86_64 host, so the stalled process was stopped. A local SAM build succeeded without external dependencies; lint passed on its built template. No AWS deployment or model inference occurred.
+- **Changes:** Updated the AWS resource plan, added a deployment review draft, and linked it from the README; no application source changed.
+- **Next:** Review the candidate model, estimated cost, unique Cognito domain, and CloudFormation change set before deployment. ARM64 runtime and Android device checks remain pending.
+- **Cost review:** AWS currently lists $0.24 per million input/output tokens for the candidate in Mumbai. The draft shows that the 5-cent app reservation reaches its $50 allowance after 1,000 chats, even though an illustrative 2,000-token chat mix would cost about $0.48 in model tokens for 1,000 chats. A read-only account check found no AWS Budget.
+- **Finding and pending consent:** The template omits CloudWatch log retention, so Lambda logs would persist indefinitely. Explained the impact and proposed 14 days; asked for consent before editing. Asked for model, Cognito domain, and alert-mailbox choices.
+
+- **Prompts:** `prompts/2026-11-09-032-deployment-choices.md`, `prompts/2026-11-09-033-budget-replacement-protection.md`, `prompts/2026-11-09-034-keep-chat-reservation.md`
+- **Decisions:** Owner selected direct Mumbai Ministral 14B, generated Cognito prefix `victor-private-78d0389e91`, 14-day Lambda log retention, AWS account email for $50 alerts, and the initial 5-cent chat reservation.
+- **Changes:** Added a named 14-day CloudWatch log group and account-wide $50 AWS Budget with 80%/100% actual and 100% forecast email alerts to the SAM template. Updated idea, task, debt, access, resource, and deployment-review notes. The account email was neither printed nor stored in the repository.
+- **Finding and consent:** SAM lint found the new Budget's `DeletionPolicy: Retain` lacked matching `UpdateReplacePolicy: Retain`; explained the replacement risk and obtained explicit consent before adding it.
+- **Verification:** Source and built-template SAM lint passed; local build succeeded. A read-only Cognito lookup found the generated prefix unclaimed at check time. Synthetic direct Mumbai model calls succeeded; English Practice made a relevant correction. Personal mode returned Markdown-fenced JSON that the strict parser would reject with `502 model_format`. Explained the issue and requested consent before any parser repair. No AWS resources deployed.
+- **Next:** If approved, repair and test the parser; then prepare and review a CloudFormation change set before execution.
+- **Pre-deployment check:** Read-only CloudFormation checks found no existing `victor-phase1` or SAM-managed artifact stack. Preparing a change set with SAM will create a support S3 bucket and upload the package before the application stack is executed.
+
+- **Prompt:** `prompts/2026-11-09-035-approve-fenced-json-parser.md`
+- **Consent and repair:** Owner approved accepting one optional Markdown `json` fence around personal-mode model output. Updated the parser and added a focused test that rejects extra commentary.
+- **Verification:** Eight backend tests, Python compilation, local SAM build, and built-template lint passed. Synthetic English Practice inference produced a relevant correction; personal-mode fenced JSON is now accepted by the tested parser.
+- **AWS preparation:** SAM created a Mumbai support artifact bucket/stack and uploaded the package, then created change set `samcli-deploy1794232141` without executing it. Read-only inspection found 15 additions, JWT security on all five API methods, table-scoped DynamoDB CRUD, direct Mumbai Bedrock invoke permission, 14-day logs, and a retained $50 account-wide budget with email alerts. Parameters match the approved choices and the AWS account email; neither email nor account ID was recorded. The application stack is `REVIEW_IN_PROGRESS` with zero resources.
+- **Next:** Obtain explicit owner approval before executing the reviewed change set. Then verify resources, create the single private Cognito user, and test the API. Android build/device verification remains with the owner's friend.
+
+- **Prompt:** `prompts/2026-11-09-036-review-change-set-first.md`
+- **Decision:** Owner chose to review the prepared change set before deciding on execution; no execution was attempted.
+- **Read-only review:** Confirmed the change set remains `CREATE_COMPLETE` / `AVAILABLE` and the application stack remains `REVIEW_IN_PROGRESS`. The 15 actions are all additions. Verified sign-in settings, JWT protection on all five routes, 14-day logs, table point-in-time recovery and retention, $50 account-wide budget alerts, and direct Mumbai Bedrock invoke permission.
+- **IAM finding:** The standard Lambda logging managed policy grants three log-write/create actions on `*`; SAM's DynamoDB CRUD policy includes some actions unused by the current code, scoped to this table and indexes. Documented the option to use a narrower explicit role; no repair was made without consent.
+- **Deployment identity:** The change set has no dedicated CloudFormation service role. Executing it would use the owner's temporary AdministratorAccess SSO profile chosen for bootstrap; a scoped deployment role remains future work.
+- **Next:** Share the review and obtain the owner's IAM-scope decision before any change-set execution. Android build, live API testing, and later secret/deletion features remain open.
+
+- **Prompt:** `prompts/2026-11-09-037-approve-scoped-runtime-role.md`
+- **Consent:** Owner approved replacing the broader SAM-generated Lambda role with a scoped explicit runtime role. This approval did not execute the application stack.
+- **Changes:** Added `ApiExecutionRole` with five DynamoDB actions on Victor's table, two log-stream actions on Victor's log group, and `bedrock:InvokeModel` on the selected direct Mumbai model. Removed SAM-generated runtime policies. Updated deployment, access, idea, and task notes.
+- **Verification:** Source and built-template SAM lint passed; local build succeeded. Created replacement unexecuted change set `samcli-deploy1794232742` and deleted the superseded broader change set. Processed template has 15 additions, the explicit role is attached, no managed policy remains, and all five API methods retain JWT protection. Parameters and budget email match approved choices without exposing account ID/email. Application stack still has zero resources.
+- **Next:** Obtain explicit approval for execution of this revised change set; then deploy, verify resources, create private Cognito user, and test live API. Android device build remains pending.
+
+- **Prompts:** `prompts/2026-11-09-038-execute-scoped-change-set.md`, `prompts/2026-11-09-039-private-cognito-user-email.md`, `prompts/2026-11-09-040-cognito-password-set.md`
+- **Approval and deployment:** Owner explicitly approved executing scoped change set `samcli-deploy1794232742`. Confirmed the SSO profile and `ap-south-1`, executed it, and observed `victor-phase1` plus all 15 resources reach `CREATE_COMPLETE`.
+- **Live verification:** Lambda uses the scoped role and direct Mumbai Ministral model; all five API routes use JWT authorization. DynamoDB point-in-time recovery is enabled, log retention is 14 days, the Cognito domain is active, and the $50 account-wide budget has three notifications. Unauthenticated GET/POST requests returned 401. Direct synthetic ARM64 Lambda invocations returned 200 in both modes, with separate messages and one Personal fact; all six generated test records were removed.
+- **Private user:** With the owner's approval, created the first Cognito user using the AWS account email and requested a one-time invitation. The owner received it and reported setting a password, but two read-only Cognito checks still showed `FORCE_CHANGE_PASSWORD`; asked which password flow was completed. No password or email was recorded and no user reset was attempted.
+- **Android preparation:** Wrote public API/Cognito/client outputs to git-ignored `android/victor.properties` and added `docs/android-build-handoff.md` for the later Android Studio/device build. No Android build has occurred.
+- **Documentation finding:** An older TASK-010 sentence accidentally lost “$50” during a shell edit. Explained that the deployed budget is correctly $50 and requested consent before repairing the note. Consent pending.
+- **Next:** Resolve the Cognito first-sign-in status and the documentation consent, then test authenticated API through the Android app when the owner's friend builds it. Scope the routine deployer role after initial validation.
+
+- **Prompt:** `prompts/2026-11-09-041-cognito-flow-and-note-fix.md`
+- **Discussion:** Owner says the password was set in the Victor/Cognito sign-in flow and approved repair of the missing `$50` in TASK-010.
+- **Repair and verification:** Restored `$50` and updated the TASK-010 budget status to deployed; verified the corrected line. No application code or AWS resource changed.
+- **Access issue:** A read-only Cognito status recheck failed before reaching Cognito because the `victor` SSO session expired. Asked the owner to refresh SSO locally without sharing codes or credentials. No account reset or password change was attempted.
+- **Next:** After SSO refresh, recheck Cognito status and guide the remaining first-sign-in step if needed. Android build/device tests still await the owner's friend.
+
+- **Prompt:** `prompts/2026-11-09-042-sso-refreshed.md`
+- **Discussion:** Owner reported refreshing the `victor` SSO session locally. Rechecked the private Cognito user without exposing email; it remained enabled, email verified, and `FORCE_CHANGE_PASSWORD`.
+- **Verification:** Victor's Cognito authorization page returned HTTP 200 and a Signin page. AWS guidance says an administrator-created user remains in `FORCE_CHANGE_PASSWORD` until completing the `NEW_PASSWORD_REQUIRED` challenge.
+- **Next:** Asked the owner to describe the invitation and first-sign-in steps without credentials. No account reset or password change was attempted. Android build/device testing remains pending.
+
+- **Prompt:** `prompts/2026-11-09-043-identity-center-vs-cognito.md`
+- **Finding:** The owner reset the IAM Identity Center `victor-admin` password and signed in to the AWS access portal. That account is separate from Victor's Cognito app user; the last Cognito check remained `FORCE_CHANGE_PASSWORD`.
+- **Guidance and change:** Prepared the Victor Cognito sign-in URL from public local deployment settings and clarified the separate first-sign-in flow in `docs/android-build-handoff.md`. No passwords were handled and no AWS settings were changed.
+- **Verification and next:** AWS documentation confirms the temporary-password new-password challenge. A fresh read-only CloudFormation query could not run because `aws` is absent from this tool session's PATH. Ask the owner to use the Cognito invitation's temporary password at Victor sign-in, then report the resulting screen without sharing credentials.
+
+- **Prompts:** `prompts/2026-11-09-044-browser-web-client.md`, `prompts/2026-11-09-045-continue-browser-client.md`; IDEA-008, TASK-011, DEBT-005.
+- **Decision and implementation:** Owner requested occasional browser access. Prepared a small page through existing Mumbai API Gateway/Lambda with Cognito authorization code plus PKCE, separate Personal and Practice chat, history, and Personal memory correction/deletion. Added a public page route handler and optional Cognito browser callback parameter. No new IAM role, data store, model, or AWS Region.
+- **Verification:** Eleven backend tests passed; JavaScript syntax and Python compilation passed; SAM lint and build passed with HTML/JS/CSS in the Lambda package. The initial SAM lint command hit sandbox denial writing SAM telemetry metadata; rerunning with an approved sandbox exception passed. Read-only processed-template review showed JWT on all five personal-data routes and public access only on three GET page routes.
+- **AWS review:** Created nonexecuted change set `samcli-deploy1794235159`. It is `CREATE_COMPLETE` / `AVAILABLE`, adding three Lambda invoke permissions and modifying the API, Lambda, and Cognito client in place. The live stack remains `CREATE_COMPLETE` with its 15 existing resources. No execution, live browser sign-in, or end-to-end chat check occurred.
+- **Next:** Obtain the owner's explicit change-set execution approval under `aws-requirement.md`; then deploy and check page, Cognito callback, JWT boundary, and browser behavior. The owner still needs to complete the separate Victor Cognito first sign-in.
+
+- **Prompt:** `prompts/2026-11-09-046-execute-browser-change-set.md`; TASK-011.
+- **Approval and deployment:** Owner explicitly approved executing browser change set `samcli-deploy1794235159`. Executed it in Mumbai; `victor-phase1` reached `UPDATE_COMPLETE` with 18 resources.
+- **Live verification:** Five personal-data routes still require JWT. Cognito retains both the Android and browser callback/logout URLs. `/web/app.js`, `/web/styles.css`, and `/web/config.js` returned 200; signed-out `/facts` returned 401.
+- **Defect and proposed next step:** API Gateway lists no `GET /web/` route. `/web` returned 302 to `/web/`, which returned 404, so the page and OAuth callback cannot work. Proposed moving the page and callback to `/web/index.html` through the working asset route and removing the unused slash route. Explained the issue; no repair made pending owner consent and a new change-set review.
+
+- **Prompt:** `prompts/2026-11-09-047-approve-web-route-repair.md`; TASK-011.
+- **Consent and source repair:** Owner approved moving the page and Cognito callback to `/web/index.html` and removing the unusable slash route. Updated the handler, template, and focused route test. The Android callback is preserved in the template.
+- **Verification:** Eleven backend tests, JavaScript syntax, Python compilation, SAM lint, and SAM build passed. Prepared nonexecuted change set `samcli-deploy1794236511`, `CREATE_COMPLETE` / `AVAILABLE`. It removes one obsolete Lambda route permission and modifies API, Lambda, and Cognito client in place. Processed template retains JWT on all five personal-data routes and has only two public web routes.
+- **Live state and next:** The stack remains `UPDATE_COMPLETE` with 18 resources and the original 404 page. The proposed template would have 17 resources. Obtain separate execution approval under `aws-requirement.md`, then verify the live page, callback, and signed-out API boundary. Authenticated browser testing still depends on completing the separate Victor Cognito first sign-in.
+
+- **Prompt:** `prompts/2026-11-09-045-cognito-reset-email.md`
+- **Finding:** The owner reports no reset code from `/confirmForgotPassword`. Read-only AWS checks found the sole Victor Cognito user enabled, email verified, and still `FORCE_CHANGE_PASSWORD`; verified email recovery and Cognito default email sending are configured. AWS troubleshooting lists this user status as a reason the forgot-password flow may not send a code, while the confirmation page only accepts an already sent code.
+- **Guidance:** Use the temporary password from the Victor Cognito invitation at the Victor sign-in page to complete the required new-password challenge. Clarified this in the Android build handoff. No AWS user or email setting was changed. If the invitation password is missing or expired, request explicit consent before a Cognito resend/reset.
+
+- **Prompt:** `prompts/2026-11-09-048-execute-web-route-repair.md`; TASK-011.
+- **Approval and deployment:** Owner approved execution of repair change set `samcli-deploy1794236511`. Executed it in Mumbai; `victor-phase1` reached `UPDATE_COMPLETE` with 17 resources.
+- **Live verification:** `/web` redirects to `/web/index.html`; page, JavaScript, CSS, and public config returned 200. Cognito authorize page returned 200 for the new callback, browser and Android callbacks are configured, and the private Cognito user now reports `CONFIRMED`. All five data routes use JWT; unsigned `/facts`, `/messages`, and POST `/chat` returned 401.
+- **Next:** Ask the owner to open the live page and test Victor Cognito sign-in plus harmless Personal/Practice chat, memory, and logout. No password or token should be shared. Android build/device testing remains pending.
+- **UI check limitation:** An attempted browser visual inspection could not start because the browser access host was unavailable. Public HTTP checks passed; visual and signed-in behavior remain unverified.
+- **Documentation finding:** The Android handoff contains a stale instruction to use the invitation's temporary password directly after a current `CONFIRMED` status statement. Explained the conflict and requested consent to remove that instruction. No documentation repair made yet.
+
+- **Prompt:** `prompts/2026-11-09-049-browser-smoke-and-handoff-fix.md`; TASK-011.
+- **Owner verification:** Owner reports the live browser page signs in successfully and returns an English Practice reply. This is a user-reported smoke test; the agent did not use credentials or observe the authenticated browser.
+- **Consent and note repair:** Owner approved removing the stale invitation-password instruction from the Android handoff. Removed it; the handoff now refers to the confirmed Victor Cognito user and permanent app password. The historical reset-flow discussion remains in this diary.
+- **Next:** Confirm harmless Personal chat, memory correction/deletion, and logout in the browser before marking TASK-011 complete. Android build/device tests remain pending.
+
+- **Prompt:** `prompts/2026-11-09-050-browser-personal-and-logout.md`; TASK-011.
+- **Owner verification:** Owner reports a Personal reply, a working memory edit, and Sign out hiding the chat and requiring sign-in on reload. Practice reply and sign-in were already confirmed. These checks were user-reported; no credentials or tokens were shared with the agent.
+- **Next:** Clarify whether browser memory Delete was exercised before marking TASK-011 complete. No code or AWS changes were made.
+
+- **Prompt:** `prompts/2026-11-09-051-browser-delete-confirmed.md`; TASK-011.
+- **Owner verification:** Owner confirms deleting the harmless browser test fact worked and it disappeared after refreshing Memory. Combined with earlier owner-reported sign-in, replies in both modes, memory correction, and sign-out, plus agent-verified public page and signed-out API responses, TASK-011 meets its completion criteria.
+- **Status:** Marked TASK-011 complete. No code or AWS changes were made. Android build/device testing and later voice, recording, email, and confidential-data phases remain pending.
+
+- **Prompt:** `prompts/2026-11-09-052-memory-confirm-and-timestamp.md`; IDEA-009, TASK-012.
+- **Report and investigation:** Owner says a Memory item remains in the queue after clicking “confirm” and asks for its added timestamp. The browser code has Correct/Save correction and Delete/native confirmation, but no distinct Confirm button; asked which action they used. Fact records already contain `createdAt` UTC. The current DynamoDB fact query uses default eventual consistency, which can briefly return an old item after a successful write.
+- **Local change:** Added browser display of original `createdAt` in local time with zone label and newest-first order. This is source-only and not deployed. Node syntax and a sample IST time format check passed.
+- **Next:** Use the owner's action clarification to target the stale-list fix; validate and prepare a reviewed AWS update. No AWS change or personal-data access occurred in this prompt yet.
+
+- **Prompt:** `prompts/2026-11-09-053-memory-review-decision.md`; IDEA-009, IDEA-010, TASK-012, DEBT-006.
+- **Clarification and diagnosis:** Owner meant Correct → Save correction, not Delete confirmation, and chose browser-local timestamps with a zone label. Correction currently sets `corrected=true`, but the browser renders all facts in one list, so the corrected item remains. Eventual reads can also briefly show old values, but are not the main cause of staying in the list.
+- **Decision and source change:** Owner chose Pending review plus All memory and Confirm for unchanged facts. Implemented `reviewed`/`reviewedAt`, legacy corrected-as-reviewed treatment, strong fact reads, Pending/All browser tabs, Confirm, and original added-time display. Corrected/confirmed facts remain in graph/model context and All memory. No data migration or new IAM permission is needed.
+- **Verification and AWS review:** Twelve backend tests, Node Memory rendering test, JS/Python syntax, SAM lint, and build passed. Prepared nonexecuted Mumbai change set `samcli-deploy1794246063`, `CREATE_COMPLETE` / `AVAILABLE`; it modifies Lambda code and API definition in place, with all five data routes still JWT-protected. Removed an earlier superseded unexecuted draft. Live stack has not changed.
+- **Next:** Obtain separate approval to execute this exact change set under `aws-requirement.md`, then verify live Memory behavior and timestamp with the owner. The existing 100-fact response cap is tracked in DEBT-006.
+
+- **Prompt:** `prompts/2026-11-09-054-execute-memory-review.md`; TASK-012.
+- **Approval and deployment:** Owner approved executing change set `samcli-deploy1794246063`. Executed it in Mumbai; stack reached `UPDATE_COMPLETE` with 17 resources and Lambda is Active with successful update status.
+- **Live verification:** Page, JavaScript, and CSS each returned 200 and included the new review UI. Five data routes still require JWT; unsigned `/facts` returned 401. No new resource or IAM permission was added.
+- **Next:** Ask owner to verify Correct/Save and Confirm remove facts from Pending while retaining them in All memory, and check the added timestamp appears in browser-local time with a zone label. No credentials or personal facts need to be shared with the agent.
+- **Isolated live test:** Created two synthetic facts under a unique synthetic subject. Direct Lambda Confirm and Correct calls returned 200; a subsequent list showed the review markers, correction, and unchanged original added time. Removed both synthetic records. No personal facts or credentials were accessed.
+
+## 2026-11-17
+
+- **Prompt:** [AWS cost check](prompts/2026-11-17-001-aws-cost-check.md).
+- **Request and investigation:** Check AWS costs incurred so far. Located existing victor SSO profile and reviewed the account-wide $50 monthly budget; the budget is not actual spend.
+- **Verification and blocker:** Read-only STS failed because the SSO token expired and refresh failed. Started normal browser SSO sign-in and asked the owner to complete it locally. Actual billing totals remain unverified while sign-in is pending.
+- **Changes and next:** Prompt/diary records only; no application or AWS changes. After sign-in, retrieve current month-to-date costs and service breakdown. No new idea or decision IDs apply.
+
+- **Sign-in and cost result:** Owner completed SSO sign-in; AWS CLI reported success. [Sign-in reply](prompts/2026-11-17-002-aws-sign-in-completed.md). The earlier authentication blocker is resolved.
+- **Verified billing:** AWS Cost Explorer for November 1-17 (exclusive end November 18), all services/regions, returned estimated unblended cost $33.5181438257 USD: $28.4181438257 before tax plus $5.10 tax, or $33.52 rounded. Largest groups: EC2 Compute recurring $20.304, EC2 Other $4.6211618338, VPC $1.95, Route 53 $1.5234548. Full nonzero breakdown recorded in the original prompt entry.
+- **Scope and limitations:** Account-wide total, not a project-only allocation. AWS marks the period estimated; recent usage may lag. No credits/refunds appeared. No resources, permissions, application code, or persistent CLI configuration changed; normal login refreshed the authentication cache. No application tests run. Cost check complete; no new idea or decision IDs apply.
+
+## 2026-11-18
+
+- **Prompt:** [Project next steps](prompts/2026-11-18-001-project-next-steps.md); IDEA-011 (Discussing).
+- **Findings:** Browser client TASK-011 is complete. Latest memory-review UI TASK-012 is deployed and passed isolated backend checks, but owner browser acceptance remains. Android build/install and device criteria for TASK-001 through TASK-004 remain pending.
+- **Recommendation and choice:** Close the browser memory acceptance check, then finish Android Phase 1. Ask owner to choose Android next versus browser-first work and identify the target phone. Cost metering, deletion, and later passkey/voice/Gmail/recording features remain in the recorded scope; no new priority decision finalized.
+- **Changes and verification:** Prompt, idea discussion, and diary only. Read task/debt/idea/deployment/handoff records; no fresh runtime checks, tests, application/AWS changes, or defect repairs. No task marked complete.
+
+- **Prompt:** [Pixel 8a friend build](prompts/2026-11-18-002-pixel-8a-friend-build.md); IDEA-012 Finalized, IDEA-011 still Discussing; TASK-004, DEBT-003/007.
+- **Owner decision:** Google Pixel 8a, Android 16 or later; a friend will compile because the owner's laptop has no SDK. Device/build arrangement accepted; broader roadmap sequence not newly approved.
+- **Changes:** Expanded Android handoff and built a nine-file source ZIP containing Android source, guide, and exactly three validated public app settings. Updated task/idea/debt records. No app/build-setting changes, AWS changes, SDK installation, or message to the friend.
+- **Verification:** Official AGP Gradle/JDK compatibility checked. ZIP integrity and all content hashes passed; archive 8,444 bytes, SHA-256 d2ca6673060db453905dccf3e380cfdcd7fd29b302c159e15f432dbfe8a200ce. Initial .NET ZIP packaging failed before archive creation; Python packaging succeeded. No Gradle build or device tests run.
+- **Limitations and next:** No Gradle wrapper exists; documented installed Gradle 8.13 as current build path and logged DEBT-007 without repairing source. Friend returns debug APK/checksum/build result; owner signs in and tests on Pixel 8a. Android acceptance and later OS compatibility remain unverified; TASK-001 through TASK-004 and browser memory check TASK-012 remain open.

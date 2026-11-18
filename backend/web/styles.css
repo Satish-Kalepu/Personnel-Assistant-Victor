@@ -1,0 +1,54 @@
+:root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #202d36; background: #f4f7f6; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, textarea, input { font: inherit; }
+button { border: 0; border-radius: .7rem; padding: .7rem 1rem; color: white; background: #176b63; cursor: pointer; }
+button:hover { background: #10564f; }
+button:disabled { opacity: .55; cursor: wait; }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid #85bcff; outline-offset: 2px; }
+.secondary { color: #176b63; background: #e3efeb; }
+.secondary:hover { background: #d2e7e1; }
+.shell { max-width: 920px; min-height: 100vh; margin: auto; padding: 1.5rem; }
+.topbar, .session, .toolbar, .panel-heading, .composer-footer, .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.eyebrow { margin: 0; color: #547169; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+h1 { margin: .1rem 0 .8rem; font-size: 2rem; }
+h2 { margin: 0; font-size: 1.2rem; }
+.session { flex-wrap: wrap; justify-content: flex-end; }
+.notice { margin: 1rem 0; padding: .85rem 1rem; border-radius: .7rem; background: #e4efed; }
+.notice.error { background: #ffe9e4; color: #8f2d1a; }
+.workspace { overflow: hidden; border: 1px solid #d9e3df; border-radius: 1rem; background: white; box-shadow: 0 12px 32px #183f3210; }
+.modes { display: flex; gap: .5rem; padding: 1rem 1rem 0; }
+.modes button { color: #33574e; background: transparent; }
+.modes button[aria-pressed="true"] { color: white; background: #176b63; }
+.toolbar { padding: .5rem 1rem; border-bottom: 1px solid #e7eeea; }
+.toolbar p { margin: .5rem 0; font-size: .9rem; color: #597069; }
+.toolbar div { display: flex; gap: .5rem; }
+.messages { min-height: 300px; max-height: 55vh; overflow: auto; padding: 1.25rem; display: flex; flex-direction: column; gap: .8rem; }
+.empty { margin: auto; color: #647772; text-align: center; }
+.message { max-width: min(78%, 640px); padding: .85rem 1rem; border-radius: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message.user { align-self: flex-end; background: #176b63; color: white; border-bottom-right-radius: .25rem; }
+.message.assistant { align-self: flex-start; background: #eef4f1; border-bottom-left-radius: .25rem; }
+.message strong { display: block; margin-bottom: .25rem; font-size: .75rem; opacity: .75; }
+.composer { border-top: 1px solid #e7eeea; padding: 1rem; }
+.composer label, #fact-form label { display: block; margin-bottom: .4rem; font-weight: 600; }
+textarea, #fact-form input { width: 100%; padding: .75rem; border: 1px solid #b7cbc3; border-radius: .6rem; background: white; color: #202d36; }
+textarea { resize: vertical; }
+.composer-footer { margin-top: .7rem; }
+small { color: #6d5551; }
+.memory-panel { padding: 1.2rem; border-top: 1px solid #d9e3df; }
+.memory-panel p { color: #597069; }
+.memory-tabs { display: flex; gap: .5rem; margin: 1rem 0; }
+.memory-tabs button { color: #33574e; background: #e3efeb; }
+.memory-tabs button[aria-pressed="true"] { color: white; background: #176b63; }
+.fact { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .8rem 0; border-top: 1px solid #e7eeea; }
+.fact span { overflow-wrap: anywhere; }
+.fact-details { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.fact-added { color: #597069; font-size: .82rem; }
+.fact-review { color: #597069; font-size: .78rem; }
+.fact > div:last-child { display: flex; flex-wrap: wrap; gap: .5rem; flex-shrink: 0; }
+.danger { color: #a33025; background: #ffebe7; }
+.danger:hover { background: #ffd5cd; }
+dialog { width: min(430px, calc(100% - 2rem)); border: 0; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 20px 70px #102a3080; }
+dialog::backdrop { background: #122b3880; }
+#fact-form input { margin-bottom: 1rem; }
+@media (max-width: 650px) { .shell { padding: .7rem; } .topbar, .toolbar, .composer-footer, .fact { align-items: flex-start; flex-direction: column; } .session { justify-content: flex-start; } .toolbar div { width: 100%; } .message { max-width: 90%; } }

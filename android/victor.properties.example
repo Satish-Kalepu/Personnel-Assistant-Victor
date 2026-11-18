@@ -1,0 +1,3 @@
+API_URL=https://example.execute-api.ap-south-1.amazonaws.com/v1
+COGNITO_DOMAIN=https://your-prefix.auth.ap-south-1.amazoncognito.com
+CLIENT_ID=replace-with-user-pool-client-id

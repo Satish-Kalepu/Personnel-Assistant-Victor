@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Victor</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Private assistant</p>
+        <h1>Victor</h1>
+      </div>
+      <div class="session">
+        <span id="session-status" role="status">Signed out</span>
+        <button id="sign-in" type="button">Sign in</button>
+        <button id="sign-out" type="button" hidden>Sign out</button>
+      </div>
+    </header>
+
+    <div id="notice" class="notice" role="status">Sign in to continue.</div>
+
+    <section id="workspace" class="workspace" hidden aria-label="Victor workspace">
+      <nav class="modes" aria-label="Conversation mode">
+        <button id="personal-mode" type="button" aria-pressed="true">Personal</button>
+        <button id="practice-mode" type="button" aria-pressed="false">English practice</button>
+      </nav>
+      <div class="toolbar">
+        <p id="mode-description">Victor can use and add to your personal memory.</p>
+        <div>
+          <button id="memory-button" class="secondary" type="button">Memory</button>
+          <button id="new-chat" class="secondary" type="button">New chat</button>
+        </div>
+      </div>
+      <section id="messages" class="messages" aria-label="Conversation" aria-live="polite"></section>
+      <form id="chat-form" class="composer">
+        <label for="message-input">Your message</label>
+        <textarea id="message-input" rows="3" maxlength="4000" placeholder="Write to Victor…" required></textarea>
+        <div class="composer-footer">
+          <small>Phase 1 cannot safely store passwords or account numbers.</small>
+          <button id="send-button" type="submit">Send</button>
+        </div>
+      </form>
+      <section id="memory-panel" class="memory-panel" hidden aria-label="Personal memory">
+        <div class="panel-heading"><h2>Personal memory</h2><button id="close-memory" class="secondary" type="button">Close</button></div>
+        <p>Confirm or correct a fact to move it out of Pending review. All memory keeps it available to Victor.</p>
+        <div class="memory-tabs" aria-label="Memory view">
+          <button id="pending-facts" type="button" aria-pressed="true">Pending review</button>
+          <button id="all-facts" type="button" aria-pressed="false">All memory</button>
+        </div>
+        <div id="facts"></div>
+      </section>
+    </section>
+  </main>
+  <dialog id="fact-dialog">
+    <form id="fact-form">
+      <h2>Correct a fact</h2>
+      <label for="fact-subject">Subject</label><input id="fact-subject" maxlength="160" required>
+      <label for="fact-predicate">Relationship</label><input id="fact-predicate" maxlength="160" required>
+      <label for="fact-object">Value</label><input id="fact-object" maxlength="160" required>
+      <div class="dialog-actions">
+        <button id="cancel-fact" class="secondary" type="button">Cancel</button>
+        <button type="submit">Save correction</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,8 @@
+I want to simplify it. change the app like this regarding aws resources:
+1. I will provide accesskey with full privileges 
+2. using aws cli you have to read/check/deploy everything
+3. do not use AWS CloudFormation Stack. 
+4. host everything with aws cli apis normally. 
+5. do not use aws cognito and advanced controlls 
+6. just keep the users/user-sessions/user-password also in the same dynamo db table itself. user the same table for all settings and logs 
+7. do not use aws bedrock, i will provide chatgpt key, you can use gpt-6 model 

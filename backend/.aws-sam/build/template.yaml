@@ -1,0 +1,322 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Victor Phase 1 private text assistant (Mumbai)
+Parameters:
+  CognitoDomainPrefix:
+    Type: String
+    Description: Globally unique Cognito managed-login domain prefix
+  BedrockModelArn:
+    Type: String
+    Description: Direct foundation-model ARN hosted in ap-south-1 only (used as modelId
+      and IAM resource)
+    AllowedPattern: ^arn:aws:bedrock:ap-south-1::foundation-model/[A-Za-z0-9._:-]+$
+    ConstraintDescription: Must be a direct ap-south-1 foundation-model ARN; inference
+      profiles can route outside Mumbai.
+  MonthlyAllowanceCents:
+    Type: Number
+    Default: 5000
+    MinValue: 1
+    Description: App-side monthly processing allowance in US cents, shared by chat
+      reservations and future jobs
+  ChatReserveCents:
+    Type: Number
+    Default: 5
+    MinValue: 1
+    Description: Conservative reservation per chat in US cents; set after measuring
+      the selected model
+  BudgetAlertEmail:
+    Type: String
+    Description: AWS account email that receives monthly cost-budget alerts
+    AllowedPattern: ^[^@\s]+@[^@\s]+\.[^@\s]+$
+  WebCallbackUrl:
+    Type: String
+    Default: ''
+    Description: Existing API Gateway /v1/web/index.html URL used for browser sign-in;
+      leave empty until API URL exists
+    AllowedPattern: ^$|^https://[a-z0-9]+\.execute-api\.ap-south-1\.amazonaws\.com/v1/web/index\.html$
+Conditions:
+  BrowserCallbackEnabled:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: WebCallbackUrl
+      - ''
+Globals:
+  Function:
+    Runtime: python3.13
+    Architectures:
+    - arm64
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        TABLE_NAME:
+          Ref: DataTable
+        BEDROCK_MODEL_ID:
+          Ref: BedrockModelArn
+        MONTHLY_ALLOWANCE_CENTS:
+          Ref: MonthlyAllowanceCents
+        CHAT_RESERVE_CENTS:
+          Ref: ChatReserveCents
+        COGNITO_DOMAIN:
+          Fn::Sub: https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com
+        COGNITO_CLIENT_ID:
+          Ref: UserPoolClient
+Resources:
+  MonthlyAccountBudget:
+    Type: AWS::Budgets::Budget
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Budget:
+        BudgetName: victor-account-50-monthly
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: '50'
+          Unit: USD
+      NotificationsWithSubscribers:
+      - Notification:
+          NotificationType: ACTUAL
+          ComparisonOperator: GREATER_THAN
+          Threshold: 80
+          ThresholdType: PERCENTAGE
+        Subscribers:
+        - SubscriptionType: EMAIL
+          Address:
+            Ref: BudgetAlertEmail
+      - Notification:
+          NotificationType: ACTUAL
+          ComparisonOperator: GREATER_THAN
+          Threshold: 100
+          ThresholdType: PERCENTAGE
+        Subscribers:
+        - SubscriptionType: EMAIL
+          Address:
+            Ref: BudgetAlertEmail
+      - Notification:
+          NotificationType: FORECASTED
+          ComparisonOperator: GREATER_THAN
+          Threshold: 100
+          ThresholdType: PERCENTAGE
+        Subscribers:
+        - SubscriptionType: EMAIL
+          Address:
+            Ref: BudgetAlertEmail
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      UsernameAttributes:
+      - email
+      AutoVerifiedAttributes:
+      - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 14
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+      UserPoolName: victor-private
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain:
+        Ref: CognitoDomainPrefix
+      UserPoolId:
+        Ref: UserPool
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+      - ALLOW_REFRESH_TOKEN_AUTH
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - code
+      AllowedOAuthScopes:
+      - openid
+      - email
+      CallbackURLs:
+        Fn::If:
+        - BrowserCallbackEnabled
+        - - victor://oauth2redirect
+          - Ref: WebCallbackUrl
+        - - victor://oauth2redirect
+      LogoutURLs:
+        Fn::If:
+        - BrowserCallbackEnabled
+        - - victor://oauth2redirect
+          - Ref: WebCallbackUrl
+        - - victor://oauth2redirect
+      SupportedIdentityProviders:
+      - COGNITO
+  DataTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+      - AttributeName: pk
+        AttributeType: S
+      - AttributeName: sk
+        AttributeType: S
+      KeySchema:
+      - AttributeName: pk
+        KeyType: HASH
+      - AttributeName: sk
+        KeyType: RANGE
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: v1
+      Auth:
+        DefaultAuthorizer: CognitoJwt
+        Authorizers:
+          CognitoJwt:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer:
+                Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience:
+              - Ref: UserPoolClient
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /victor/${AWS::StackName}/api
+      RetentionInDays: 14
+  ApiExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: victor-api-runtime
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: TableAccess
+            Effect: Allow
+            Action:
+            - dynamodb:BatchWriteItem
+            - dynamodb:Query
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+            - dynamodb:UpdateItem
+            Resource:
+              Fn::GetAtt:
+              - DataTable
+              - Arn
+          - Sid: ModelAccess
+            Effect: Allow
+            Action: bedrock:InvokeModel
+            Resource:
+              Ref: BedrockModelArn
+          - Sid: LogStreamAccess
+            Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+              Fn::GetAtt:
+              - ApiLogGroup
+              - Arn
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ApiFunction
+      Handler: app.handler.handler
+      Role:
+        Fn::GetAtt:
+        - ApiExecutionRole
+        - Arn
+      LoggingConfig:
+        LogGroup:
+          Ref: ApiLogGroup
+      Events:
+        Chat:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /chat
+            Method: POST
+        Messages:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /messages
+            Method: GET
+        Facts:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /facts
+            Method: GET
+        UpdateFact:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /facts/{id}
+            Method: PATCH
+        DeleteFact:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /facts/{id}
+            Method: DELETE
+        WebHome:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /web
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        WebAsset:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: Api
+            Path: /web/{asset}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      SamResourceId: ApiFunction
+Outputs:
+  ApiBaseUrl:
+    Value:
+      Fn::Sub: https://${Api}.execute-api.${AWS::Region}.amazonaws.com/v1
+  UserPoolId:
+    Value:
+      Ref: UserPool
+  UserPoolClientId:
+    Value:
+      Ref: UserPoolClient
+  CognitoDomain:
+    Value:
+      Fn::Sub: https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com
+  WebUrl:
+    Value:
+      Fn::Sub: https://${Api}.execute-api.${AWS::Region}.amazonaws.com/v1/web/index.html
