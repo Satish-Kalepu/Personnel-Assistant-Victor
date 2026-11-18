@@ -6,7 +6,7 @@ plugins {
 }
 
 val victorConfig = Properties().apply {
-    val configFile = rootProject.file("victor.properties.example")
+    val configFile = rootProject.file("victor.properties")
     if (configFile.exists()) configFile.inputStream().use { load(it) }
 }
 fun config(name: String): String = (victorConfig.getProperty(name) ?: "").replace("\\", "\\\\").replace("\"", "\\\"")
