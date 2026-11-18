@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- chat bubble -->
+    <path android:fillColor="#FFFFFF" android:pathData="M40,38 H66 A10,10 0 0 1 76,48 V62 A10,10 0 0 1 66,72 H45 L36,80 L37,71.5 A10,10 0 0 1 30,62 V48 A10,10 0 0 1 40,38 Z" />
+    <!-- V monogram -->
+    <path android:fillColor="#4F46E5" android:pathData="M43,45 L49.5,45 L53,56 L56.5,45 L63,45 L56,65 L50,65 Z" />
+    <!-- assistant spark -->
+    <path android:fillColor="#FBBF24" android:pathData="M75,30 Q76.2,35.8 82,37 Q76.2,38.2 75,44 Q73.8,38.2 68,37 Q73.8,35.8 75,30 Z" />
+</vector>

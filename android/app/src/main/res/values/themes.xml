@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Victor" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/victor_primary</item>
+        <item name="android:colorPrimaryDark">@color/victor_primary_dark</item>
+        <item name="android:colorAccent">@color/victor_accent</item>
+        <item name="android:windowBackground">@color/victor_background</item>
+        <item name="android:textColorPrimary">@color/victor_text</item>
+    </style>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="victor_primary">#4F46E5</color>
+    <color name="victor_primary_dark">#3730A3</color>
+    <color name="victor_accent">#9333EA</color>
+    <color name="victor_background">#F5F3FF</color>
+    <color name="victor_surface">#FFFFFF</color>
+    <color name="victor_outline">#E0DDFB</color>
+    <color name="victor_chip">#EDE9FE</color>
+    <color name="victor_text">#1E1B4B</color>
+    <color name="victor_text_muted">#6B7280</color>
+</resources>

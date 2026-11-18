@@ -1,24 +1,24 @@
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
 }
 
 val victorConfig = Properties().apply {
-    val configFile = rootProject.file("victor.properties")
+    val configFile = rootProject.file("victor.properties.example")
     if (configFile.exists()) configFile.inputStream().use { load(it) }
 }
 fun config(name: String): String = (victorConfig.getProperty(name) ?: "").replace("\\", "\\\\").replace("\"", "\\\"")
 
 android {
     namespace = "com.victor.assistant"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.victor.assistant"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
         manifestPlaceholders["appAuthRedirectScheme"] = "victor"
@@ -26,16 +26,52 @@ android {
         buildConfigField("String", "COGNITO_DOMAIN", "\""+config("COGNITO_DOMAIN")+"\"")
         buildConfigField("String", "CLIENT_ID", "\""+config("CLIENT_ID")+"\"")
     }
-    buildFeatures { buildConfig = true }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 dependencies {
-    implementation("androidx.activity:activity-ktx:1.12.4")
-    implementation("net.openid:appauth:0.11.1")
-    implementation("com.squareup.okhttp3:okhttp:5.5.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.appauth)
+    implementation(libs.okhttp)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
