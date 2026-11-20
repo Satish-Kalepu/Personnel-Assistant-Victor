@@ -1,4 +1,4 @@
-﻿# Android build handoff
+ï»¿# Android build handoff
 
 Target: Google Pixel 8a, Android 16+. Share the repository with the friend; no ZIP or provider key is needed. The owner's laptop has no SDK. This update remains source-only until the friend builds and the owner tests it.
 
@@ -31,3 +31,10 @@ Get-FileHash -Algorithm SHA256 -LiteralPath app/build/outputs/apk/debug/app-debu
 Owner acceptance: registration/local Mailpit OTP, login/relaunch, forgot/change password and recovery codes, sign-out, both modes, conversation history/deletion, memory Pending/All/Confirm/correction/local timestamps/pagination, microphone permission/denial, voice mute/interruption/audio routing. Backgrounding, mode/account changes and sign-out must stop capture/stale playback. Sessions use Keystore-managed encryption; app screenshots/backups are disabled. Compilation/device behavior are not verified by source checks.
 
 The [previous handoff](legacy-android-build-handoff.md) is historical and must not be used for the new build.
+
+## Private stage build setting
+
+For the running EC2 preview before the HTTPS domain is supplied, build with `API_URL=http://localhost:18080/api`. On the owner's laptop, establish the stage SSH tunnel and run `adb reverse tcp:18080 tcp:18080`. The friend only compiles; no private keys/provider settings are shared. Rebuild with the supplied HTTPS domain for public staging/production.
+
+
+Stage HTTPS update (2026-11-21): use `API_URL=https://ai_test.satishk.com/api` for the supplied domain. The app now trusts that origin and uses real SMTP. The earlier loopback/tunnel instructions above describe the initial private deployment; use the HTTPS domain for current stage sign-in. Voice needs the owner-applied Nginx directives in docs/stage-nginx.md and real device acceptance remains pending.

@@ -1,4 +1,4 @@
-﻿# Stage sign-in and routing reply - 2026-11-21
+# Stage sign-in and routing reply - 2026-11-21
 
 ## Prompt
 Reply to: The normal AWS sign-in page is open for the expired session. Please complete sign-in locally and tell me when done so I can verify the stage server’s identity. No AWS resources have been changed.
@@ -12,13 +12,13 @@ Answer: I will provide the HTTPS domain and ALB details
 - Domain/ALB details will be supplied by owner; do not invent DNS/certificate/listener settings or expose a development service publicly while waiting.
 
 ## Actions
-- Resume access verification and independent local restore/deployment preparation.
+- Observed AWS SSO success, verified EC2 identity and continued deployment after owner key confirmation. Private stage now runs; domain/ALB choice remains pending.
 
 ## Files changed
 - This prompt entry; related records will be updated as work progresses.
 
 ## Verification
-- SSO and host verification pending. No server mutation yet.
+- SSO/host authentication verified; private stage healthy and real provider checks pass. No ALB/DNS/certificate changes made.
 
 ## Outcome
-- In progress.
+- Sign-in action complete. Public routing waits for actual domain/ALB details; private service deployment complete.

@@ -80,6 +80,8 @@ Track known compromises, why they exist, their impact, and the conditions for re
 
 No resolved entries yet.
 
+- **2026-11-21 implementation evidence:** Shared Redis leases and three-second session revocation checks now replace process-only ownership in the new API; authenticated duplicate-session/logout tests passed. DEBT-009 stays open for multi-replica/network-failure/load acceptance. Whole-response speech latency (DEBT-008) remains: synthetic first audio measured 3.66s locally and 2.58s through EC2; actual microphone/Pixel quality is unverified. The old Lambda-specific caveats above are historical after retirement.
+
 
 ## Planning follow-up
 
@@ -94,3 +96,15 @@ No resolved entries yet.
 - **2026-11-20 migration context:** DEBT-002 needs both per-user and application-wide admission accounting for public signup; the $50 application guard is not an invoice guarantee. DEBT-009 process-local voice ownership must become shared/revocable under TASK-015; planned Redis use does not close it. DEBT-001 secret detection and DEBT-008 speech latency remain unresolved; a provider/backend port alone does not repair them.
 
 - **DEBT-010 accepted direction (2026-11-20):** Owner approved IDEA-015 and the initial Compose/EC2 design. The single-host compromise is selected, not yet deployed remotely. Off-host backup destination, recovery targets and restore evidence remain production release requirements. The initial local implementation is not high availability.
+
+### DEBT-011 - Existing stage host operating limitations
+- **Source:** IDEA-015; TASK-017; prompts 2026-11-21-001 through 004; docs/stage-deployment.md.
+- **Status:** Open; private stage operating on explicitly supplied host. No unrelated host repair authorized.
+- **Evidence:** Amazon Linux 2, kernel 5.10.179, Docker 25.0.3; AWS says AL2 standard support ended 2026-06-30. Root 50GiB gp2 EBS is unencrypted; about 11GiB free/80% used after deployment. Docker service is disabled for boot. Existing native MongoDB listens on 27017 and broad public rules include it.
+- **Owner decision:** On 2026-11-21 owner explicitly declined the proposed MongoDB/security-group restriction and states authentication is enabled. Preserve the service/rules and do not repeat the repair request. Authentication is owner-confirmed, not independently audited; unrelated DB contents were not queried.
+- **Mitigation for this deployment:** Dedicated project/user directory, private unpublished app MongoDB/Redis, loopback web/mail, exact image/runtime verification, bounded resources/logs, env outside Git with restrictive permissions. Existing services and security groups unchanged. App-scoped Compose needs no system upgrade/sudo.
+- **Before public production:** Review supported OS/runtime and encrypted storage migration, off-host backup policy/recovery targets, disk alarms and administrator-controlled Docker boot behavior. Do not upgrade/reboot/migrate/enable unrelated host services automatically. Current restart policies help only while the Docker daemon runs.
+
+- **DEBT-010 stage evidence (2026-11-21):** The single-host compromise is now deployed privately on the supplied EC2; new local encrypted cold-restore/restart proof passed. Off-host production backup destination/retention and recovery targets remain open. Prior ?not yet deployed? text records the earlier planning state.
+
+- **2026-11-21 HTTPS stage follow-up (IDEA-015/TASK-017):** Owner supplied ai_test.satishk.com and SMTP, then chose manual Nginx editing (prompts 006?008). Dedicated app is now production-mode with exact HTTPS origin/Secure cookies and real SMTP; TLS/authentication checks passed from EC2 and operator, no email sent. Supplied endpoint is AWS Mail Manager rather than the earlier planned Mumbai SES SMTP endpoint. DNS uses direct host Nginx, so no ALB was created. Proposed domain-only voice/client-IP location blocks passed isolated host-binary syntax check. Manual host application, actual inbox delivery/suppression and browser/Pixel voice acceptance remain open; no unrelated host repair performed.

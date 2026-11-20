@@ -1,4 +1,4 @@
-﻿# Keep existing MongoDB rules - 2026-11-21
+# Keep existing MongoDB rules - 2026-11-21
 
 ## Prompt
 Reply to: May I repair the existing security group by excluding MongoDB port 27017 from the public IPv4/IPv6 20000–30000 rules, retaining all other ports and allowing MongoDB from VPC 172.31.0.0/16? Public remote MongoDB clients would be blocked; local/VPC access and the new private Docker database remain available.
@@ -10,10 +10,10 @@ Answer: Nope. keep it. it is a stage server anyway and auth enabled.
 - This does not change the approved new app architecture: separate authenticated MongoDB/Redis containers on an unpublished private network.
 
 ## Actions
-- Acknowledged decision; continue isolated stage deployment and record the existing-host operating risk without applying a repair.
+- Preserved the exact existing MongoDB/service/security rules. New app uses its own unpublished MongoDB/Redis; stage deployed without changing unrelated listeners/workloads.
 
 ## Files changed
-- This prompt entry and related decision/debt/diary records as work progresses. No security-group changes.
+- This prompt entry and related stage/decision/debt/diary records. No security-group changes.
 
 ## Verification
 - No repair performed. Owner statement about existing authentication is recorded as supplied, not independently audited.
