@@ -1,10 +1,10 @@
-Ã¯Â»Â¿# Stage deployment record
+ÃƒÂ¯Ã‚Â»Ã‚Â¿# Stage deployment record
 
 ## Running service - 2026-11-21
 
 Owner supplied `ai_assistant@65.2.130.74` (prompt 001, IDEA-015/TASK-017), explicitly confirmed its ED25519 fingerprint (prompt 003), preserved existing MongoDB/security rules (prompt 004), and authorized GitHub push/pull (prompt 005).
 
-The `victor-stage` project is running under `/home/ai_assistant/victor-stage`. API, web, MongoDB and Redis are healthy; database setup exited successfully. Initial private-stage Mailpit is no longer used by the production-mode app. New MongoDB/Redis have no published ports. Web binds only `127.0.0.1:18080`; Mailpit viewer only `127.0.0.1:18025`. Existing host services, the stopped unrelated container, native databases and security groups remain unchanged.
+The `victor-stage` project is running under `/home/ai_assistant/victor-stage`. API, web, MongoDB and Redis are healthy; database setup exited successfully. Initial private-stage Mailpit is stopped and its volume preserved; the production-mode app uses real SMTP. New MongoDB/Redis have no published ports. Web binds only `127.0.0.1:18080`; Mailpit viewer only `127.0.0.1:18025`. Existing host services, the stopped unrelated container, native databases and security groups remain unchanged.
 
 The operator SSH tunnel initially provided:
 
@@ -21,7 +21,7 @@ Compose v5.5.1 was verified against Docker's published SHA-256 and installed onl
 
 The Git-native build/deploy helper has passed Bash syntax checks; its complete remote-build/rollback path has not been exercised. Initial deployment used the already-verified local images.
 
-The linked GitHub key successfully cloned the `Stage` branch into `~/victor-stage/repository`; application source was already pushed at `d91075b`. Subsequent helper/record commits preserve that user commit. The server checkout refuses dirty changes and uses fast-forward pulls. For a reviewed source update, `deploy/scripts/deploy-stage-from-git.sh` pulls Stage, builds versioned images inside Docker (no host Node upgrade), preserves the private env values/data, and starts the dedicated release with health checks. Previous image settings are retained for rollback; do not prune other images or reset volumes.
+The linked GitHub key successfully cloned the `Stage` branch into `~/victor-stage/repository`; application source was already pushed at `d91075b`. Helper/record commit `79fd23f` was non-force pushed and fast-forward pulled successfully on EC2, preserving that user commit. The server checkout refuses dirty changes and uses fast-forward pulls. For a reviewed source update, `deploy/scripts/deploy-stage-from-git.sh` pulls Stage, builds versioned images inside Docker (no host Node upgrade), preserves the private env values/data, and starts the dedicated release with health checks. Previous image settings are retained for rollback; do not prune other images or reset volumes.
 
 ## Verification
 

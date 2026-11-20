@@ -8,16 +8,16 @@ give me nginx configuration , i will udpate manually
 - Provide WebSocket upgrade, trusted client-IP forwarding and syntax-check/reload instructions. Do not edit/reload host Nginx automatically.
 
 ## Actions
-- Preparing copyable location blocks and an operator reference; continuing authorized app/SMTP checks independently.
+- Prepared copyable location blocks and an operator reference; app HTTPS/SMTP configuration and checks completed independently.
 
 ## Files changed
 - This prompt entry and deployment documentation. No host configuration changed.
 
 ## Verification
-- Configuration syntax/runtime checks pending manual application. Existing domain reaches the app but its origin still rejects domain requests until app configuration is updated.
+- Proposed fragment passed isolated host-binary syntax check. HTTPS app origin now works and SMTP TLS/authentication passed from EC2. Full actual host config validation/reload and voice handshake remain pending manual application.
 
 ## Outcome
-- Nginx proposal being prepared for manual application.
+- Copyable Nginx proposal ready and pushed/pulled on Stage. Host config not edited or reloaded by the agent.
 
 ## Follow-up verification and outcome
 - Owner supplied SMTP in ignored .env.stage and requested manual proxy editing. Production-mode app now trusts https://ai_test.satishk.com, enables Secure cookies and uses authenticated TLS SMTP; prior origin rejection resolved. Database/auth secrets and image versions preserved. No host Nginx/security-group/native database changes.
