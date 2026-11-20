@@ -1,0 +1,39 @@
+{
+  "name": "victor-api",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test": "node --test --test-concurrency=1 test/*.test.mjs",
+    "indexes": "node dist/setup.js"
+  },
+  "dependencies": {
+    "@better-auth/mongo-adapter": "1.7.26",
+    "better-auth": "1.7.26",
+    "express": "5.3.0",
+    "mongodb": "7.9.1",
+    "nodemailer": "10.6.0",
+    "openai": "7.60.0",
+    "redis": "6.3.1",
+    "sarvamai": "1.1.20",
+    "ws": "8.23.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "24.10.0",
+    "@types/nodemailer": "7.0.11",
+    "@types/ws": "8.18.1",
+    "tsx": "4.21.0",
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "esbuild": "0.28.1"
+  }
+}

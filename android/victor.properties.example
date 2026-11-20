@@ -1,3 +1,4 @@
-API_URL=https://example.execute-api.ap-south-1.amazonaws.com/v1
-COGNITO_DOMAIN=https://your-prefix.auth.ap-south-1.amazoncognito.com
-CLIENT_ID=replace-with-user-pool-client-id
+# Debug with USB adb reverse tcp:8080 tcp:8080 (localhost here is the phone).
+API_URL=http://localhost:8080/api
+# Release: API_URL=https://your-domain.example/api
+# Provider keys NEVER belong in Android settings.

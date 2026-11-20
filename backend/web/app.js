@@ -7,6 +7,8 @@ const ui = {
   workspace: $("workspace"), personal: $("personal-mode"), practice: $("practice-mode"),
   modeDescription: $("mode-description"), messages: $("messages"), form: $("chat-form"),
   input: $("message-input"), send: $("send-button"), newChat: $("new-chat"),
+  voiceStart: $("voice-start"), voiceStop: $("voice-stop"), voiceInterrupt: $("voice-interrupt"),
+  voiceMuted: $("voice-muted"), voiceStatus: $("voice-status"), voiceTranscript: $("voice-transcript"),
   memoryButton: $("memory-button"), memoryPanel: $("memory-panel"), closeMemory: $("close-memory"),
   pendingFacts: $("pending-facts"), allFacts: $("all-facts"),
   facts: $("facts"), factDialog: $("fact-dialog"), factForm: $("fact-form"),
@@ -20,6 +22,18 @@ let selectedFactId = null;
 let memoryView = "pending";
 let memoryFacts = [];
 const conversationIds = { personal: null, practice: null };
+const voice = window.VictorVoice ? new window.VictorVoice({
+  api, token: () => accessToken,
+  onState(state) {
+    const active = state !== "idle";
+    ui.voiceStart.disabled = active; ui.voiceStop.disabled = !active;
+    ui.voiceInterrupt.disabled = !active;
+    ui.voiceStatus.textContent = ({ idle: "Voice off", connecting: "Connecting…", listening: "Listening…", thinking: "Thinking…", speaking: "Speaking…" })[state] || state;
+  },
+  onTranscript(text) { ui.voiceTranscript.textContent = text; },
+  onReply(data) { conversationIds[mode] = data.conversationId; refreshMessages().catch(showError); },
+  onError(message) { notice(message, true); },
+}) : null;
 
 function notice(message, error = false) {
   ui.notice.textContent = message;
@@ -43,6 +57,8 @@ function signedIn(token, seconds) {
 }
 
 function signedOut(message = "Signed out.") {
+  voice?.stop();
+  ui.voiceTranscript.textContent = "";
   accessToken = null;
   expiresAt = 0;
   ui.status.textContent = "Signed out";
@@ -169,6 +185,8 @@ async function refreshMessages() {
 }
 
 function chooseMode(next) {
+  voice?.stop();
+  ui.voiceTranscript.textContent = "";
   mode = next;
   ui.personal.setAttribute("aria-pressed", String(next === "personal"));
   ui.practice.setAttribute("aria-pressed", String(next === "practice"));
@@ -182,6 +200,7 @@ function chooseMode(next) {
 
 async function sendMessage(event) {
   event.preventDefault();
+  voice?.stop();
   const message = ui.input.value.trim();
   if (!message) return;
   const selected = mode;
@@ -310,7 +329,18 @@ ui.signOut.addEventListener("click", signOut);
 ui.personal.addEventListener("click", () => chooseMode("personal"));
 ui.practice.addEventListener("click", () => chooseMode("practice"));
 ui.form.addEventListener("submit", sendMessage);
-ui.newChat.addEventListener("click", () => { conversationIds[mode] = null; renderMessages([]); notice("New conversation ready."); });
+ui.newChat.addEventListener("click", () => { voice?.stop(); conversationIds[mode] = null; renderMessages([]); notice("New conversation ready."); });
+ui.voiceStart.addEventListener("click", () => {
+  if (!accessToken || Date.now() >= expiresAt - 10000) { signedOut("Sign in to use voice."); return; }
+  voice?.start(mode, conversationIds[mode], ui.voiceMuted.checked);
+});
+ui.voiceStop.addEventListener("click", () => voice?.stop());
+ui.voiceInterrupt.addEventListener("click", () => voice?.interrupt());
+ui.voiceMuted.addEventListener("change", () => voice?.setMuted(ui.voiceMuted.checked));
+if (voice) {
+  document.addEventListener("visibilitychange", () => { if (document.hidden) voice.stop(); });
+  window.addEventListener("pagehide", () => voice.stop());
+}
 ui.memoryButton.addEventListener("click", () => {
   memoryView = "pending";
   ui.memoryPanel.hidden = false;

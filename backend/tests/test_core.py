@@ -77,6 +77,20 @@ class FakeBudget:
 
 
 class ServiceTests(unittest.TestCase):
+    def test_voice_uses_the_same_secret_hold_and_mode_boundary(self):
+        class VoiceModel(FakeModel):
+            def reply(self, mode, prior, content, facts, voice=False):
+                self.voice = voice
+                return super().reply(mode, prior, content, facts)
+        repo, model = FakeRepo(), VoiceModel()
+        service = Service(repo, model)
+        service.chat("user-a", {"mode": "practice", "message": "Hello", "voice": True})
+        self.assertTrue(model.voice)
+        self.assertEqual(model.calls[0][3], [])
+        with self.assertRaises(ApiError):
+            service.chat("user-a", {"mode": "personal", "message": "my password is a test", "voice": True})
+        self.assertEqual(len(model.calls), 1)
+
     def setUp(self):
         self.repo = FakeRepo()
         self.model = FakeModel()

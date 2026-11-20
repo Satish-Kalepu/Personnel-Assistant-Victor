@@ -127,7 +127,10 @@ class Service:
         facts = self.repo.facts(subject, 30) if mode == "personal" else []
         if self.budget:
             self.budget.reserve(subject)
-        reply_text = self.model.reply(mode, prior, content, facts)
+        if body.get("voice") is True:
+            reply_text = self.model.reply(mode, prior, content, facts, voice=True)
+        else:
+            reply_text = self.model.reply(mode, prior, content, facts)
         if mode == "personal":
             reply, proposals = parse_personal_answer(reply_text)
         else:

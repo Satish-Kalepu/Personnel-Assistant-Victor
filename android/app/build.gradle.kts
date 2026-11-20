@@ -19,12 +19,9 @@ android {
         applicationId = "com.victor.assistant"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
-        manifestPlaceholders["appAuthRedirectScheme"] = "victor"
+        versionCode = 2
+        versionName = "0.2.0"
         buildConfigField("String", "API_URL", "\""+config("API_URL")+"\"")
-        buildConfigField("String", "COGNITO_DOMAIN", "\""+config("COGNITO_DOMAIN")+"\"")
-        buildConfigField("String", "CLIENT_ID", "\""+config("CLIENT_ID")+"\"")
     }
     buildFeatures { buildConfig = true }
     compileOptions {
@@ -36,6 +33,11 @@ android {
 
 dependencies {
     implementation("androidx.activity:activity-ktx:1.12.4")
-    implementation("net.openid:appauth:0.11.1")
     implementation("com.squareup.okhttp3:okhttp:5.5.1")
+}
+
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name.contains("Release") } && (!config("API_URL").startsWith("https://") || !config("API_URL").trimEnd('/').endsWith("/api"))) {
+        throw GradleException("Release builds require an HTTPS API_URL ending in /api; configure your production domain first.")
+    }
 }

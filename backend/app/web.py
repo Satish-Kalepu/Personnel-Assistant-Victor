@@ -1,12 +1,15 @@
 """Small public web shell for the authenticated Victor API."""
 
 import json
+import os
 from pathlib import Path
 
 
 ASSETS = {
     "index.html": "text/html; charset=utf-8",
     "app.js": "application/javascript; charset=utf-8",
+    "voice.js": "application/javascript; charset=utf-8",
+    "voice-worklet.js": "application/javascript; charset=utf-8",
     "styles.css": "text/css; charset=utf-8",
 }
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
@@ -23,7 +26,8 @@ def web_response(event, cognito_domain, client_id):
         "strict-transport-security": "max-age=31536000; includeSubDomains",
         "content-security-policy": (
             "default-src 'none'; script-src 'self'; style-src 'self'; "
-            f"connect-src 'self' {cognito_domain}; "
+            f"connect-src 'self' {cognito_domain} {os.environ.get('VOICE_GATEWAY_URL', '')}; "
+            "worker-src 'self'; "
             "base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
         ),
     }

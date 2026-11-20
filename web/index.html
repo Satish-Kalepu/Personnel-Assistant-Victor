@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Victor · Your personal assistant</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Your private space</p>
+          <h1>Victor</h1>
+        </div>
+        <div class="session">
+          <span id="session-status" role="status">Signed out</span
+          ><button id="settings-button" class="secondary" hidden>Account</button
+          ><button id="sign-out" hidden>Sign out</button>
+        </div>
+      </header>
+      <div id="notice" class="notice" role="status">
+        Welcome. Sign in or create an account.
+      </div>
+      <section id="auth-panel" class="auth-panel" aria-label="Your account">
+        <nav class="auth-tabs">
+          <button type="button" data-auth="login">Sign in</button
+          ><button type="button" data-auth="register" class="secondary">
+            Register</button
+          ><button type="button" data-auth="forgot" class="secondary">
+            Forgot password</button
+          ><button type="button" data-auth="recover" class="secondary">
+            Use recovery code
+          </button>
+        </nav>
+        <h2 id="auth-title">Welcome back</h2>
+        <form id="auth-form">
+          <label for="auth-email">Email</label
+          ><input
+            id="auth-email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+          />
+          <div id="auth-name-row" hidden>
+            <label for="auth-name">Name</label
+            ><input id="auth-name" autocomplete="name" maxlength="100" />
+          </div>
+          <div id="auth-code-row" hidden>
+            <label id="auth-code-label" for="auth-code"
+              >Email verification code</label
+            ><input
+              id="auth-code"
+              autocomplete="one-time-code"
+              maxlength="32"
+            />
+          </div>
+          <div id="auth-password-row">
+            <label for="auth-password">Password</label
+            ><input
+              id="auth-password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="128"
+              required
+            /><small>Use a unique passphrase of at least 15 characters.</small>
+          </div>
+          <button id="auth-submit" type="submit">Sign in</button>
+          <button id="resend-code" class="secondary" type="button" hidden>
+            Send a new code
+          </button>
+        </form>
+        <p id="auth-help">Your chats and memory belong to your account.</p>
+      </section>
+      <section
+        id="workspace"
+        class="workspace"
+        hidden
+        aria-label="Victor workspace"
+      >
+        <nav class="modes">
+          <button id="personal-mode" aria-pressed="true">Personal</button
+          ><button id="practice-mode" aria-pressed="false">
+            English practice
+          </button>
+        </nav>
+        <div class="toolbar">
+          <p id="mode-description">
+            Victor can use and add to your personal memory.
+          </p>
+          <div>
+            <button id="memory-button" class="secondary">Memory</button
+            ><button id="new-chat" class="secondary">New chat</button
+            ><button id="delete-chat" class="danger">Delete chat</button>
+          </div>
+        </div>
+        <label for="conversation-list">Conversation</label
+        ><select id="conversation-list">
+          <option value="">New conversation</option>
+        </select>
+        <button id="more-conversations" class="secondary" hidden>Load more conversations</button>
+        <p id="usage" class="fact-added"></p>
+        <section
+          id="messages"
+          class="messages"
+          aria-label="Conversation"
+          aria-live="polite"
+        ></section>
+        <button id="older-messages" class="secondary" hidden>
+          Load earlier messages
+        </button>
+        <div class="voice-controls">
+          <button id="voice-start" class="secondary">Start voice</button
+          ><button id="voice-stop" class="secondary" disabled>Stop voice</button
+          ><button id="voice-interrupt" class="secondary" disabled>
+            Stop speaking</button
+          ><label><input id="voice-muted" type="checkbox" /> Mute replies</label
+          ><span id="voice-status" role="status">Voice off</span>
+          <p id="voice-transcript" aria-live="polite"></p>
+        </div>
+        <form id="chat-form" class="composer">
+          <label for="message-input">Your message</label
+          ><textarea
+            id="message-input"
+            rows="3"
+            maxlength="4000"
+            placeholder="Write to Victor…"
+            required
+          ></textarea>
+          <div class="composer-footer">
+            <small>Do not send passwords or account numbers.</small
+            ><button id="send-button" type="submit">Send</button>
+          </div>
+        </form>
+        <section id="memory-panel" class="memory-panel" hidden>
+          <div class="panel-heading">
+            <h2>Personal memory</h2>
+            <button id="close-memory" class="secondary">Close</button>
+          </div>
+          <p>
+            Confirm or correct facts in Pending review. Reviewed facts remain in
+            All memory.
+          </p>
+          <div class="memory-tabs">
+            <button id="pending-facts" aria-pressed="true">
+              Pending review</button
+            ><button id="all-facts" aria-pressed="false">All memory</button>
+          </div>
+          <div id="facts"></div>
+          <button id="more-facts" class="secondary" hidden>
+            Load more memory
+          </button>
+        </section>
+      </section>
+    </main>
+    <dialog id="fact-dialog">
+      <form id="fact-form">
+        <h2>Correct a fact</h2>
+        <label for="fact-subject">Subject</label
+        ><input id="fact-subject" maxlength="160" required /><label
+          for="fact-predicate"
+          >Relationship</label
+        ><input id="fact-predicate" maxlength="160" required /><label
+          for="fact-object"
+          >Value</label
+        ><input id="fact-object" maxlength="160" required />
+        <div class="dialog-actions">
+          <button id="cancel-fact" type="button" class="secondary">
+            Cancel</button
+          ><button type="submit">Save correction</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="recovery-dialog">
+      <h2>Save your recovery codes</h2>
+      <p>
+        Each code works once. Keep them somewhere private; these codes will not
+        be shown again.
+      </p>
+      <pre id="recovery-codes"></pre>
+      <button id="close-recovery">I have saved them</button>
+    </dialog>
+    <dialog id="settings-dialog">
+      <h2>Account</h2>
+      <form id="password-form">
+        <label for="current-password">Current password</label
+        ><input
+          id="current-password"
+          type="password"
+          autocomplete="current-password"
+          maxlength="128"
+          required
+        /><label for="new-password">New password</label
+        ><input
+          id="new-password"
+          type="password"
+          autocomplete="new-password"
+          minlength="15"
+          maxlength="128"
+          required
+        /><button type="submit">Change password</button>
+      </form>
+      <button id="generate-recovery" class="secondary">
+        Replace recovery codes</button
+      ><button id="close-settings" class="secondary">Close</button>
+    </dialog>
+  </body>
+</html>

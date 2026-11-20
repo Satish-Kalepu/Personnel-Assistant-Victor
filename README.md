@@ -1,51 +1,39 @@
-# Victor — personal assistant
+﻿# Victor
 
-Victor is a private Android assistant backed by serverless AWS services in Mumbai. The approved [v1 scope](notes/v1-scope.md) is being built in slices. The Phase 1 backend is deployed: private Cognito sign-in, text chat, isolated Personal and English Practice modes, and basic personal memory review. Unauthenticated API requests returned 401, and direct synthetic Lambda tests passed for both modes. The Android app has not yet been built or tested on a device.
+A private-account personal assistant for the browser and Android. The supported application uses Docker Compose, a modular Node/TypeScript API, MongoDB, Redis and Nginx. OpenAI handles chat/memory; Sarvam handles streaming speech. There is no CloudFormation/serverless deployment in the new workflow.
 
-The [AWS resource plan](notes/aws-resources.md) lists what the Phase 1 template defines and what later features would add.
-The [Phase 1 deployment review draft](notes/deployment-review.md) records the current stack, cost assumptions, and decisions needed before deployment.
-For account access, follow the [Windows AWS CLI and SSO guide](docs/aws-cli-setup.md).
-The [AWS access requirements](aws-requirement.md) state when a local profile is needed and which Phase 1 privileges to prepare.
-The [Android build handoff](docs/android-build-handoff.md) gives the builder the remaining device steps.
-The [occasional browser client](docs/web-client.md) is live at [Victor web](https://zq8981osu8.execute-api.ap-south-1.amazonaws.com/v1/web/index.html). Public page and signed-out API checks passed; the owner reports successful sign-in, both chat modes, memory correction/deletion, and sign-out.
-The live page now includes Pending review, All memory, Confirm, and added timestamps. The owner has not yet checked those new controls in a signed-in browser.
+## Run locally
 
-## Quick start
+Install Docker Desktop with Linux containers and Node 24+ (the application itself runs in containers). From the repository root:
 
-1. Review the [approved scope](notes/v1-scope.md), [tasks](notes/todo.md), and [known limitations](notes/tech-debt.md).
-2. Run the backend tests with `python -m unittest discover -s backend/tests -v`.
-3. Install Python 3.13, AWS SAM CLI, AWS CLI, and Android Studio with JDK 17 and API 36 before deployment or an Android build. AWS credentials must point to your personal account.
-4. In AWS Mumbai (`ap-south-1`), enable a suitable Bedrock Converse model and obtain its model ARN. Confirm pricing and availability before deployment.
-5. From `backend/`, run `sam build` and `sam deploy --guided --region ap-south-1`. Supply a unique Cognito domain prefix and the model ARN. Review the CloudFormation changes before approving deployment.
-6. Create the private Cognito user through the AWS console or `aws cognito-idp admin-create-user --region ap-south-1 --user-pool-id <output-user-pool-id> --username <your-email> --user-attributes Name=email,Value=<your-email> Name=email_verified,Value=true`. Complete the temporary-password flow at sign-in.
-7. The local git-ignored `android/victor.properties` has been filled from the deployed stack outputs. Share that file with the person building the app, or copy `android/victor.properties.example` and fill it from the stack outputs on their computer. Import `android/` in Android Studio, build, and privately install on your phone.
+```powershell
+node deploy/scripts/init-dev.mjs
+ docker compose --env-file .env.dev --env-file .env -f compose.yml -f compose.dev.yml up -d --build
+```
 
-The Android client keeps sign-in tokens in memory only, so relaunching the app requires sign-in again. Phase 1 does not save or retrieve passwords and account numbers. Suspected secret messages are held before any model call and are not stored; detection is imperfect, so do not enter actual credentials until the passkey feature is built and validated.
+Open **http://localhost:8080**. Register, open **http://localhost:8025** to read the local email code, complete registration and privately save the recovery codes. Sign in with your password. Local emails stay in Mailpit; they are not sent to real mailboxes.
 
-The backend reads the authenticated Cognito subject from API Gateway's verified JWT claims. Personal and Practice messages use separate DynamoDB partitions. Practice mode never sends Personal memory to the model and never creates graph facts. Personal fact triples contain source message, conversation, time, and confidence, and can be corrected or deleted. DynamoDB encryption at rest and point-in-time recovery are enabled. Full source chats and facts currently remain until deletion functionality is added.
+The initializer preserves root `.env`. Keep `OPENAI_API_KEY` and `SARVAM_API_KEY` there. `.env.dev` contains generated local database/auth/backup secrets and is ignored. `.env.example` documents shareable placeholders. Never share real env files, print expanded Compose configuration, or put keys into browser/Android settings.
 
-Chat calls now reserve a conservative amount atomically against the owner's monthly processing allowance before calling Bedrock. The default is 5 cents per chat and $50 per month; those figures require review against the selected model and do not limit unrelated AWS charges or future audio jobs.
+The API/web images build locally; MongoDB, Redis and Mailpit use pinned upstream images. MongoDB/Redis have no published host ports. Browser voice requires microphone permission and a supported browser; localhost is allowed, production needs HTTPS. Start/Stop voice, Stop speaking and Mute are available. Ambient recording and wake words are separate future features.
 
-[`AGENTS.md`](AGENTS.md) contains the operating rules for agents. [`CLAUDE.md`](CLAUDE.md) points Claude to the same rules.
+```powershell
+ docker compose --env-file .env.dev --env-file .env -f compose.yml -f compose.dev.yml ps
+ docker compose --env-file .env.dev --env-file .env -f compose.yml -f compose.dev.yml stop
+```
 
-## Project details
+Stopping preserves data. Do not use `down --volumes` on development or production unless you intend to destroy its databases. Changing env passwords after volumes exist does not rotate the existing database credentials.
 
-- **Purpose:** Private personal assistant with conversation memory.
-- **Users:** One owner, potentially using multiple personal Android phones.
-- **Stack:** Kotlin Android and a small browser client; AWS Cognito, API Gateway HTTP API, Lambda, DynamoDB, Bedrock.
-- **Setup / build:** See Quick start above.
-- **Run:** Android client after deploying the API and setting `victor.properties`.
-- **Test:** `python -m unittest discover -s backend/tests -v`; Android build and device tests are pending.
-- **Deployment:** Phase 1 AWS SAM stack `victor-phase1` is `CREATE_COMPLETE` in `ap-south-1`; Android build/device testing remains pending.
+## Accounts and limits
 
-## Records
+Public registration creates a private personal account after email verification. Login uses a password. Email OTP and one-use recovery codes support password recovery; change-password and sign-out revoke sessions. Security questions and Cognito are removed from supported clients. Personal and English Practice remain separate; persistence and voice use verified tenant identities.
 
-| File | What goes there |
-| --- | --- |
-| `notes/ideas.md` | Options under discussion, open questions, and explicit decisions |
-| `notes/todo.md` | Actionable work accepted after a decision |
-| `notes/tech-debt.md` | Known compromises, risks, and follow-up work |
-| `dairy.md` | Dated development activity and outcomes |
-| `prompts/YYYY-MM-DD-NNN-short-topic.md` | Each user prompt and the agent's response/work summary |
+Defaults: 20 chat turns, 300 voice seconds per account per UTC day, one active voice session/account, and a $50/month application AI reservation guard. Public email admission has a configurable global daily cap. Failed/aborted calls can retain conservative reservations; this is not a guaranteed final invoice cap. Infrastructure/email costs and unrelated provider account usage are separate.
 
-Keep these records concise and current. A discussion is not authorization to implement an idea or repair a defect.
+Do not send passwords/account credentials in chat. Secret-pattern holds remain imperfect (DEBT-001); this is not a credential vault. OpenAI `store: false` does not by itself establish zero retention. Processing outside Mumbai is owner-approved; Sarvam Model APIs zero-day retention is owner-confirmed.
+
+## Verification and operations
+
+See [Docker operations](docs/docker-operations.md) for isolated tests, encrypted backup/restore and EC2/ALB release requirements. [Android handoff](docs/android-build-handoff.md) gives the friend the single public API setting. No source ZIP is needed. Actual Android compilation and Pixel/browser microphone quality are separate from backend tests. Remote deployment awaits supplied access/domain and production email setup.
+
+The approved [architecture plan](docs/docker-mongodb-saas-plan.md), [tasks](notes/todo.md) and [known debt](notes/tech-debt.md) track acceptance. Legacy `backend/`, `voice-gateway/` and SAM files preserve historical source/uncommitted work; they are not the supported deployment path. The [former README](docs/legacy-serverless-readme.md) is historical. Check the [retirement record](docs/legacy-retirement.md) for old AWS deletion status; do not use its old URLs/build settings.

@@ -19,6 +19,7 @@ Track known compromises, why they exist, their impact, and the conditions for re
 - **Impact / risk:** Actual AWS charges may exceed $50.
 - **Proposed follow-up:** Implement per-job reservations, app quotas, and measured Mumbai costs. The $50 account-wide AWS Budget with email notifications is deployed; notifications can lag charges.
 - **Status:** Open
+- **Voice update (2026-11-19, IDEA-013/TASK-013):** Prepared source adds shared reservations of 10 US cents per up-to-five-minute listening session and 2 cents/1,000 TTS characters rounded up, plus normal chat reservations. These use a conservative INR conversion assumption, not actual invoice reconciliation. Sarvam fees are outside the AWS account budget alerts; hosting adds AWS charges. Live metering/reconciliation and other future job types remain open.
 
 ### DEBT-003 — Target phone and wake phrase unknown
 - **Source:** IDEA-005, IDEA-006, TASK-008
@@ -59,7 +60,37 @@ Track known compromises, why they exist, their impact, and the conditions for re
 - **Impact / risk:** Builder must install and select Gradle 8.13 separately; a different local version may cause a build failure.
 - **Proposed follow-up:** Use installed Gradle 8.13 for the first build as documented. A checked-in wrapper can be proposed separately for approval and verified on the builder's machine.
 - **Status:** Open
+### DEBT-008 - Voice waits for the complete chat reply/facts response
+- **Source:** IDEA-013, TASK-013
+- **Recorded:** 2026-11-19
+- **Compromise and reason:** STT/TTS stream, but the current chat Lambda produces and validates a complete reply/facts JSON object before synthesis. The voice flag requests concise answers; no token streaming or asynchronous fact extraction has been added.
+- **Impact / risk:** Model generation and fact parsing can miss the desired first-audio latency despite fast speech APIs. End-to-end voice quality/latency remains unmeasured.
+- **Proposed follow-up:** Benchmark on Pixel and browsers with harmless phrases. If targets fail, propose streaming validated reply text and/or moving memory extraction off the audio critical path while preserving secret/mode/ownership boundaries.
+- **Status:** Open
+
+### DEBT-009 - Voice connection coordination is per gateway process
+- **Source:** IDEA-013, TASK-013
+- **Recorded:** 2026-11-19
+- **Compromise and reason:** Single-process owner/session tracking is sufficient for the initial private gateway and avoids another coordination data store.
+- **Impact / risk:** Multiple replicas would not enforce a global one-voice-session-per-owner limit; session restarts can incur another conservative reservation. In-flight Lambda work may finish after a gateway cancellation, so interruption does not guarantee charge or history rollback.
+- **Proposed follow-up:** Keep one gateway process for the initial reviewed deployment; add shared session leases and cancellation/idempotency design before scaling or promising global limits.
+- **Status:** Open
+
 ## Resolved
 
 No resolved entries yet.
 
+
+## Planning follow-up
+
+### DEBT-010 - Proposed single-EC2 SaaS failure domain
+- **Source:** IDEA-015; TASK-014/TASK-017; docs/docker-mongodb-saas-plan.md.
+- **Status:** Accepted initial operating compromise under IDEA-015 (2026-11-20); remote deployment and production recovery targets remain pending.
+- **Compromise and reason:** Docker/Compose with MongoDB and Redis on one supplied EC2 is simpler to operate initially and follows the owner's hosting direction.
+- **Impact / risk:** EC2, disk or host maintenance can stop both application and database. ALB/restart policies and a single-node MongoDB replica set do not provide host/database high availability. Logs, indexes and model/voice concurrency can exhaust disk/RAM.
+- **Required before public launch:** Explicit recovery/downtime targets, resource/disk alarms, authenticated private databases, encrypted persistent storage and off-host backups, restore verification, versioned deploy/rollback and documented capacity limits. Old personal data selected for deletion must not be exported into new backups.
+- **Later options:** Separate or managed MongoDB, independent replicas, multi-host deployment and maintenance automation when scale/recovery requirements justify them. Do not label the first Compose host highly available.
+
+- **2026-11-20 migration context:** DEBT-002 needs both per-user and application-wide admission accounting for public signup; the $50 application guard is not an invoice guarantee. DEBT-009 process-local voice ownership must become shared/revocable under TASK-015; planned Redis use does not close it. DEBT-001 secret detection and DEBT-008 speech latency remain unresolved; a provider/backend port alone does not repair them.
+
+- **DEBT-010 accepted direction (2026-11-20):** Owner approved IDEA-015 and the initial Compose/EC2 design. The single-host compromise is selected, not yet deployed remotely. Off-host backup destination, recovery targets and restore evidence remain production release requirements. The initial local implementation is not high availability.

@@ -26,13 +26,13 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Source:** IDEA-001, IDEA-002, IDEA-004
 - **Priority / dependencies:** P0; TASK-001 to TASK-003.
 - **Completion criteria:** Android build and device test of sign-in, text chat, mode switching, history, and memory review.
-- **Status:** In progress; owner chose Google Pixel 8a with Android 16 or later and a friend to compile (IDEA-012, 2026-11-18). Owner has no local Android SDK. Source/config handoff and build/device checklist are in `docs/android-build-handoff.md`; deliver a debug APK, checksum, and build result, then perform the stated device checks. Compilation, installation, and device acceptance remain pending.
+- **Status:** In progress; owner chose Google Pixel 8a with Android 16 or later and a friend to compile (IDEA-012, 2026-11-18). Owner has no local Android SDK. Source/config handoff and build/device checklist are in `docs/android-build-handoff.md`; deliver a debug APK, checksum, and build result, then perform the stated device checks. Owner reports the app is working on 2026-11-18; this is user-reported build/install/use success. Individual sign-in, mode isolation, history, memory, and sign-out/relaunch acceptance results have not all been confirmed, so the task remains in progress.
 
 ### TASK-005 — Confidential retrieval and voice chat
 - **Source:** IDEA-003
 - **Priority / dependencies:** P0; Phase 1 and target phone.
 - **Completion criteria:** Server-verified passkey step-up protects classified retrieval and explicit offline speech for 15 minutes; detected secrets never reach model input.
-- **Status:** Pending
+- **Status:** In progress for the ordinary voice subset via TASK-013/IDEA-013 (2026-11-19). Android/web/Sarvam gateway source is prepared and local checks pass; no live voice deployment. Confidential retrieval, server-verified passkey authorization, and offline secret speech remain unimplemented.
 
 ### TASK-006 — Separate Gmail summaries
 - **Source:** IDEA-007
@@ -70,6 +70,12 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** Correct/Save and Confirm remove a fact from Pending review while retaining it in All memory and Victor's graph; each item shows its original added date/time in browser-local time with a zone label; the owner verifies the live behavior.
 - **Status:** In progress; owner-approved change set `samcli-deploy1794246063` deployed. New page assets return 200, Lambda is Active, unsigned `/facts` returns 401, and isolated live Lambda tests passed for Confirm and correction with test records removed. Owner verification of the browser queue and local timestamps remains.
 
+### TASK-013 - Interactive Sarvam voice on Android and web
+- **Source:** IDEA-013; prompts 2026-11-19-001 through 2026-11-19-006.
+- **Priority / dependencies:** P0; working Cognito/text backend, Sarvam key and Model APIs zero-retention setup, reviewed persistent gateway hosting/deployment, rebuilt Pixel 8a app.
+- **Completion criteria:** Both clients have live English transcripts, ordinary automatic spoken replies, mute/stop and interruption controls; mode/session changes stop capture and stale playback. Cognito ownership, existing secret holds, and shared allowance remain enforced. Verify provider formats/account access and real device/browser audio; measure latency against the targets in docs/voice-research-2026-11-19.md and obtain owner acceptance. No confidential speech, ambient recording, or wake phrase is implied.
+- **Status:** In progress; source implementation, 20 backend tests, eleven gateway tests, web voice/memory checks, SAM build/lint, and local Docker build/health/invalid-token checks passed. A real synthetic Sarvam STT/TTS check passed (692ms connect-to-first-PCM, 4.02s sample; not a full conversation benchmark). Android SDK/build and real Pixel/browser measurements remain pending. Owner provided the key privately in root .env; no key is embedded in clients or source. No AWS resources or live web update deployed. Owner confirmed zero-day Model APIs retention on 2026-11-20; no repeated confirmation needed. API Gateway/on-demand hosting option is under discussion (IDEA-014). Host/architecture choice, prototype if selected, deployment approval and device testing remain. See docs/voice-deployment-review.md.
+
 ## Completed
 
 ### TASK-011 — Occasional browser client
@@ -78,3 +84,33 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** Browser page loads over HTTPS, completes Cognito PKCE sign-in, sends Personal and Practice chats separately, reviews/corrects/deletes Personal facts, and signed-out data calls remain rejected.
 - **Status:** Complete on 2026-11-09. Live page/assets returned 200, Cognito accepted the callback, and signed-out chat/memory requests returned 401. Owner reports successful sign-in, replies in both modes, a Personal memory edit and deletion, and sign-out with sign-in required on reload.
 
+
+### TASK-014 - Docker/Compose and MongoDB replacement foundation
+- **Source:** IDEA-015; prompts 2026-11-20-002 through 005.
+- **Priority / dependencies:** P0; owner reviews the proposed backend architecture and sequence. Docker/MongoDB/local-to-EC2 direction and OpenAI/Sarvam with outside-Mumbai processing are explicitly chosen; implementation waits for plan review.
+- **Completion criteria:** API/web images build from a clean checkout; Compose starts localhost UI/API/voice, authenticated private MongoDB/Redis and dev-only Mailpit; persistent state survives restart. Tracked `.env.example`, ignored `.env.dev`/operator `.env`, validated allowlisted settings, no secrets in build contexts/assets/images. Production overrides exclude dev services. Preserve existing uncommitted work and root Sarvam key; update active docs away from SAM after replacement acceptance.
+- **Status:** Pending implementation. Detailed plan prepared; no replacement images/config created in the planning review.
+
+### TASK-015 - Public private-account SaaS authentication and isolation
+- **Source:** IDEA-015; explicit choices in prompts 2026-11-20-003/004/005.
+- **Priority / dependencies:** P0; TASK-014 and reviewed auth-library/recovery design. Web and Android together; friend builds Pixel 8a Android 16+ APK.
+- **Completion criteria:** Public registration, verified-email OTP, password login, email/recovery-code recovery, forgot/change password and revocable browser/native sessions work. No security questions. Every Personal/Practice query, write, cache, job and voice session uses server-derived tenant identity; negative two-user tests pass. Query-driven indexes verified with representative data, pagination and deletion/provenance behavior tested. Enforce approved 20 chat turns/day, 5 voice minutes/day, one active voice session/user and $50/month application AI guard; SMTP via Mumbai SES with real delivery/abuse checks. Check session/OTP expiry, replay/concurrency, public signup throttles and live socket revocation. Obtain web/Pixel voice acceptance; do not claim smoothness from synthetic provider timing alone.
+- **Status:** Pending implementation. Account, login, launch, limits and SMTP choices explicitly approved; auth/backend design still under review. TASK-004 and TASK-013 acceptance remains open.
+
+### TASK-016 - Permanently retire the old Victor AWS deployment
+- **Source:** IDEA-015; owner deletion instruction and explicit permanent-data-deletion choice in 2026-11-20-003.
+- **Priority / dependencies:** P0; agreed retirement timing after plan review, exact project ownership manifest, backup/retention inventory. Recommended after local core proof and before new EC2 release; no data export/migration.
+- **Completion criteria:** Retire `victor-phase1` and its project-owned resources, separately remove retained DynamoDB table and budget, and clean confirmed project backup/log/SAM artifact copies without touching unrelated resources. Explain deleted-table PITR/system-backup retention and verify/report what remains. Old API/sign-in unavailable, deletion states checked, residual charges/retention documented. Do not delete a shared SAM bucket/support stack without ownership evidence.
+- **Status:** Pending execution; data deletion approved in principle, plan-first boundary preserved. Read-only inventory found 17 live resources; deployed template confirms table/budget Retain. Nothing deleted.
+
+### TASK-017 - EC2/ALB/domain SaaS release and operations
+- **Source:** IDEA-015; owner will provide access/domain later.
+- **Priority / dependencies:** P1; TASK-014/015 local acceptance; supplied host/domain/ALB details; TASK-016 retirement sequence. No existing-host reuse assumed.
+- **Completion criteria:** Host/workload/capacity inventory, reviewed target group/listener/security-group/DNS changes, HTTPS/WSS domain, private databases, least-privilege provider access, verified SES sender/production delivery, versioned deploy/rollback, off-host encrypted backup and restore drill, agreed load/recovery targets, web/Pixel acceptance. Record infrastructure costs separately from the application AI guard.
+- **Status:** Pending later access and implementation. No host login, ALB/DNS changes or deployment.
+
+- **2026-11-20 roadmap update:** IDEA-015 supersedes further serverless hosting work in IDEA-014 and TASK-013's Cognito/Lambda deployment assumptions. TASK-013 voice behavior/acceptance remains relevant and moves through TASK-014/015. Prior deployment evidence and incomplete tasks are preserved; none is marked complete by this plan.
+
+- **TASK-014/TASK-015 provider decision update (2026-11-20):** Owner selected OpenAI API chat/memory plus Sarvam speech, with processing outside Mumbai explicitly permitted (prompt 006). Provider/location is resolved; choose a suitable available API model and verify data-control configuration during implementation. No Bedrock dependency is required in the replacement. Remaining gate is review of the proposed backend/Compose design and sequence, not another provider-consent question.
+
+- **2026-11-20 implementation approval (prompt 007):** IDEA-015 design/sequence explicitly approved. TASK-014 and TASK-015 are In progress: new private MongoDB/Redis/Nginx/API Compose services and auth/tenant isolation source created; initial TypeScript/Vite builds and 12 real Mongo/Redis integration tests passed. Runtime startup exposed a new Nginx temporary-path permission issue, corrected in the new container and health verified. Browser registration/login and one harmless OpenAI chat passed. First synthetic voice attempt exposed internal Date/string contract mismatch, corrected; next voice attempt passed, with latency optimization and broader checks still in progress. Android account/Keystore source prepared but SDK/build/Pixel acceptance pending. No task marked complete; old AWS is not yet deleted.
