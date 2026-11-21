@@ -30,6 +30,13 @@ These rules apply to every agent working in this repository. Follow higher-prior
 - Update the prompt entry and diary before finishing a response. If work continues across days, add a new diary entry for each day worked.
 - Keep records factual and brief. Do not copy secrets or unnecessary personal data into notes.
 
+## Staging deployment workflow
+
+- Deploy application code through Git: commit/review locally, push the Stage branch without force, fast-forward pull the expected commit on staging, and build versioned images on the staging host.
+- Do not upload workstation application archives/images, database contents or local env files as a substitute for Git deployment. Keep staging private configuration and persistent data on staging, outside Git; retain prior releases for rollback.
+- When an authorized step actually requires elevated host privileges, explain the exact command, scope and reason, then request scoped sudo access. Do not work around a privileged operation by copying artifacts or changing unrelated permissions. Do not request sudo passwords in chat.
+- User instructions override older artifact-transfer/bootstrap guidance. Existing transfer scripts are historical and must not be used for routine staging deployment.
+
 ## Working style
 
 - Make consequential choices visible before acting. Ask clarifying questions when requirements or acceptance criteria are unclear, and keep the user involved throughout the work.

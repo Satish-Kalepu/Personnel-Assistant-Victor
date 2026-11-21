@@ -10,6 +10,13 @@ export class VoiceSession {
     this.audioBytes = 0;
     this.stt = null;
     this.tts = null;
+    this.pendingInput = [];
+    this.seenUtterances = new Set();
+    this.speechActive = false;
+    this.awaitingTranscripts = 0;
+    this.processingInput = false;
+    this.retryInput = null;
+    this.inputPaused = false;
   }
   async start(mode, conversationId) {
     if (!["personal", "practice"].includes(mode))
@@ -51,15 +58,39 @@ export class VoiceSession {
   }
   event(event) {
     if (this.closed) return;
-    if (event.event === "vad.speech_start") this.interrupt();
+    if (event.event === "transcript.final" && event.utteranceId !== undefined && this.seenUtterances.has(event.utteranceId)) return;
+    if (Number.isInteger(event.pendingTranscripts))
+      this.awaitingTranscripts = event.pendingTranscripts;
+    if (typeof event.speechActive === "boolean")
+      this.speechActive = event.speechActive;
+    if (event.owner === "backend" && ["vad.speech_start", "vad.speech_end"].includes(event.event))
+      this.send({type:"speechBoundary", state:event.event === "vad.speech_start" ? "started" : "ended", silenceMs:event.silence_ms, semanticCompletion:false});
+    if (event.event === "vad.speech_start") {
+      this.speechActive = true;
+      this.interrupt();
+    }
+    if (event.event === "vad.speech_end") {
+      this.speechActive = false;
+      this.drainInput();
+    }
     if (event.event === "transcript.partial")
       this.send({ type: "transcript", text: event.text || "", final: false });
     if (event.event === "transcript.final" && event.text?.trim()) {
-      this.send({ type: "transcript", text: event.text, final: true });
-      this.respond(event.text.trim()).catch(() =>
-        this.fail("Voice reply failed. Text chat is still available."),
-      );
+      if (event.utteranceId !== undefined) {
+        if (this.seenUtterances.has(event.utteranceId)) return;
+        this.seenUtterances.add(event.utteranceId);
+      } else this.speechActive = false;
+      const text = event.text.trim();
+      if (this.pendingInput.length >= 128 || this.pendingInput.reduce((n,part)=>n+part.length,0)+text.length > 16000) {
+        this.fail("Too much speech is waiting to be processed. The latest statements are not confirmed as saved. Please use shorter turns or text chat.");
+        return;
+      }
+      this.pendingInput.push(text);
+      this.inputPaused = false;
+      this.send({ type: "transcript", text, final: true });
+      this.drainInput();
     }
+    if (event.event === "transcript.final" && !event.text?.trim()) this.drainInput();
     if (event.event === "error" && event.is_fatal)
       this.fail(
         "Speech service unavailable. Check the provider account or try later.",
@@ -67,12 +98,48 @@ export class VoiceSession {
   }
   interrupt() {
     this.generation++;
-    this.abort?.abort();
+    // Reply cancellation must not erase user input/facts already processing.
+    // Session stop/logout still abort the model request below.
     this.tts?.close();
     this.tts = null;
     clearTimeout(this.speechTimer);
     this.send({ type: "clear", turn: this.generation });
     this.send({ type: "state", state: "listening" });
+  }
+  drainInput() {
+    if (this.closed || this.processingInput || this.inputPaused || this.speechActive || this.awaitingTranscripts > 0) return;
+    const batch = this.retryInput || this.takeInput();
+    if (!batch) return;
+    this.processingInput = true;
+    this.respond(batch.text, batch.id).then((result) => {
+      if (result.committed) this.retryInput = null;
+      else if (!this.closed) {
+        // Retry this exact id/content before newer input, including an
+        // ambiguous backend failure after commit, without duplicate facts.
+        this.retryInput = batch;
+        this.inputPaused = true;
+        this.send({type:"error",message:"Earlier statements are still waiting to be processed. Continue speaking to retry, or use text chat."});
+      }
+    }).catch(() => {
+      if (!this.closed) {
+        this.retryInput = batch;
+        this.inputPaused = true;
+        this.send({type:"error",message:"Your statements are still waiting to be processed. Continue speaking to retry, or use text chat."});
+      }
+    }).finally(() => {
+      this.processingInput = false;
+      this.drainInput();
+    });
+  }
+  takeInput() {
+    if (!this.pendingInput.length) return null;
+    const parts = [this.pendingInput.shift()];
+    let size = parts[0].length;
+    while (this.pendingInput.length && size + 1 + this.pendingInput[0].length <= 4000) {
+      const next = this.pendingInput.shift();
+      parts.push(next);size += 1 + next.length;
+    }
+    return {id:randomUUID(), text:parts.join("\n")};
   }
   setMuted(value) {
     this.muted = value;
@@ -83,7 +150,8 @@ export class VoiceSession {
       this.send({ type: "clear", turn: this.generation });
     }
   }
-  async respond(message) {
+  async respond(message, clientMessageId) {
+    let committed = false;
     this.interrupt();
     const turn = this.generation;
     const abort = new AbortController();
@@ -132,14 +200,16 @@ export class VoiceSession {
           message,
           conversationId: this.conversationId,
           voice: true,
+          ...(clientMessageId ? {clientMessageId} : {}),
         },
         abort.signal,
       );
-      if (this.closed || turn !== this.generation) return;
+      committed = true;
+      if (this.closed || turn !== this.generation || this.pendingInput.length || this.speechActive || this.awaitingTranscripts > 0) return {committed};
       this.send({ type: "reply", ...response });
       if (this.muted) {
         this.send({ type: "state", state: "listening" });
-        return;
+        return {committed};
       }
       const checked = await this.api(
         "/voice/speech",
@@ -150,7 +220,7 @@ export class VoiceSession {
         },
         abort.signal,
       );
-      if (this.closed || turn !== this.generation) return;
+      if (this.closed || turn !== this.generation) return {committed};
       this.speechTimer = setTimeout(
         () => this.fail("Speech playback timed out."),
         60000,
@@ -161,7 +231,7 @@ export class VoiceSession {
         tts = await warming;
         if (this.closed || turn !== this.generation || this.muted) {
           tts?.close();
-          return;
+          return {committed};
         }
         if (!tts) throw new Error("Speech connection failed");
         if (tts.closed)
@@ -176,19 +246,20 @@ export class VoiceSession {
         tts = await this.provider.speak(checked.text, onAudio, onEnd, onError);
       if (this.closed || turn !== this.generation) tts.close();
       else this.tts = tts;
+      return {committed};
     } catch (error) {
       if (
         this.closed ||
         turn !== this.generation ||
         error.name === "AbortError"
       )
-        return;
+        return {committed};
       if ([401, 429].includes(error.status)) {
         this.fail(
           error.publicMessage ||
             "Voice session paused. Sign in or check the processing allowance.",
         );
-        return;
+        return {committed};
       }
       this.interrupt();
       this.send({
@@ -198,6 +269,7 @@ export class VoiceSession {
           "Voice request failed. You can continue in text chat.",
       });
       this.send({ type: "state", state: "listening" });
+      return {committed};
     }
   }
   fail(message) {
@@ -213,6 +285,9 @@ export class VoiceSession {
     this.generation++;
     clearTimeout(this.speechTimer);
     this.abort?.abort();
+    this.pendingInput.length = 0;
+    this.seenUtterances.clear();
+    this.retryInput = null;
     this.stt?.close();
     this.tts?.close();
   }

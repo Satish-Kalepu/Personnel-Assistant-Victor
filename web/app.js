@@ -88,6 +88,11 @@ const voice = new window.VictorVoice({
   onTranscript(text) {
     $("voice-transcript").textContent = text;
   },
+  onActivity(event) {
+    $("voice-activity").textContent = event.state === "started"
+      ? "Speech detected. Listening to you."
+      : `Pause detected (${event.silenceMs} ms). Preparing your reply.`;
+  },
   onReply(data) {
     conversations[mode] = data.conversationId;
     refreshMessages().catch(showError);

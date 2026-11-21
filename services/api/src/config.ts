@@ -22,6 +22,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       SARVAM_API_KEY: z.string().default(""),
       SARVAM_PRIVACY_CONFIRMED: z.string().default("false"),
       SARVAM_SPEAKER: z.string().default("simran_en_customer"),
+      VOICE_ENDPOINT_MODE: z.enum(["provider", "owned"]).default("provider"),
+      VOICE_WORKER_URL: z.string().default("ws://voice-worker:4320/listen"),
+      VOICE_GATEWAY_TOKEN: z.string().default(""),
       SMTP_HOST: z.string().min(1),
       SMTP_PORT: positive(587),
       SMTP_SECURE: z.string().default("false"),
@@ -38,6 +41,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     })
     .parse(env);
   const origin = new URL(config.APP_ORIGIN);
+  if (config.VOICE_ENDPOINT_MODE === "owned") {
+    const worker = new URL(config.VOICE_WORKER_URL);
+    if (worker.protocol !== "ws:" || worker.username || worker.password || worker.search || worker.hash || worker.pathname !== "/listen" || config.VOICE_GATEWAY_TOKEN.length < 32)
+      throw new Error("Owned voice requires a private ws worker and a 32-character token.");
+  }
   if (origin.origin !== config.APP_ORIGIN || origin.username || origin.password)
     throw new Error(
       "APP_ORIGIN must be an origin without a path or credentials.",

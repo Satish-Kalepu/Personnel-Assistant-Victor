@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-22",
+  "syntheticOnly": true,
+  "gapMs": 900,
+  "threeDistinctSpeechSegments": true,
+  "events": [
+    {
+      "event": "vad.speech_start",
+      "turn": 1,
+      "owner": "backend"
+    },
+    {
+      "event": "vad.speech_end",
+      "turn": 1,
+      "silence_ms": 640.0,
+      "owner": "backend",
+      "semantic_completion": false
+    },
+    {
+      "event": "vad.speech_start",
+      "turn": 2,
+      "owner": "backend"
+    },
+    {
+      "event": "vad.speech_end",
+      "turn": 2,
+      "silence_ms": 640.0,
+      "owner": "backend",
+      "semantic_completion": false
+    },
+    {
+      "event": "vad.speech_start",
+      "turn": 3,
+      "owner": "backend"
+    },
+    {
+      "event": "vad.speech_end",
+      "turn": 3,
+      "silence_ms": 640.0,
+      "owner": "backend",
+      "semantic_completion": false
+    }
+  ]
+}

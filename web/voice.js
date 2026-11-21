@@ -1,7 +1,7 @@
 "use strict";
 
 window.VictorVoice = class {
-  constructor({ api, token, onState, onTranscript, onReply, onError }) {
+  constructor({ api, token, onState, onTranscript, onReply, onError, onActivity = () => {} }) {
     Object.assign(this, {
       api,
       token,
@@ -9,6 +9,7 @@ window.VictorVoice = class {
       onTranscript,
       onReply,
       onError,
+      onActivity,
     });
     this.generation = 0;
     this.sources = new Set();
@@ -112,6 +113,7 @@ window.VictorVoice = class {
           } else if (message.type === "transcript")
             this.onTranscript(message.text, message.final);
           else if (message.type === "reply") this.onReply(message);
+          else if (message.type === "speechBoundary") this.onActivity(message);
           else if (message.type === "state") this.onState(message.state);
           else if (message.type === "error") this.onError(message.message);
         } catch {
@@ -185,7 +187,7 @@ window.VictorVoice = class {
     this.muted = muted;
     if (muted) this.clearPlayback();
     if (this.socket?.readyState === WebSocket.OPEN)
-      this.socket.send(JSON.stringify({ type: "mute", muted }));
+      this.socket.send(JSON.stringify({ type: "mute", value: muted }));
   }
   fail(message) {
     this.stop();

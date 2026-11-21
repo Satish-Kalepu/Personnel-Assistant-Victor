@@ -1,0 +1,151 @@
+{
+  "date": "2026-11-21",
+  "passed": true,
+  "publicUrl": "https://ai_test.satishk.com",
+  "transport": "authenticated HTTPS/WSS PCM; private Silero worker",
+  "endpointMode": "owned",
+  "syntheticOnly": true,
+  "transcript": "Hello Victor, what is 12 times 13?",
+  "reply": "12 times 13 is 156.",
+  "boundaries": [
+    {
+      "type": "speechBoundary",
+      "state": "started",
+      "semanticCompletion": false
+    },
+    {
+      "type": "speechBoundary",
+      "state": "ended",
+      "silenceMs": 640,
+      "semanticCompletion": false
+    }
+  ],
+  "outputPcmBytes": 149760,
+  "peak": 24931,
+  "firstAudioAfterSyntheticInputMs": 3978,
+  "events": [
+    {
+      "event": {
+        "type": "ready",
+        "sampleRate": 16000,
+        "outputSampleRate": 24000,
+        "maxSeconds": 299
+      },
+      "at": 899
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 899
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "started",
+        "semanticCompletion": false
+      },
+      "at": 1153
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 1
+      },
+      "at": 1153
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 1153
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "ended",
+        "silenceMs": 640,
+        "semanticCompletion": false
+      },
+      "at": 5219
+    },
+    {
+      "event": {
+        "type": "transcript",
+        "text": "Hello Victor, what is 12 times 13?",
+        "final": true
+      },
+      "at": 5333
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 2
+      },
+      "at": 5339
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5339
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 5339
+    },
+    {
+      "event": {
+        "type": "reply",
+        "conversationId": "93a8f251-d32d-444f-a002-3e2227101fe4",
+        "reply": {
+          "id": "c8861dac-ee19-4aac-8ee4-f6ca7a6f42bf",
+          "mode": "practice",
+          "conversationId": "93a8f251-d32d-444f-a002-3e2227101fe4",
+          "turnId": "fa0ecdf3-746f-4ad6-98b4-dc06404c895b",
+          "role": "assistant",
+          "content": "12 times 13 is 156.",
+          "createdAt": "2026-11-21T13:23:03.025Z"
+        },
+        "factsAdded": 0
+      },
+      "at": 8283
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "speaking"
+      },
+      "at": 8300
+    },
+    {
+      "event": {
+        "type": "speechEnd",
+        "turn": 2
+      },
+      "at": 8976
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 3
+      },
+      "at": 9010
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 9010
+    }
+  ],
+  "physicalMicrophoneTested": false,
+  "pixelTested": false
+}

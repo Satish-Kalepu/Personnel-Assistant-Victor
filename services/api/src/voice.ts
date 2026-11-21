@@ -11,6 +11,7 @@ import { AppError, modeSchema, idSchema } from "./errors.js";
 import { rateLimit } from "./security.js";
 import { VoiceSession } from "./voice/session.mjs";
 import { sarvamProvider } from "./voice/sarvam.mjs";
+import { ownedProvider } from "./voice/owned.mjs";
 const acquire = `redis.call('ZREMRANGEBYSCORE',KEYS[2],'-inf',ARGV[2]); if redis.call('EXISTS',KEYS[1])==1 or redis.call('ZCARD',KEYS[2])>=20 then return 0 end; redis.call('SET',KEYS[1],ARGV[1],'PX',9000); redis.call('ZADD',KEYS[2],ARGV[3],ARGV[1]); return 1`;
 const renew = `if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end; redis.call('PEXPIRE',KEYS[1],9000); redis.call('ZADD',KEYS[2],ARGV[2],ARGV[1]); return 1`;
 const release = `if redis.call('GET',KEYS[1])==ARGV[1] then redis.call('DEL',KEYS[1]) end; redis.call('ZREM',KEYS[2],ARGV[1]); return 1`;
@@ -28,11 +29,14 @@ export function attachVoice(
     maxPayload: 16384,
     perMessageDeflate: false,
   });
-  const provider =
+  const baseProvider =
     providerOverride ??
     (config.SARVAM_API_KEY
       ? sarvamProvider(config.SARVAM_API_KEY, config.SARVAM_SPEAKER)
       : null);
+  const provider = baseProvider && !providerOverride && config.VOICE_ENDPOINT_MODE === "owned"
+    ? ownedProvider(baseProvider, {url: config.VOICE_WORKER_URL, token: config.VOICE_GATEWAY_TOKEN, key: config.SARVAM_API_KEY})
+    : baseProvider;
   server.on("upgrade", (request, socket, head) => {
     const origin = request.headers.origin;
     if (

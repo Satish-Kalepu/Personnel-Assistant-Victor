@@ -102,9 +102,11 @@ async function call(
     cookie,
     origin = config.APP_ORIGIN,
     native = false,
+    clientIp,
   } = {},
 ) {
   const headers = { "Content-Type": "application/json" };
+  if (clientIp) headers['X-Forwarded-For'] = clientIp;
   if (origin) headers.Origin = origin;
   if (native) headers["X-Victor-Client"] = "android";
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -704,4 +706,49 @@ test("authenticated voice uses one distributed lease, speaks an owned reply, and
   assert.equal((await ended)[0], 1008);
   const user = await store.db.collection("user").findOne({ email: bob });
   assert.equal(await store.redis.get(`voice:${user._id}`), null);
+});
+
+test("paused personal voice keeps earlier facts/history when a newer statement interrupts its reply", async () => {
+  const email=`voice-retention-${run}@example.test`;
+  // A distinct synthetic client avoids consuming the auth-abuse fixture's
+  // per-IP allowance. Production limits are unchanged.
+  const clientIp='192.0.2.20';
+  const registration=await call('/api/account/register',{method:'POST',body:{email},clientIp});
+  assert.equal(registration.status,200);
+  const code=await mailCode(email);
+  const registered=await call('/api/account/verify-registration',{method:'POST',body:{email,code,password,name:'Voice retention test'},clientIp});
+  assert.equal(registered.status,200);
+  const login=await call('/api/auth/sign-in/email',{method:'POST',body:{email,password},native:true,origin:null,clientIp});
+  assert.equal(login.status,200);
+  assert.ok(login.token?.includes('.'),'Signed native session required by retention socket');
+  const ws=new WebSocket(base.replace('http:','ws:')+'/voice');
+  const waitFor=type=>new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(new Error('No retention '+type)),7000);
+    const handler=bytes=>{const event=JSON.parse(bytes);if(event.type===type){clearTimeout(timer);ws.off('message',handler);resolve(event);}};
+    ws.on('message',handler);
+  });
+  try {
+    await once(ws,'open');const ready=waitFor('ready');
+    ws.send(JSON.stringify({type:'start',token:login.token,mode:'personal'}));await ready;
+    const emit=listeners.at(-1),reply=waitFor('reply');
+    emit({event:'vad.speech_start',owner:'backend',utteranceId:1,pendingTranscripts:0,speechActive:true});
+    emit({event:'vad.speech_end',owner:'backend',utteranceId:1,pendingTranscripts:1,speechActive:false});
+    emit({event:'transcript.final',utteranceId:1,text:'I prefer green tea.',pendingTranscripts:0,speechActive:false});
+    emit({event:'vad.speech_start',owner:'backend',utteranceId:2,pendingTranscripts:0,speechActive:true});
+    emit({event:'vad.speech_end',owner:'backend',utteranceId:2,pendingTranscripts:1,speechActive:false});
+    emit({event:'transcript.final',utteranceId:2,text:'I enjoy hiking.',pendingTranscripts:0,speechActive:false});
+    const answer=await reply;
+    const user=await store.db.collection('user').findOne({email});
+    const messages=await store.db.collection('messages').find({tenantId:String(user._id),conversationId:answer.conversationId,role:'user'}).sort({createdAt:1}).toArray();
+    assert.deepEqual(messages.map(message=>message.content),['I prefer green tea.','I enjoy hiking.']);
+    const saved=await store.db.collection('facts').find({tenantId:String(user._id)}).toArray();
+    assert.deepEqual(saved.map(fact=>fact.object).sort(),['I enjoy hiking.','I prefer green tea.']);
+    assert(seen.some(input=>input.content==='I enjoy hiking.'&&input.prior.some(message=>message.content==='I prefer green tea.')));
+    emit({event:'transcript.final',utteranceId:2,text:'I enjoy hiking.',pendingTranscripts:0,speechActive:false});
+    await new Promise(resolve=>setTimeout(resolve,30));
+    assert.equal(await store.db.collection('messages').countDocuments({tenantId:String(user._id),role:'user'}),2);
+  } finally {
+    ws.close();
+    await runtime.identity.auth.api.signOut({headers:new Headers({authorization:`Bearer ${login.token}`})});
+  }
 });

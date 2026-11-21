@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-21",
+  "candidate": "OpenAI Live primary WebSocket protocol smoke",
+  "model": "gpt-live-1.1",
+  "input": "Synthetic TTS: What is twelve times thirteen?",
+  "microphoneUsed": false,
+  "productionDataAccessed": false,
+  "deviceAcousticLatencyMeasured": false,
+  "status": "audio_received",
+  "stage": "finalized",
+  "sessionStarted": true,
+  "outputAudioBytes": 230400,
+  "inputTranscript": " What is twelve",
+  "outputTranscript": "",
+  "timing": {
+    "firstReceivedAudioMinusInputEndMs": null,
+    "firstAudioBeforeInputEnd": null,
+    "metric": "First received audio chunk, including acknowledgements; not useful-answer or acoustic latency"
+  },
+  "eventTypes": {
+    "session.started": 1,
+    "session.output_audio.delta": 48,
+    "session.input_transcript.delta": 2,
+    "session.closed": 1
+  },
+  "answerCorrectness": {
+    "status": "unscored",
+    "reason": "Received audio alone does not verify a correct useful answer."
+  },
+  "finalizedUsageReceived": true,
+  "limitations": [
+    "This tests the server WebSocket protocol, not browser WebRTC or Pixel audio.",
+    "First received PCM is not audible onset or an end-to-end quality benchmark.",
+    "No raw audio is saved. No provider winner follows from one fixture."
+  ],
+  "syntheticInputDurationMs": 2350,
+  "usage": {
+    "seconds": 1
+  },
+  "expectedAnswerObservedInTranscript": false
+}

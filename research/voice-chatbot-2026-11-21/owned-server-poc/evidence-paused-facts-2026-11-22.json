@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-22",
+  "diagnosisReproduced": true,
+  "syntheticOnly": true,
+  "productionDataRead": false,
+  "providerRequests": 0,
+  "adapter": {
+    "suppliedFinals": [
+      "I enjoy hiking.",
+      "I prefer tea.",
+      "I am learning Spanish."
+    ],
+    "forwardedFinals": [
+      "I am learning Spanish."
+    ],
+    "droppedFinals": [
+      "I enjoy hiking.",
+      "I prefer tea."
+    ]
+  },
+  "session": {
+    "chatRequests": [
+      {
+        "message": "I enjoy hiking.",
+        "aborted": true
+      },
+      {
+        "message": "I prefer tea.",
+        "aborted": true
+      },
+      {
+        "message": "I am learning Spanish.",
+        "aborted": true
+      }
+    ],
+    "simulatedSuccessfulCommits": [
+      "I am learning Spanish."
+    ],
+    "replyCount": 1
+  },
+  "limits": [
+    "Deterministic synthetic transcript timing, not a real microphone/STT timing measurement.",
+    "Persistence is simulated according to the reviewed model-before-write backend; no real database read or modified."
+  ],
+  "repairApplied": false
+}

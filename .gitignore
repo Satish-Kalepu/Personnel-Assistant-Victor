@@ -18,6 +18,7 @@ voice-gateway/.voice-local/
 !/.env.example
 services/api/node_modules/
 services/api/dist/
+services/voice-worker/.models/
 web/node_modules/
 web/dist/
 deploy/.local/

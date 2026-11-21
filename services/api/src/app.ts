@@ -255,7 +255,7 @@ export function createApplication(
     const origin = new URL(config.APP_ORIGIN);
     origin.protocol = origin.protocol === "https:" ? "wss:" : "ws:";
     origin.pathname = "/voice";
-    res.json({ gatewayUrl: origin.href });
+    res.json({ gatewayUrl: origin.href, endpointMode: config.VOICE_ENDPOINT_MODE, silenceMs: config.VOICE_ENDPOINT_MODE === "owned" ? 640 : 650 });
   });
   app.use((_req, _res, next) =>
     next(new AppError(404, "not_found", "Route not found.")),

@@ -1,0 +1,24 @@
+# Staging opt-in. Private worker has no published ports or provider/database keys.
+services:
+  voice-worker:
+    image: ${VOICE_WORKER_IMAGE:?Set a versioned voice-worker image}
+    restart: unless-stopped
+    environment:
+      VOICE_GATEWAY_TOKEN: ${VOICE_GATEWAY_TOKEN:?Set a private worker token}
+    networks: [data]
+    mem_limit: 256m
+    cpus: 0.75
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+  api:
+    environment:
+      VOICE_ENDPOINT_MODE: owned
+      VOICE_WORKER_URL: ws://voice-worker:4320/listen
+      VOICE_GATEWAY_TOKEN: ${VOICE_GATEWAY_TOKEN:?Set a private worker token}
+    depends_on:
+      voice-worker: {condition: service_healthy}

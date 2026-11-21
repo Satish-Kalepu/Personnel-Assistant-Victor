@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-21",
+  "release": "stage-owned-ee7cec7acafd",
+  "containers_healthy": true,
+  "public_signed_in_voice_passed": false,
+  "message": "Speech recognition disconnected. Start voice again.",
+  "investigation": {
+    "separate_stt_handshake": "passed",
+    "separate_worker_handshake": "passed",
+    "direct_adapter_synthetic_silence": "worker closed1009 on a valid3200-byte input frame",
+    "installed_aiohttp_reader_evidence": "reader_py.py rejects frame payload when payload_bytes_to_read >= max_msg_size - partial_len",
+    "configured_transport_limit": 3200,
+    "web_and_android_audio_frame_bytes": 3200
+  },
+  "proposed_repair": "Use4096 transport maximum while retaining3200 application validation; add full-frame WebSocket regression, rebuild/redeploy.",
+  "consent_at_observation": "Requested explicitly; pending at the time of this failed observation.",
+  "subsequent_resolution": "Prompt021 approved repair/redeploy; corrected stage-owned-ace419520ce9 passed full-frame regression and public native/browser synthetic audio acceptance."
+}

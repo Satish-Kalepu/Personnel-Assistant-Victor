@@ -97,7 +97,7 @@ test("late chat response after interruption cannot speak or render", async () =>
   await h.session.start("personal");
   const pending = h.session.respond("Old turn");
   h.session.interrupt();
-  assert(h.calls.find((c) => c.path === "/chat").signal.aborted);
+  assert.equal(h.calls.find((c) => c.path === "/chat").signal.aborted, false);
   finish({ reply: { id: "old" } });
   await pending;
   assert.equal(h.events.filter((e) => e.type === "reply").length, 0);
