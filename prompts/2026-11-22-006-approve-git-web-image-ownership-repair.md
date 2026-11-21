@@ -20,8 +20,8 @@ Approve image ownership fix and Git redeploy
 
 ## Verification
 
-- Pending syntax/index checks and actual Git-built image/runtime verification. Prior failed image and successful automatic rollback are recorded separately.
+- Commit c06a61a pushed/pulled and built on staging.18 voice tests, non-root template/index readability and worker smoke passed; container health passed. Final static audit found the separate microphone worklet root-owned mode600/unreadable; public worklet403 while root/health200. Proposed a broader built-public-asset ownership/readability check and requested separate explicit consent; not applied while pending. Prior failed image and rollback evidence retained.
 
 ## Outcome
 
-- In progress.
+- Approved template-only repair verified; browser-voice acceptance is blocked by the separately diagnosed public worklet ownership. Broader repair consent pending under parent prompt005/TASK-021.

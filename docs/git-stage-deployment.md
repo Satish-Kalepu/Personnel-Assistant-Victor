@@ -2,6 +2,8 @@
 
 Owner instruction2026-11-22, [prompt005](../prompts/2026-11-22-005-prefer-git-stage-deployment.md): use Git push/pull for application code and request scoped sudo when a necessary host operation requires it. This supersedes workstation image/env upload procedures.
 
+**Current acceptance status:** f8d58dc and approved template fix c06a61a were pushed/pulled and all three images built on staging;18 voice checks and non-root runtime smoke checks passed. Final public-file audit found `voice-worklet.js` root-owned mode600/unreadable (HTTP403). A broader public-asset COPY ownership/readability repair is awaiting explicit approval; do not treat the current Git-built web image as accepted for browser voice. The rollback procedure restored the previous working stage-owned-4becaff17ef6 release: readiness200, worklet200, anonymous profile401. No workstation artifact/env upload or sudo was needed.
+
 ## Normal release
 
 1. Review and commit the intended source/records on local `Stage`. Keep env files, provider/SMTP/database credentials, model caches, virtual environments and private operator state outside Git. Run `node deploy/scripts/verify-staged-secrets.mjs` before committing.
