@@ -282,3 +282,14 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Options considered:** Prior local image transfer is preserved as historical deployment evidence; owner explicitly selects Git-native releases going forward. Existing unprivileged app Git/Docker access is adequate for the current path.
 - **Rationale / open questions:** Owner-selected maintainability/provenance workflow; validate current remote build/smoke/health path. No blanket sudo authorization or unrelated host change inferred.
 - **Tasks/debt:** TASK-021. Existing DEBT-011/012 operating/device limits remain; no new host privilege compromise introduced. [Runbook](../docs/git-stage-deployment.md).
+- **Scope clarification (2026-11-22, prompt007):** Both existing host Nginx (HTTPS/domain routing to loopback18080) and web-container Nginx (frontend/static/API/WSS routing on8080) are used. The pending public-asset ownership fix is inside the web image; it needs no host Nginx edit/reload or sudo. User’s clarification question is not repair consent; broader asset repair remains pending.
+
+### IDEA-020 - Serve frontend directly from existing host Nginx
+
+- **Opened:** 2026-11-22.
+- **Status:** Discussing; owner prefers removing the web-container Nginx and asks for host settings. Concrete migration/cutover not approved or activated by the configuration question alone.
+- **Summary:** Use existing host Nginx for TLS, public static assets and direct API/voice proxying; keep API, voice worker and databases containerized.
+- **Recommended layout:** Public commit-versioned assets under /srv/victor-web/current; direct API loopback127.0.0.1:18081→3000; preserve current app until assets/API readiness, manual site-only Nginx edit/test/reload and public voice acceptance succeed. Publish assets from staging Git builds with normalized readable modes, not the private checkout or workstation artifacts.
+- **Options / tradeoffs:** Host-only removes a proxy/image serving layer but adds coordinated host asset/API release management and one-time privileged directory/site setup. Fixing container ownership remains a separate alternative; do not pursue it while owner evaluates the host-only replacement.
+- **Open questions:** Approval of the concrete migration sequence, one-time scoped sudo/public-root setup and owner application of the reviewed site fragment; implementation and rollback for atomic frontend/API releases.
+- **References:** [Host-only proposal](../docs/host-nginx-migration.md), [Nginx fragment](../deploy/nginx/ai_test.host-only.conf), [prompt008](../prompts/2026-11-22-008-plan-host-nginx-only.md). TASK-021 stays In progress for deployment acceptance; no new implementation task finalized. DEBT-011/012 host/voice limits remain, no new operating compromise deployed.
