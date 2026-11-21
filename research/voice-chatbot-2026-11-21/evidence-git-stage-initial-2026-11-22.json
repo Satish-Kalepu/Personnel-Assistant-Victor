@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-22",
+  "commit": "f8d58dc6a4c6ac7358c092fe05504b3763e5c6e5",
+  "non_force_push": true,
+  "exact_commit_fast_forward_pull": true,
+  "images_built_on_staging": ["api", "web", "voice-worker"],
+  "server_voice_tests_passed": 18,
+  "non_root_worker_smoke_passed": true,
+  "release_health_passed": false,
+  "failed_service": "web",
+  "diagnosis": {
+    "runtime_uid": 101,
+    "template_owner": "root:root",
+    "template_mode": "600",
+    "template_readable_by_runtime": false,
+    "index_mode": "644"
+  },
+  "automatic_rollback_verified": true,
+  "restored_release": "stage-owned-4becaff17ef6",
+  "restored_app_containers_healthy": true,
+  "database_containers_recreated": false,
+  "workstation_images_or_env_uploaded": false,
+  "host_sudo_required": false,
+  "proposed_template_repair": "COPY template with existing nginx runtime ownership; add pre-switch readability smoke check; commit/push/pull/server rebuild",
+  "repair_consent": "requested; pending at this observation"
+}

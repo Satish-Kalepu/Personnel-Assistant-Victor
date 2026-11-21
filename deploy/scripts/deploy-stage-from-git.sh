@@ -46,6 +46,7 @@ if [ "$voice_mode" = owned ]; then
 fi
 # Smoke-test the actual server-built runtimes before touching the release/env.
 docker run --rm --network none --memory 384m --user "$(id -u):$(id -g)" -v "$repo/services/api/test:/app/test:ro" "$api" node --test --test-concurrency=1 test/voice-session.test.mjs test/voice-sdk.test.mjs test/owned-voice.test.mjs test/voice-retention.test.mjs
+docker run --rm --network none --entrypoint sh "$web" -c 'test -r /etc/nginx/victor.conf.template && test -r /usr/share/nginx/html/index.html && echo "Non-root web source smoke check passed"'
 if [ "$voice_mode" = owned ]; then
   docker run --rm --network none "$worker" python -c "from worker import Detector; assert Detector().push(bytes(3200)) == []; print('Non-root worker/model smoke check passed')"
 fi
