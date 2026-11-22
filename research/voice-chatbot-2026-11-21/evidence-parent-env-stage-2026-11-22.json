@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-22",
+  "configurationCommit": "f5418ea",
+  "canonicalRelativePath": "../PersonnelAssistant.env",
+  "local": {
+    "all29ValuesPreserved": true,
+    "composeEquivalent": true,
+    "providerReaderEquivalent": true,
+    "initializerPreservesExisting": true,
+    "legacyArchivesOutsideRepo": true
+  },
+  "stage": {
+    "path": "/home/ai_assistant/victor-stage/PersonnelAssistant.env",
+    "mode": "0600",
+    "owner": "ai_assistant",
+    "composeEquivalent": true,
+    "legacyCompatibilitySymlink": "shared/.env -> ../PersonnelAssistant.env",
+    "allFiveContainerIdsAndStartTimesUnchanged": true,
+    "health": "ready",
+    "privateEnvTransferredFromWorkstation": false,
+    "valuesDisplayed": false
+  },
+  "applicationReleaseUnchanged": "stage-git-f2f0646806e4-20261122111218"
+}

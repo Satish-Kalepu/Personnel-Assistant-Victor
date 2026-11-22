@@ -162,7 +162,7 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 
 ### TASK-024 - Move primary configuration to ../PersonnelAssistant.env
 - **Source:** IDEA-023; explicit owner instruction prompt021.
-- **Priority / dependencies:** P1; safe no-overwrite/value-preserving local consolidation, server-only relocation, updated Compose/deployment/backup/demo/secret-scanner references. New migration-check defect needs explicit repair consent before correction.
+- **Priority / dependencies:** P1; safe no-overwrite/value-preserving local consolidation, server-only relocation, updated Compose/deployment/backup/demo/secret-scanner references. Migration-check correction explicitly approved in prompt022 and verified.
 - **Completion criteria:** Parent canonical file selected locally/on staging; current effective values and rendered Compose identical; legacy bytes retained privately outside repo; references/init/scanners/docs updated through Git; server file0600, current app/DB container identities/health unchanged; no credentials printed/transferred.
-- **Status:** In progress. All29 local values match, but Node parser null-prototype check stopped before writes; correction consent requested.
+- **Status:** Complete2026-11-22. Local values/rendered Compose/provider reader preserved, root active files archived outside repo; canonical single env-file config passes. Git commitf5418ea pulled, server0600 parent relocation and full Compose equality passed; all five container identities/start times and readiness unchanged. No workstation credentials transferred.
 - **Debt:** No new runtime compromise; DEBT-010/011 existing credential backup/recovery responsibilities retained.

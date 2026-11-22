@@ -20,8 +20,8 @@ Approved question: May I correct the new migration check to compare the actual s
 
 ## Verification
 
-- Corrected migration passed: all29 settings preserved, rendered Compose identical, parent-only Compose config passes, initializer preserves existing values, provider reader matches and source leak scan passes. Server relocation pending.
+- Corrected migration passed: all29 settings preserved, rendered Compose identical, parent-only Compose config passes, initializer preserves existing values, provider reader matches and source leak scan passes. Server relocation also passed identical Compose validation,0600 permissions and unchanged-container/health checks.
 
 ## Outcome
 
-- Approved guard correction verified; local parent env migration complete. Continue server relocation under prompt021.
+- Approved guard correction verified; local parent env migration complete. Server relocation and verification under prompt021 also complete.

@@ -10,20 +10,25 @@ let me know if this works.
 
 - Owner explicitly selects parent PersonnelAssistant.env for the primary private configuration; preserve values and never display secrets.
 - Update local and staging references; staging secrets remain server-side. Inspect destinations and refuse overwriting a different existing file.
-- Keep local generated .env.dev separate unless consolidation proves necessary; explain its role. Local parent write requires the normal tool escalation because it lies outside the writable workspace.
+- Consolidate local generated .env.dev defaults and primary .env overrides into the retained parent file, preserving all29 values and old precedence; keep exact legacy archives outside repo. Parent-folder writes used the normal tool escalation because they lie outside the writable workspace.
 
 ## Actions
 
-- Inspect active env loaders, Compose commands, initializers and deployment/backup/secret-scan helpers before moving files.
+- Inspected local/staging env readers and destination paths. Parent local file already matched root .env bytes; all29 effective settings were preserved when combining .env.dev + .env with old precedence.
+- Initial new migration guard rejected the parser object's prototype, with0 changed values and no writes. Explained diagnosis and waited for explicit prompt022 correction consent. Corrected both key/value checks, then verified identical rendered Compose before selecting the parent file and archiving old bytes outside the repo.
+- Updated initializer, deployment/backup/scan/demo paths and runbooks; initializer preserves existing parent settings. Git guard ignores accidental in-repo copies and scans the external values without printing them.
+- Reviewed/scanned and non-force pushed commitf5418ea; exact fast-forward pulled on staging. Ran only the pulled server migration helper: relocated its existing private settings within that host and retained a compatibility symlink for old releases. No workstation credentials/data copied.
+- Verified server Compose identical, parent file0600, all five API/web/worker/MongoDB/Redis container IDs/start times unchanged and readiness healthy. No container rebuild/restart needed for an equivalent loader-path move.
 
 ## Files changed
 
-- Draft updates to init/deploy/backup/secret-scan/demo readers, current runbooks, ignore rules and two guarded migration helpers; prompt/idea/task/diary records. No credential file has been moved or changed.
+- Init/deploy/backup/secret-scan/demo readers, current runbooks, ignore rules and two guarded migration helpers; prompt/idea/task/diary/evidence records. Local active credentials moved to the parent file with exact legacy archives; server active credentials relocated only on that server. No application business logic or running-container change.
 
 ## Verification
 
-- Parent file already byte-identical to root .env; all29 effective local values match the proposed merge. Existing .env.dev plus ../PersonnelAssistant.env passes Compose config validation, proving the requested parent path resolves. New consolidation guard rejects null-prototype parser output rather than any value difference; stopped before file writes, and repair consent is pending. Updated JS/Bash syntax and provider source leak scan passed. Server old env is0600, new parent absent and app healthy; no server mutation.
+- Local: all29 parsed values and full rendered Compose match previous split files; new single env-file command passes config --quiet. Exact old bytes archived outside repo; initializer preserves new file, demo provider reader matches and source leak scan passes. JS/Bash syntax passed.22-file/18-private-value Git index scan:0 matches.
+- Server: old/new rendered Compose objects identical; requested parent location selected mode0600, compatibility alias verified, all five container identities/start times unchanged, /health ready. No secrets printed or transferred from laptop. Evidence under research/voice-chatbot-2026-11-21/evidence-parent-env-local-2026-11-22.json and evidence-parent-env-stage-2026-11-22.json.
 
 ## Outcome
 
-- Local migration complete after prompt022 approval: all29 values/rendered Compose and provider reader unchanged; legacy originals archived outside repo and removed from active repo paths. Server relocation/Git publication pending; running containers unchanged.
+- Complete. Both environments use ../PersonnelAssistant.env outside their repo, retaining existing settings and app state. Explicit --env-file remains required; no in-repo catch-all env injection added. Historical local .env.stage/legacy service settings were not part of active primary-file relocation.
