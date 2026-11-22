@@ -159,3 +159,10 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **TASK-022/TASK-021 path steering (2026-11-22, prompt015):** Owner cancels the /srv/sudo prerequisite and selects checkout/deploy/.local/web public release/current directories. Update guard, canonical Compose source and tests/runbook, then Git push/pull/build/activate and public auth/voice acceptance. No root folder or private checkout exposure. Prior scoped directory request is cancelled, not pending.
 
 - **TASK-021/TASK-022 acceptance (2026-11-22):** Both complete for stated Git deployment/configuration/staging acceptance; final release evidence linked in prompt015. Physical-device/audio latency, production operating requirements and deliberate coordinated rollback drill remain DEBT-010/011/012/013 follow-ups.
+
+### TASK-024 - Move primary configuration to ../PersonnelAssistant.env
+- **Source:** IDEA-023; explicit owner instruction prompt021.
+- **Priority / dependencies:** P1; safe no-overwrite/value-preserving local consolidation, server-only relocation, updated Compose/deployment/backup/demo/secret-scanner references. New migration-check defect needs explicit repair consent before correction.
+- **Completion criteria:** Parent canonical file selected locally/on staging; current effective values and rendered Compose identical; legacy bytes retained privately outside repo; references/init/scanners/docs updated through Git; server file0600, current app/DB container identities/health unchanged; no credentials printed/transferred.
+- **Status:** In progress. All29 local values match, but Node parser null-prototype check stopped before writes; correction consent requested.
+- **Debt:** No new runtime compromise; DEBT-010/011 existing credential backup/recovery responsibilities retained.

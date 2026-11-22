@@ -16,6 +16,7 @@ voice-gateway/.voice-local/
 .sam-voice-cache/
 /.env.*
 !/.env.example
+PersonnelAssistant.env*
 services/api/node_modules/
 services/api/dist/
 services/voice-worker/.models/

@@ -1,51 +1,19 @@
-import { randomBytes } from "node:crypto";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-const root = new URL("../../", import.meta.url);
-let template = await readFile(new URL(".env.example", root), "utf8");
-for (const name of [
-  "MONGO_ROOT_PASSWORD",
-  "MONGO_APP_PASSWORD",
-  "REDIS_PASSWORD",
-  "AUTH_SECRET",
-  "MAIL_ENCRYPTION_KEY",
-  "BACKUP_ENCRYPTION_KEY",
-]) {
-  template = template.replace(
-    `${name}=GENERATE_LOCAL_SECRET`,
-    `${name}=${randomBytes(32).toString("hex")}`,
-  );
+import {randomBytes} from 'node:crypto';
+import {readFile,writeFile,mkdir,access} from 'node:fs/promises';
+const root=new URL('../../',import.meta.url);
+const target=new URL('../PersonnelAssistant.env',root);
+for(const name of ['.env','.env.dev']){
+  let exists=true;try{await access(new URL(name,root));}catch(error){if(error.code==='ENOENT')exists=false;else throw error;}
+  if(exists)throw Error('Legacy local settings exist. Run node deploy/scripts/migrate-parent-env.mjs first; no credentials have been rotated.');
 }
-template = template.replace(
-  "MONGO_REPLICA_KEY=GENERATE_LOCAL_SECRET",
-  `MONGO_REPLICA_KEY=${randomBytes(72).toString("base64")}`,
-);
-// Keys remain in root .env, which is loaded last. Never duplicate them in dev settings.
-template = template.replace(/^(OPENAI_API_KEY|SARVAM_API_KEY)=.*\r?\n/gm, "");
-for (const [name, content] of [
-  [".env.dev", template],
-  [".env", "# Private provider keys; do not commit.\n"],
-]) {
-  try {
-    await writeFile(new URL(name, root), content, { flag: "wx", mode: 0o600 });
-    console.log(`Created ${name}`);
-  } catch (error) {
-    if (error.code !== "EEXIST") throw error;
-    console.log(`Preserved existing ${name}`);
-  }
+let template=await readFile(new URL('.env.example',root),'utf8');
+for(const name of ['MONGO_ROOT_PASSWORD','MONGO_APP_PASSWORD','REDIS_PASSWORD','AUTH_SECRET','MAIL_ENCRYPTION_KEY','BACKUP_ENCRYPTION_KEY']){
+  template=template.replace(`${name}=GENERATE_LOCAL_SECRET`,`${name}=${randomBytes(32).toString('hex')}`);
 }
-await mkdir(new URL("deploy/.local/", root), { recursive: true });
-const existing=await readFile(new URL('.env.dev',root),'utf8');
-// New local-only Compose settings; preserve every existing private value.
-let composeDefaults='';
-for(const [key,value] of Object.entries({WEB_ASSET_PATH:'./web/dist',COMPOSE_PROFILES:'local'})){
-  if(!new RegExp('^'+key+'=','m').test(existing))composeDefaults+=`\n${key}=${value}\n`;
-}
-if(composeDefaults)await writeFile(new URL('.env.dev',root),existing+composeDefaults,{mode:0o600});
-if(!/^BACKUP_ENCRYPTION_KEY=/m.test(existing)){
-  await writeFile(new URL('.env.dev',root),existing+composeDefaults+`\nBACKUP_ENCRYPTION_KEY=${randomBytes(32).toString('hex')}\n`,{mode:0o600});
-  console.log('Added a private local backup encryption key; existing values preserved.');
-}
-console.log(
-  `Local configuration ready in ${fileURLToPath(root)}. No secret values displayed.`,
-);
+template=template.replace('MONGO_REPLICA_KEY=GENERATE_LOCAL_SECRET',`MONGO_REPLICA_KEY=${randomBytes(72).toString('base64')}`);
+try{
+  await writeFile(target,template,{flag:'wx',mode:0o600});
+  console.log('Created ../PersonnelAssistant.env. Add private provider keys there.');
+}catch(error){if(error.code!=='EEXIST')throw error;console.log('Preserved existing ../PersonnelAssistant.env; no credentials rotated.');}
+await mkdir(new URL('deploy/.local/',root),{recursive:true});
+console.log('Use docker compose --env-file ../PersonnelAssistant.env. No secret values displayed.');

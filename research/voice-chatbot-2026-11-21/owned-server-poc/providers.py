@@ -13,7 +13,7 @@ BASE = Path(__file__).resolve().parent
 def configuration():
     allowed = ['OPENAI_API_KEY', 'SARVAM_API_KEY', 'SARVAM_PRIVACY_CONFIRMED', 'SARVAM_SPEAKER']
     values = {}
-    path = BASE.parents[2] / '.env'
+    path = BASE.parents[3] / 'PersonnelAssistant.env'
     if path.exists():
         for line in path.read_text(encoding='utf-8-sig').splitlines():
             name, separator, value = line.partition('=')

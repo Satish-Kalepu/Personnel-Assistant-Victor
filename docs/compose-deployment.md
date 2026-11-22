@@ -40,18 +40,18 @@ Docker Desktop with Linux containers and Node 24+ are required. From the reposit
 node deploy/scripts/init-dev.mjs
 npm --prefix web ci
 npm --prefix web run build
-docker compose --env-file .env.dev --env-file .env up -d --build
+docker compose --env-file ../PersonnelAssistant.env up -d --build
 ```
 
-Open http://localhost:8080 and local email at http://localhost:8025. The initializer adds `WEB_ASSET_PATH=./web/dist` and `COMPOSE_PROFILES=local` if absent and preserves private settings. Local SMTP values in `.env.dev` must point to Mailpit: host `mailpit`, port1025, secure false, empty SMTP user/password. Root `.env` is loaded last for private provider keys; it must not accidentally override local mode/origin/SMTP settings with server settings.
+Open http://localhost:8080 and local email at http://localhost:8025. The initializer creates `../PersonnelAssistant.env` for a new setup and preserves an existing file. It contains local `WEB_ASSET_PATH=./web/dist`, `COMPOSE_PROFILES=local`, private keys and generated credentials. Local SMTP uses host `mailpit`, port1025, secure false and empty user/password. Existing split `.env.dev` / `.env` settings migrate with `node deploy/scripts/migrate-parent-env.mjs`, preserving their old override order and checking identical Compose configuration before archiving legacy files outside the repo. Each environment keeps its own parent file; do not copy laptop settings to staging.
 
-Frontend edits require `npm --prefix web run build`; there is no Vite proxy setup in this selected mode. Normal rebuilds appear through the local directory mount. Use `docker compose --env-file .env.dev --env-file .env stop` to stop without deleting data.
+Frontend edits require `npm --prefix web run build`; there is no Vite proxy setup in this selected mode. Normal rebuilds appear through the local directory mount. Use `docker compose --env-file ../PersonnelAssistant.env stop` to stop without deleting data.
 
 Optional owned VAD uses the same file: privately set `VOICE_ENDPOINT_MODE=owned`, a generated 32+ character `VOICE_GATEWAY_TOKEN`, and `COMPOSE_PROFILES=local,owned-voice`. Fetch the pinned model first with `python services/voice-worker/fetch_model.py` (Python3), then build/start. Existing local provider endpoint mode remains the default; staging already uses owned VAD. The local profile is only a mail viewer; server deployments must not enable it.
 
 ## Staging and production
 
-Keep settings on each server. Both require `NODE_ENV=production`, an exact HTTPS `APP_ORIGIN`, production provider/SMTP configuration, unchanged database/auth secrets and reviewed versioned image references. Set `WEB_ASSET_PATH=<checkout>/deploy/.local/web/current`. For owned VAD use `VOICE_ENDPOINT_MODE=owned`, `COMPOSE_PROFILES=owned-voice`, a private worker token and `VOICE_WORKER_IMAGE`.
+Keep settings in `../PersonnelAssistant.env` on each server, outside the checkout. Compose reads it through `--env-file ../PersonnelAssistant.env` when run from the repository. Both require `NODE_ENV=production`, an exact HTTPS `APP_ORIGIN`, production provider/SMTP configuration, unchanged database/auth secrets and reviewed versioned image references. Set `WEB_ASSET_PATH=<checkout>/deploy/.local/web/current`. For owned VAD use `VOICE_ENDPOINT_MODE=owned`, `COMPOSE_PROFILES=owned-voice`, a private worker token and `VOICE_WORKER_IMAGE`.
 
 For the current staging host, retain `WEB_BIND=127.0.0.1`, `WEB_PORT=18080` and its verified proxy CIDR. Existing host Nginx continues to terminate TLS and forward to the web container. **No host-only static/API snippet, new API host port, TLS edit or reload is needed.** The earlier host-only proposal is superseded.
 
@@ -76,3 +76,9 @@ The script checks readiness and real index/worklet/build asset responses before 
 After building `victor-web:compose-review` and `web/dist`, run `node deploy/scripts/check-compose-nginx.mjs` for an isolated real Nginx check: config/security for laptop/stage/ALB, read-only mount, static/worklet/MIME responses, missing-asset handling, HTTP path/query, WebSocket exchange, and trusted/untrusted forwarded headers. It creates/removes only its own temporary mock API, web container and dedicated bridge network; no provider calls or existing app/database changes.
 
 Primary references: [Compose services and mounts](https://docs.docker.com/reference/compose-file/services/), [Nginx trusted client addresses](https://nginx.org/en/docs/http/ngx_http_realip_module.html), [WebSocket proxying](https://nginx.org/en/docs/http/websocket.html).
+
+## Parent env retention
+
+The active private file is a sibling of the repository: `../PersonnelAssistant.env`. Moving/replacing the checkout therefore retains it. Compose project paths (builds, mounts and Mongo bootstrap files) still resolve against docker-compose.yml; the parent env file does not change them. Explicit service environment allowlists remain; do not inject the whole private file into the web/worker/API container with env_file.
+
+On staging the new path is `~/victor-stage/PersonnelAssistant.env`, mode0600. A private `shared/.env` compatibility symlink may remain for retained old releases; it refers to the same canonical file, rather than another credential copy. Deployment env backups stay outside the checkout under shared/. New scripts always use the canonical parent path. The local initializer uses exclusive creation and does not rotate existing values. Git ignores accidental in-repo PersonnelAssistant.env copies and the index secret scanner reads the external file without printing values.

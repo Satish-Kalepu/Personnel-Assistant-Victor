@@ -312,3 +312,12 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **IDEA-021 publication path changed/finalized (2026-11-22, prompt015):** Owner explicitly cancels /srv/root-directory setup; public assets must stay in the designated codebase. Use repository/deploy/.local/web/releases and current, an ignored app-owned subtree; mount only current read-only. Preserve the prior /srv decision above as superseded history. Guard canonical paths, normalize public-file modes, retain private parent permissions and record the absolute checkout-local mount source in server env. No sudo or host TLS change is needed for this path. TASK-022/021 deployment continues under existing authorization.
 
 - **IDEA-021 staging result (2026-11-22, prompts014/015):** Selected repository-local/container-Nginx design deployed as stage-git-f2f0646806e4-20261122111218, commitf2f0646.10 local routing groups,18 server voice checks, actual read-only mount/public assets/auth controls and fresh synthetic STT/LLM/TTS passed; fixture removed. Git checkout/private parents remain0700, public files0644; original DB container IDs/start times retained. No /srv, sudo, host TLS edit or workstation env/data transfer. TASK-021/022 complete for scoped deployment; DEBT-013 coordinated rollback/device/production follow-ups stay open.
+
+### IDEA-023 - Retain primary env outside the checkout
+
+- **Opened / finalized:** 2026-11-22, explicit owner choice in prompt021.
+- **Status:** Finalized for parent ../PersonnelAssistant.env; migration acceptance tracked separately.
+- **Summary / decision:** Keep environment-specific credentials/settings in the repo parent. Consolidate laptop .env.dev + .env with identical old precedence; use one explicit Compose --env-file argument. On staging relocate its existing server-only file and retain an outside-checkout compatibility symlink for prior releases. No laptop-to-server credential transfer.
+- **Options / rationale:** Prior ignored in-repo local files and staging shared/.env remain history. Parent file survives checkout replacement and simplifies startup; canonical path explicitly chosen by owner.
+- **Open questions:** Correct new migration equality check after explicit repair consent, then complete value/Compose-equivalence verification and Git publication.
+- **Task / debt:** TASK-024; no new runtime compromise selected. Preserve private permissions and existing backup/restore responsibilities under DEBT-010/011. Exact legacy local bytes archived beside the canonical parent file, not in Git.

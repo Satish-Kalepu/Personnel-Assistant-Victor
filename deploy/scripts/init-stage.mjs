@@ -5,8 +5,8 @@ const root=new URL('../../',import.meta.url);
 if(!process.argv.includes('--private'))throw new Error('Explicit --private is required. Production HTTPS/SMTP configuration must be reviewed separately.');
 const target=new URL('.env.stage',root);
 try{await readFile(target);console.log('Preserved existing .env.stage; no credential rotation.');process.exit(0);}catch(error){if(error.code!=='ENOENT')throw error;}
-const source=parseEnv(await readFile(new URL('.env',root),'utf8'));
-for(const name of ['OPENAI_API_KEY','SARVAM_API_KEY'])if(!source[name])throw new Error(`Set ${name} in private root .env first.`);
+const source=parseEnv(await readFile(new URL('../PersonnelAssistant.env',root),'utf8'));
+for(const name of ['OPENAI_API_KEY','SARVAM_API_KEY'])if(!source[name])throw new Error(`Set ${name} in private ../PersonnelAssistant.env first.`);
 const values={
   NODE_ENV:'development',APP_ORIGIN:'http://localhost:18080',WEB_BIND:'127.0.0.1',WEB_PORT:'18080',STAGE_MAIL_PORT:'18025',
   MONGO_ROOT_PASSWORD:randomBytes(32).toString('hex'),MONGO_APP_PASSWORD:randomBytes(32).toString('hex'),MONGO_REPLICA_KEY:randomBytes(72).toString('base64'),
@@ -21,4 +21,4 @@ const lines=Object.entries(values).map(([key,value])=>{
   return `${key}='${value}'`;
 });
 await writeFile(target,'# Private stage settings; never commit or add to image builds.\n'+lines.join('\n')+'\n',{flag:'wx',mode:0o600});
-console.log('Created ignored private .env.stage with independent server secrets. Root .env and local dev state preserved.');
+console.log('Created ignored private .env.stage with independent server secrets. Parent PersonnelAssistant.env and local dev state preserved.');

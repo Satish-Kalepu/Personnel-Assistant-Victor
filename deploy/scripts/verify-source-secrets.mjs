@@ -3,7 +3,7 @@ import {parseEnv} from 'node:util';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const values=parseEnv(await readFile(path.join(root,'.env'),'utf8'));
+const values=parseEnv(await readFile(path.resolve(root,'../PersonnelAssistant.env'),'utf8'));
 const secrets=['OPENAI_API_KEY','SARVAM_API_KEY'].map(name=>values[name]).filter(Boolean);
 if(secrets.length!==2)throw new Error('Both provider keys must be configured for this value-free check.');
 let count=0;

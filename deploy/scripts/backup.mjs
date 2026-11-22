@@ -10,7 +10,7 @@ const args=process.argv.slice(2),production=args.includes('--production'),restor
 const key=process.env.BACKUP_ENCRYPTION_KEY;
 if(!/^[a-f0-9]{64}$/.test(key||''))throw new Error('Load the private BACKUP_ENCRYPTION_KEY via node --env-file. Keep a separate protected copy for disaster recovery.');
 if(production&&restore)throw new Error('This tool restores only into the isolated victor-restore-test project.');
-const compose=['compose','--progress','quiet','--env-file',production?'.env':'.env.dev',...(!production?['--env-file','.env']:[]),...(restore?['-p','victor-restore-test']:[]),'-f','docker-compose.yml'];
+const compose=['compose','--progress','quiet','--env-file','../PersonnelAssistant.env',...(restore?['-p','victor-restore-test']:[]),'-f','docker-compose.yml'];
 function child(extra,streams=['ignore','pipe','pipe']){
   const proc=spawn('docker',[...compose,...extra],{cwd:root,stdio:streams});
   // Neither database credentials nor tool diagnostic output enter logs.

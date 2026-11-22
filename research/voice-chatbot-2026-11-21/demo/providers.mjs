@@ -9,7 +9,7 @@ export const LIVE_MODEL = 'gpt-live-1.1';
 export async function loadProviderConfig() {
   const config = {};
   let source = '';
-  try { source = await readFile(new URL('../../../.env', import.meta.url), 'utf8'); }
+  try { source = await readFile(new URL('../../../../PersonnelAssistant.env', import.meta.url), 'utf8'); }
   catch (error) { if (error.code !== 'ENOENT') throw new Error('Cannot read local provider configuration.'); }
   for (const key of ['OPENAI_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY']) {
     let value = process.env[key];

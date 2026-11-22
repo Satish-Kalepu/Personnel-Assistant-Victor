@@ -4,7 +4,7 @@ set -Eeuo pipefail
 umask 077
 app="$HOME/victor-stage"
 repo="$app/repository"
-envfile="$app/shared/.env"
+envfile="$repo/../PersonnelAssistant.env"
 assetroot="$repo/deploy/.local/web"
 export DOCKER_CONFIG="$app/docker-config"
 export GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=yes'
@@ -84,7 +84,7 @@ cp docker-compose.yml "$release/"
 cp deploy/mongo/entry.sh deploy/mongo/setup.js "$release/deploy/mongo/"
 previous=$(readlink "$app/current" || true)
 if [ -n "$previous" ]; then case "$previous" in "$app/releases/"*) ;; *) echo 'Unexpected previous release path.' >&2; exit 1;; esac; fi
-cp "$envfile" "$app/shared/.env.previous"
+cp "$envfile" "$app/shared/PersonnelAssistant.env.previous"
 
 select_assets() {
   ln -s "$1" "$assetroot/current.next.$$"
@@ -93,7 +93,7 @@ select_assets() {
 rollback() {
   trap - ERR
   echo 'Release failed; restoring previous settings, assets and app containers.' >&2
-  cp "$app/shared/.env.previous" "$envfile"
+  cp "$app/shared/PersonnelAssistant.env.previous" "$envfile"
   if [ -n "$previous_assets" ]; then select_assets "$previous_assets"; else rm -f "$assetroot/current"; fi
   if [ -n "$previous" ]; then
     cd "$previous"

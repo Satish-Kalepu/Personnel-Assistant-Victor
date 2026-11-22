@@ -2,7 +2,7 @@
 
 ## Local startup and configuration
 
-Run `node deploy/scripts/init-dev.mjs`, then the Compose command in the root README. The initializer preserves existing provider keys and generated secrets. `.env.dev` holds local secrets; root `.env` supplies provider keys and is loaded last. Only explicit service allowlists reach containers. The operator-only `BACKUP_ENCRYPTION_KEY` is not passed to the app.
+Run `node deploy/scripts/init-dev.mjs`, then the Compose command in the root README. The initializer preserves existing provider keys and generated secrets. `../PersonnelAssistant.env` holds local credentials and provider keys outside the checkout. Only explicit service allowlists reach containers. The operator-only `BACKUP_ENCRYPTION_KEY` is not passed to the app.
 
 `/health/live` checks the API process; `/health/ready` checks MongoDB/Redis. Nginx `/health` proxies readiness for ALB. Required indexes are checked before listening. MongoDB is a single-node authenticated replica set; it supplies transactions, not high availability. Redis uses authenticated AOF persistence, no eviction, bounded memory and expiring voice leases. Durable usage accounting is transactional in MongoDB.
 
@@ -13,9 +13,9 @@ Stopping Compose preserves data. `down --volumes` destroys databases; never use 
 Tests use synthetic accounts in an isolated `victor-test` project, actual MongoDB/Redis/Mailpit, and injected model/speech stubs. Test overrides remove provider keys and the Mailpit host port:
 
 ```powershell
-docker compose --env-file .env.dev --env-file .env -p victor-test --profile local -f docker-compose.yml -f docker-compose.test.yml up -d mongodb mongo-setup redis mailpit
-docker compose --env-file .env.dev --env-file .env -p victor-test --profile local -f docker-compose.yml -f docker-compose.test.yml run --rm --no-deps --volume "${PWD}/services/api/test:/app/test:ro" --entrypoint node api --test --test-concurrency=1 test/integration.test.mjs test/voice-session.test.mjs test/voice-sdk.test.mjs
-docker compose --env-file .env.dev --env-file .env -p victor-test --profile local -f docker-compose.yml -f docker-compose.test.yml stop
+docker compose --env-file ../PersonnelAssistant.env -p victor-test --profile local -f docker-compose.yml -f docker-compose.test.yml up -d mongodb mongo-setup redis mailpit
+docker compose --env-file ../PersonnelAssistant.env -p victor-test --profile local -f docker-compose.yml -f docker-compose.test.yml run --rm --no-deps --volume "${PWD}/services/api/test:/app/test:ro" --entrypoint node api --test --test-concurrency=1 test/integration.test.mjs test/voice-session.test.mjs test/voice-sdk.test.mjs
+docker compose --env-file ../PersonnelAssistant.env -p victor-test --profile local -f docker-compose.yml -f docker-compose.test.yml stop
 ```
 
 27 checks passed: email-first registration, browser/native authentication, tenant/mode separation, source-linked facts and deletion, OTP expiry/replay/attempt limits, password/reset/recovery-code revocation, transactional concurrent quotas, indexed seek pagination including timestamp ties, expiry before TTL removal, global email admission, authenticated/revoked voice, provider protocol and stale-audio/interruption behavior. TypeScript/Vite builds and dependency audits are separate. Stubs do not prove provider quality or real device audio.
@@ -25,23 +25,23 @@ docker compose --env-file .env.dev --env-file .env -p victor-test --profile loca
 The operator tool streams a full `mongodump --oplog` archive through AES-256-GCM. No plaintext dump is written. Keep a separate protected copy of the backup key and matching configuration: losing the key makes archives unusable. Backups include sensitive auth/session records. This backs up NEW MongoDB data, never the old DynamoDB chats selected for deletion.
 
 ```powershell
-node --env-file .env.dev deploy/scripts/backup.mjs deploy/.local/current.vbackup
-node --env-file .env.dev deploy/scripts/backup.mjs --restore-test deploy/.local/current.vbackup
+node --env-file ../PersonnelAssistant.env deploy/scripts/backup.mjs deploy/.local/current.vbackup
+node --env-file ../PersonnelAssistant.env deploy/scripts/backup.mjs --restore-test deploy/.local/current.vbackup
 ```
 
 Restore is hardwired to the isolated `victor-restore-test` project. It replaces only that test database. An offline bootstrap on its private network (no published ports/app services) permits restoring admin users without invalidating the tool's auth connection. The script then removes the restore override, re-enables normal keyfile/auth configuration and checks setup completion. Never use `docker-compose.restore.yml` for a live project. The restore is not accepted until an authenticated post-check verifies authorization, data and indexes:
 
 ```powershell
-Get-Content deploy/mongo/verify-restore.js -Raw | docker compose --env-file .env.dev --env-file .env -p victor-restore-test -f docker-compose.yml exec -T mongodb mongosh --nodb --quiet --file /dev/stdin
+Get-Content deploy/mongo/verify-restore.js -Raw | docker compose --env-file ../PersonnelAssistant.env -p victor-restore-test -f docker-compose.yml exec -T mongodb mongosh --nodb --quiet --file /dev/stdin
 ```
 
-Cold restore passed on 2026-11-21: authentication/authorization enabled, expected 1 synthetic user, 10 messages and 4 fact indexes restored. This is fixture evidence, not a production recovery SLA. Stop the isolated project afterward. For production backup use `node --env-file .env deploy/scripts/backup.mjs --production <workspace-relative-output.vbackup>` and arrange encrypted off-host transfer/retention/monitoring once a destination is supplied. A same-host file is not disaster recovery. Agree recovery targets and a production session-invalidation/cutover runbook before public launch. Never improvise restore `--drop` against the live database.
+Cold restore passed on 2026-11-21: authentication/authorization enabled, expected 1 synthetic user, 10 messages and 4 fact indexes restored. This is fixture evidence, not a production recovery SLA. Stop the isolated project afterward. For production backup use `node --env-file ../PersonnelAssistant.env deploy/scripts/backup.mjs --production <workspace-relative-output.vbackup>` and arrange encrypted off-host transfer/retention/monitoring once a destination is supplied. A same-host file is not disaster recovery. Agree recovery targets and a production session-invalidation/cutover runbook before public launch. Never improvise restore `--drop` against the live database.
 
 ## Stage and production
 
 Stage destination supplied 2026-11-21: `ai_assistant@65.2.130.74`, EC2 `i-05e7240ff938a2e49`, Mumbai, `t3.medium`. Domain/ALB details remain owner-supplied. First inspect host capacity/workloads and verify SSH host identity. Do not overwrite unrelated workloads, host configuration or existing security rules as incidental cleanup.
 
-Production uses the same root `docker-compose.yml` ([layout/runbook](compose-deployment.md)), only production `.env`, new DB/auth/mail/backup secrets, `APP_ORIGIN=https://<domain>` and verified SMTP. Do not load dev/test/restore overrides or expose Mailpit. Startup rejects HTTP, missing provider keys, Mailpit and unauthenticated SMTP in production. Images must have versioned tags and be tested for rollback compatibility. Database/auth/key rotation requires a migration; replacing `.env` alone can invalidate encrypted records or access.
+Production uses the same root `docker-compose.yml` ([layout/runbook](compose-deployment.md)), only the server?s `../PersonnelAssistant.env`, new DB/auth/mail/backup secrets, `APP_ORIGIN=https://<domain>` and verified SMTP. Do not load dev/test/restore overrides or expose Mailpit. Startup rejects HTTP, missing provider keys, Mailpit and unauthenticated SMTP in production. Images must have versioned tags and be tested for rollback compatibility. Database/auth/key rotation requires a migration; replacing `.env` alone can invalidate encrypted records or access.
 
 ALB needs ACM/HTTPS, HTTP redirect, an EC2 target group to Nginx, `/health` readiness, WebSocket support and suitable idle/draining timeouts. Restrict app ingress to the ALB security group. `ALB_TRUSTED_CIDR` must contain verified ALB source subnet CIDRs; default loopback is deliberate. Nginx overwrites forwarded client headers and refreshes Docker DNS for API replacement. API trusts one Nginx hop and a configured canonical origin. No public API bypass, MongoDB or Redis ports.
 
