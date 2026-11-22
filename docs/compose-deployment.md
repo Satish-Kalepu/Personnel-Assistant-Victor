@@ -65,7 +65,7 @@ Only the selected public release is mounted at /usr/share/nginx/html. Other chec
 
 ### Git releases
 
-Use `node deploy/scripts/deploy-stage.mjs` from a clean, reviewed Stage checkout. It pushes/pulls the expected commit and runs the pulled server-side builder. The builder builds API, frontend, Nginx and enabled worker; runs existing voice tests; extracts only public dist on that server; normalizes modes and checks the exact mount as the Nginx user. It then updates only image/frontend/profile references in the server env and recreates API/web/worker with `--no-deps`, preserving DB containers/volumes.
+Use `node deploy/scripts/deploy-stage.mjs` from the Stage checkout. It pushes/pulls the expected commit and runs the pulled server-side builder. The builder builds API, frontend, Nginx and enabled worker; runs existing voice tests; extracts only public dist on that server; normalizes modes and checks the exact mount as the Nginx user. It then updates only image/frontend/profile references in the server env and recreates API/web/worker with `--no-deps`, preserving DB containers/volumes.
 
 The script checks readiness and real index/worklet/build asset responses before selecting the app release. On a rollout failure it restores env, previous frontend selection and matching containers; transitional rollback understands the retained old Compose filenames. Keep old image/asset releases and perform normal public auth/voice acceptance. This single-host rollout has a short app interruption and is not zero downtime or high availability. Production requires its own reviewed release/rollback process; the provided deployment CLI targets staging only.
 

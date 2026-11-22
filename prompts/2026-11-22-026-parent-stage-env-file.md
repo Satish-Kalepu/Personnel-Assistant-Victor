@@ -24,4 +24,4 @@ also do not keep .env.stage in repo directory. move to parent  as  PersonnelAssi
 
 ## Outcome
 
-- File move and reference validation complete; scoped Git publication pending. Existing server configuration and voice rollout gate unchanged.
+- Complete. Commitf3fd978 non-force pushed and fast-forward pulled on staging; private stage variant stays in the local parent and all active helper references use it. Existing server configuration and voice rollout gate unchanged.

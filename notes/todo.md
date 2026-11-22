@@ -160,6 +160,14 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 
 - **TASK-021/TASK-022 acceptance (2026-11-22):** Both complete for stated Git deployment/configuration/staging acceptance; final release evidence linked in prompt015. Physical-device/audio latency, production operating requirements and deliberate coordinated rollback drill remain DEBT-010/011/012/013 follow-ups.
 
+
+### TASK-023 - Standalone chosen voice architecture skill
+
+- **Source:** IDEA-022; prompts2026-11-22-016 through018, explicit architecture confirmation and standalone revision in018.
+- **Priority / dependencies:** P1 documentation; current implemented voice stack. New product implementation is not authorized by this document task.
+- **Completion criteria:** One root voice-chatbot-skill.md describes the chosen current stack, audio/control protocol, owned endpointing, input/output lifetimes, backend/TTS/playback integration, deployment and acceptance without external/repository links or research companions; substantially shorter than the original note and no private secrets.
+- **Status:** Complete2026-11-22.1613 words versus2950 (45% reduction); link/path dependency checks, skill metadata/fences and21-secret scan passed with0 matches. No runtime code repair, installation or deployment. Existing DEBT-012/013 remains open.
+
 ### TASK-024 - Move primary configuration to ../PersonnelAssistant.env
 - **Source:** IDEA-023; explicit owner instruction prompt021.
 - **Priority / dependencies:** P1; safe no-overwrite/value-preserving local consolidation, server-only relocation, updated Compose/deployment/backup/demo/secret-scanner references. Migration-check correction explicitly approved in prompt022 and verified.
@@ -177,5 +185,11 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 ### TASK-026 - Retain stage env variant outside checkout
 - **Source:** IDEA-023 extension, prompt026 explicit owner instruction.
 - **Completion criteria:** Local .env.stage absent, identical bytes at ../PersonnelAssistant.env.stage, relevant helpers/scanner updated and syntax/Compose validated; do not overwrite different settings or transfer secrets to remote; inspect remote repo and preserve its existing external primary config. Publish only scoped references/records through Git.
-- **Status:** In progress; move/hash verification, initializer preservation, Compose and JS checks passed; remote repo has no stage variant and app is ready. Scoped Git publication pending.
+- **Status:** Complete2026-11-22. Move/hash verification, initializer preservation, Compose and JS checks passed; helper commitf3fd978 pushed/pulled. Remote repo has no stage variant and its external primary config/app remain healthy.
 - **Debt:** No new operating compromise; existing credential backup/retention policy applies.
+
+### TASK-027 - Persist all-changes staging workflow and deploy current snapshot
+- **Source:** IDEA-025; owner standing instruction prompt027.
+- **Completion criteria:** AGENTS.md and CLI include untracked/other-thread changes, scan complete staged snapshot and commit/push/pull/build automatically; private env/runtime paths excluded; all current safe changes reach staging; activate prepared voice UI and verify static/auth/live+held speech and real UI/theme; retain DB/env/TLS and exact fixture cleanup.
+- **Status:** In progress. Agreement/tooling/runbook updated; actual release and acceptance pending.
+- **Debt:** DEBT-013; concurrent edits after the snapshot stay for the next release, never discarded.

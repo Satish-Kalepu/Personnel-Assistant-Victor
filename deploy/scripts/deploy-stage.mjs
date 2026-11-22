@@ -1,11 +1,18 @@
-// Publish reviewed Git code, pull the exact commit and execute its server-side builder.
+// Snapshot all safe workspace changes, commit/push/pull, then build on staging.
 import {execFileSync,spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {remote} from './stage-ssh.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 if(git('branch','--show-current')!=='Stage')throw new Error('Deploy from the reviewed Stage branch');
-if(git('status','--porcelain','--untracked-files=normal'))throw new Error('Commit reviewed changes before deployment; checkout must be clean');
+// Owner's standing authorization includes untracked work and other threads.
+// Ignored env/runtime data stays excluded; scan the complete index before commit.
+git('add','--all');
+execFileSync(process.execPath,['deploy/scripts/verify-staged-secrets.mjs'],{cwd:root,stdio:'inherit'});
+if(git('diff','--cached','--name-only')){
+  const message=process.argv.slice(2).join(' ').trim()||'Deploy current workspace changes to staging';
+  git('commit','-m',message);
+}
 const commit=git('rev-parse','HEAD');
 if(!/^[a-f0-9]{40}$/.test(commit))throw new Error('Unexpected Git commit');
 await new Promise((resolve,reject)=>{

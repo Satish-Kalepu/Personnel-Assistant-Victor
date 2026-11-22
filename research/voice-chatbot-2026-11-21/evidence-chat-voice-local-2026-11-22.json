@@ -11,5 +11,13 @@
     "mobileNoOverflow": true
   },
   "finalBrowserInteraction": "awaiting-approved-cache-query-mock-correction",
-  "stagingActivated": false
+  "stagingActivated": false,
+  "stagingPreparedCommit": "2d74b99",
+  "stagingPreparedImages": [
+    "api",
+    "frontend",
+    "nginx"
+  ],
+  "stagingRuntimeVoiceChecks": 22,
+  "currentReleaseUnchanged": true
 }

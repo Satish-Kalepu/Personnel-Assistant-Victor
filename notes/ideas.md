@@ -313,6 +313,24 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 
 - **IDEA-021 staging result (2026-11-22, prompts014/015):** Selected repository-local/container-Nginx design deployed as stage-git-f2f0646806e4-20261122111218, commitf2f0646.10 local routing groups,18 server voice checks, actual read-only mount/public assets/auth controls and fresh synthetic STT/LLM/TTS passed; fixture removed. Git checkout/private parents remain0700, public files0644; original DB container IDs/start times retained. No /srv, sudo, host TLS edit or workstation env/data transfer. TASK-021/022 complete for scoped deployment; DEBT-013 coordinated rollback/device/production follow-ups stay open.
 
+
+### IDEA-022 - Reuse the current voice stack in another product
+
+- **Opened:** 2026-11-22.
+- **Status:** Finalized on 2026-11-22 by explicit owner confirmation in prompt018 for reuse of the current architecture; target-product implementation is a separate task.
+- **Summary:** Owner requests a portable current-architecture implementation note/skill for another product's chatbot, saved exactly as voice-chatbot-skill.md (prompt016).
+- **Scope decision:** Owner explicitly says to ignore alternative transport discussion and describe only what is implemented (prompt017). Document WSS PCM, owned Silero endpointing, Sarvam STT/TTS, backend input retention/checked speech and current client/deployment contracts.
+- **Options:** Reuse the matched session/provider/worker/client components with a new product's authenticated chat/policy adapters; exact target-product integration is not selected by this documentation request. No provider or architecture migration proposed.
+- **Open questions:** Target product identity, domain/business policy, retention requirements, native-client scope and physical audio acceptance. These do not block the current-stack note.
+- **Outcome / evidence:** [Reusable note](../voice-chatbot-skill.md) created from current source and primary API documentation.20 local references resolve; configured-secret scan matched0 values. Bundled skill validator could not run because PyYAML is absent; bounded frontmatter/name/scaffold and fence checks passed instead. No install, runtime repair or deployment.
+- **Related:** IDEA-017/018/021; existing TASK-019/020 evidence and DEBT-012/013 limitations are retained. No new product implementation task or completion inferred.
+
+- **IDEA-021 routing clarification (2026-11-22, prompt019):** Current stage uses external HTTPS443 -> host Nginx ->127.0.0.1:18080 -> Docker web8080. Web Nginx serves mounted public files, preserves /api/* to api3000, upgrades /voice to the same API and maps /health to API /health/ready. Private API owns DB/Redis/voice/provider calls; no new architecture decision or runtime change.
+
+- **Finalization / revision (2026-11-22, prompt018):** Owner explicitly confirms this is the architecture to carry forward and requests a smaller independent single file. Prior Discussing status preserved here as history. Rewrote the note as a1613-word chosen-architecture specification with no external/repository links, research/history sections or companion-file requirements; retained concrete protocol/settings, input preservation and acceptance. Rationale: copy exactly one file into another product. TASK-023 tracks document completion; existing DEBT-012/013 limits remain and no new runtime compromise is introduced.
+
+- **IDEA-021 Redis clarification (2026-11-22, prompt020):** Source confirms expiring HTTP/auth/email/voice throttles, per-conversation reply locks and per-user/global voice leases. Durable accounts/login sessions/chats/facts/AI usage stay in MongoDB; live audio/pending speech queues remain in API/worker memory. Explanation only; no cache, queue or architecture change selected.
+
 ### IDEA-023 - Retain primary env outside the checkout
 
 - **Opened / finalized:** 2026-11-22, explicit owner choice in prompt021.
@@ -322,6 +340,8 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Acceptance:** Complete2026-11-22 through prompts021/022. Approved guard correction verified; all29 local values/Compose unchanged, exact old bytes archived outside repo; commitf5418ea pushed/pulled, staging parent0600 and full Compose equal. All five running container IDs/start times and readiness unchanged. No new open architecture question.
 - **Task / debt:** TASK-024; no new runtime compromise selected. Preserve private permissions and existing backup/restore responsibilities under DEBT-010/011. Exact legacy local bytes archived beside the canonical parent file, not in Git.
 
+- **IDEA-023 remote location reconfirmed (2026-11-22, prompt023):** Owner reiterates outside-repo staging env and allows location choice. Read-only verification confirms ~/victor-stage/PersonnelAssistant.env0600 owned by ai_assistant, repository/.env absent, loader ../PersonnelAssistant.env, valid Compose and healthy readiness. Existing selected location retained; no new decision or runtime change.
+
 ### IDEA-024 - Separate press-to-speak and live conversation controls
 
 - **Opened:**2026-11-22, prompt024.
@@ -329,4 +349,13 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Summary / decision:** Frontend chat offers a single held message and a continuous hands-free live session. Live mode visibly changes the whole screen theme, shows microphone/session state and a clear exit. Backend identity/memory/usage/checked-TTS remain authoritative.
 - **Options / open questions:** Asked hold/release versus dictation/tap-to-finish; no answer yet, proceeded visibly with recommended hold/release. Hold connects private streaming manual STT, release flushes final partial PCM, closes microphone and ends the utterance, then waits for the checked reply/audio completion. Live retains owned Silero endpointing and interruptions.
 - **Tasks / debt:** TASK-025; DEBT-012 existing voice/device limits remain. First use may require microphone permission/connection; UI says wait for Listening. No measured latency improvement or physical-device acceptance claimed.
+
 - **IDEA-023 stage variant finalized (2026-11-22, prompt026):** Owner explicitly selects ../PersonnelAssistant.env.stage for the legacy .env.stage file too. Moved the local file byte-for-byte, updated stage init/local-image helpers and external secret scanning; initializer preserves existing file and Compose validates. Remote repo has no .env.stage; live server primary ../PersonnelAssistant.env remains outside its repo and healthy. No workstation secret transfer or voice activation implied. TASK-026.
+
+### IDEA-025 - Always stage all current repository work
+- **Opened / finalized:**2026-11-22, explicit owner standing instruction prompt027.
+- **Status:** Finalized.
+- **Decision:** Every staging release includes all current non-ignored repository changes, including untracked work and files authored in other threads. Update AGENTS.md and default CLI to stage/scan/commit/push/pull/build/deploy; no thread-ownership clean-check gate. Private env/credentials/runtime exclusions and non-force/exact-commit Git safeguards remain.
+- **Prior choice:** Supersedes the earlier practice of selectively committing own-thread files and treating unrelated untracked files as a release blocker; preserve earlier release records as history.
+- **Scope / open questions:** Deploy the currently prepared voice UI under this explicit all-changes instruction. Keep the unapproved browser-mock correction unchanged; validate actual staging UI independently. No new permission required for normal staging releases. Defect repair consent remains separate.
+- **Task/debt:** TASK-027; existing DEBT-013 coordinated-release/interruption limitations remain. Combined concurrent work is the owner-selected staging integration policy; immutable snapshots and server build/test/rollback checks bound each release.

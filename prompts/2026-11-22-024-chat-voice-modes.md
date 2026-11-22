@@ -22,8 +22,8 @@ okay.  in frontend chat I want  press and speak button,  and a live mode button 
 
 ## Verification
 
-- API/web builds and JS syntax pass.40 full isolated backend/integration tests and4 frontend/worklet tests pass, including private manual STT handshake, held-pause queue, release/cancel/empty, final PCM flush, microphone stop before finish, playback drain, muted completion and live capture. Source leak scan53 files0 matches; whitespace clean. Initial desktop/mobile live preview fits. Final browser interaction rerun awaits matcher correction consent; no staging rollout yet.
+- API/web builds and JS syntax pass.40 full isolated backend/integration tests and4 frontend/worklet tests pass, including private manual STT handshake, held-pause queue, release/cancel/empty, final PCM flush, microphone stop before finish, playback drain, muted completion and live capture. Source leak scan53 files0 matches. A later diff check reports one cosmetic extra blank line at EOF in the new backend test file; no runtime impact and no unsolicited repair applied. Initial desktop/mobile live preview fits. Commit2d74b99 secret-scanned (21 files/18 private values,0 matches), pushed/pulled; API/frontend/Nginx images built on staging and all22 server-runtime voice checks passed. Current release remains healthy/unchanged. Final browser interaction rerun awaits matcher correction consent; no live activation or paid speech check yet.
 
 ## Outcome
 
-- In progress.
+- Feature implemented, built and tested locally (40 isolated backend/integration plus4 frontend audio checks); staging code/images prepared and22 actual-runtime checks passed. Awaiting explicit visual-test cache-query matcher correction consent before final interaction verification/activation. Optional press choice still unanswered; stated hold/release assumption remains.
