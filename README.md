@@ -8,18 +8,20 @@ Install Docker Desktop with Linux containers and Node 24+ (the application itsel
 
 ```powershell
 node deploy/scripts/init-dev.mjs
- docker compose --env-file .env.dev --env-file .env -f compose.yml -f compose.dev.yml up -d --build
+npm --prefix web ci
+npm --prefix web run build
+ docker compose --env-file .env.dev --env-file .env up -d --build
 ```
 
 Open **http://localhost:8080**. Register, open **http://localhost:8025** to read the local email code, complete registration and privately save the recovery codes. Sign in with your password. Local emails stay in Mailpit; they are not sent to real mailboxes.
 
 The initializer preserves root `.env`. Keep `OPENAI_API_KEY` and `SARVAM_API_KEY` there. `.env.dev` contains generated local database/auth/backup secrets and is ignored. `.env.example` documents shareable placeholders. Never share real env files, print expanded Compose configuration, or put keys into browser/Android settings.
 
-The API/web images build locally; MongoDB, Redis and Mailpit use pinned upstream images. MongoDB/Redis have no published host ports. Browser voice requires microphone permission and a supported browser; localhost is allowed, production needs HTTPS. Start/Stop voice, Stop speaking and Mute are available. Ambient recording and wake words are separate future features.
+One root `docker-compose.yml` serves local, staging and production; [Compose deployment](docs/compose-deployment.md) explains the ports, profiles and frontend mount. Server TLS terminates at ALB/host Nginx, then the web-container Nginx serves the frontend and proxies API/WSS. On servers `/srv/victor-web/current` is mounted read-only; the laptop uses `web/dist`. The API/Nginx images build locally; MongoDB, Redis and Mailpit use pinned upstream images. MongoDB/Redis have no published host ports. Browser voice requires microphone permission and a supported browser; localhost is allowed, production needs HTTPS. Start/Stop voice, Stop speaking and Mute are available. Ambient recording and wake words are separate future features.
 
 ```powershell
- docker compose --env-file .env.dev --env-file .env -f compose.yml -f compose.dev.yml ps
- docker compose --env-file .env.dev --env-file .env -f compose.yml -f compose.dev.yml stop
+ docker compose --env-file .env.dev --env-file .env ps
+ docker compose --env-file .env.dev --env-file .env stop
 ```
 
 Stopping preserves data. Do not use `down --volumes` on development or production unless you intend to destroy its databases. Changing env passwords after volumes exist does not rotate the existing database credentials.

@@ -1,3 +1,5 @@
+> Superseded by explicit owner decision 2026-11-22, prompt010. Keep web-container Nginx and mount published assets; follow [the current Compose runbook](compose-deployment.md). The proposal below is historical and must not be activated.
+
 # Proposed host-only Nginx for Victor staging
 
 2026-11-22, [prompt008](../prompts/2026-11-22-008-plan-host-nginx-only.md). Current working staging remains unchanged. The proposed root and API port are **not yet prepared**: do not paste/reload this configuration until readiness is confirmed.
@@ -14,6 +16,14 @@ flowchart LR
 ```
 
 The host takes over static files and the current container proxy routes. There will be no running web/Nginx container after cutover. API, voice worker and databases remain containers. The deployment still uses reviewed Git push/pull and staging-side builds.
+
+## Laptop development alongside this layout
+
+The proposed laptop frontend is the existing Vite dev server at `http://localhost:5173`, providing reloads and same-origin `/api/` HTTP plus `/voice` WebSocket proxies to the locally running API. The API, voice worker, MongoDB, Redis and local Mailpit can remain Docker services. This development mode needs no installed host Nginx. Staging uses the built frontend with host Nginx instead of Vite.
+
+Current repository state must be distinguished from that proposal: `web/package.json` already has `npm run dev`, but no Vite proxy configuration or local API port overlay is wired yet. The currently documented Docker local mode still uses its web/Nginx container on localhost8080. To implement the proposed no-Nginx laptop mode, add the Vite HTTP/WS proxy, a loopback API binding (proposed127.0.0.1:18081→3000), fixed5173/strictPort and `APP_ORIGIN=http://localhost:5173`. Keep the browser-facing URL consistent so authentication and voice same-origin checks hold. Do not point localhost frontend at real staging user data by default.
+
+After that wiring, local use is backend Compose plus `cd web; npm run dev`. This is a proposed future command sequence, not a claim the full flow works now. Microphone permission is still required; localhost is a secure-context exception for development. LAN/phone HTTP testing needs separate handling and is not covered by the laptop localhost exception. See [Vite proxy options](https://vite.dev/config/server-options#server-proxy) and [microphone security context](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#privacy_and_security).
 
 This removes the duplicate proxy/serving layer. It does not remove filesystem permissions: the host `nginx` worker must be able to traverse/read published assets. Do not serve from the private Git checkout/home or expose the API publicly. Publish a public build-only directory with0755 directories/0644 files, retaining private env and user data outside it.
 

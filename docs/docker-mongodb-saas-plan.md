@@ -58,9 +58,9 @@ services/api/                  # auth, tenancy, chat, memory, voice, usage, pers
 web/                           # existing UI moved and adapted, auth/settings pages
 deploy/nginx/                  # reverse-proxy and health configuration
 deploy/scripts/                # documented idempotent deployment/backup/index tasks
-compose.yml                    # common services
-compose.dev.yml                # dev-only overrides and Mailpit
-compose.prod.yml               # production ports, limits and runtime policies
+docker-compose.yml             # one static stack; environment values and optional profiles
+docker-compose.test.yml        # isolated tests only
+docker-compose.restore.yml     # isolated restore only
 .env.example                   # tracked placeholders/documentation only
 .env.dev                       # ignored local values; generated non-default credentials
 .env                           # ignored operator settings; preserve existing Sarvam key

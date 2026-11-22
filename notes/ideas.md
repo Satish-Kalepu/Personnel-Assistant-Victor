@@ -293,3 +293,18 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Options / tradeoffs:** Host-only removes a proxy/image serving layer but adds coordinated host asset/API release management and one-time privileged directory/site setup. Fixing container ownership remains a separate alternative; do not pursue it while owner evaluates the host-only replacement.
 - **Open questions:** Approval of the concrete migration sequence, one-time scoped sudo/public-root setup and owner application of the reviewed site fragment; implementation and rollback for atomic frontend/API releases.
 - **References:** [Host-only proposal](../docs/host-nginx-migration.md), [Nginx fragment](../deploy/nginx/ai_test.host-only.conf), [prompt008](../prompts/2026-11-22-008-plan-host-nginx-only.md). TASK-021 stays In progress for deployment acceptance; no new implementation task finalized. DEBT-011/012 host/voice limits remain, no new operating compromise deployed.
+- **Laptop clarification (2026-11-22, prompt009):** Proposed local mode uses Vite5173 with same-origin HTTP/WS proxies plus Docker backend/voice/data/Mailpit, so no laptop Nginx installation. Current documented local Compose mode still contains Nginx; existing Vite dev script has no proxy/API-port overlay yet. Additional configuration/APP_ORIGIN alignment is needed before presenting the no-Nginx local mode as runnable. Explanation only; no implementation selection inferred.
+
+- **IDEA-020 superseded (2026-11-22, prompt010):** Owner explicitly abandons host-only serving and chooses container Nginx with a published frontend mount. Preserve the above proposal as historical; do not activate its direct API port/site fragment or proposed Vite-only mode. See IDEA-021.
+
+### IDEA-021 - One Compose file and container Nginx with published frontend
+
+- **Opened / finalized:** 2026-11-22 by explicit owner direction in prompt010.
+- **Status:** Finalized for implementation; staging acceptance tracked separately.
+- **Summary / decision:** One readable root docker-compose.yml; external ALB/host Nginx handles server TLS, web-container Nginx serves read-only /srv/victor-web/current and proxies private API/WebSocket services. Laptop uses the same container with web/dist. Remove environment overlay chains while retaining isolated test/restore overrides and optional local-mail/owned-voice profiles.
+- **Options:** Prior host-only proposal and Vite development proxy are superseded by the owner's chosen portable container layout. Original static-assets-in-image alternative remains historical.
+- **Rationale:** Explicit maintainability/portability preference and one application ingress/routing configuration across environments. Keep Git push/pull and server-side public build publication; preserve private env/data and existing volume/project names.
+- **Open questions:** Scoped sudo creation of the dedicated /srv public root, staging rollout and public acceptance. No host TLS change is required for the existing proxy route; future ALB source CIDR/ingress remains environment-specific.
+- **Tasks / debt:** TASK-022, TASK-021; DEBT-013 records asset/API rollout coupling and single-host interruption. Existing DEBT-011/012 remain. [Runbook](../docs/compose-deployment.md), [prompt010](../prompts/2026-11-22-010-simplify-compose-container-nginx.md).
+
+- **IDEA-021 staging authorization (2026-11-22, prompt014):** Owner explicitly says to update staging. Proceed with reviewed Git push/pull and server builds; existing app/data/TLS retained. Read-only check confirms dedicated public-root absent and no passwordless sudo, so request exactly the documented directory creation when needed. TASK-022/021 remain in progress until rollout and public acceptance.

@@ -20,7 +20,7 @@ async function sourceHash(){
     const full=path.join(folder,entry.name);if(entry.isDirectory())await visit(full);else {hash.update(path.relative(root,full).replaceAll('\\','/'));hash.update(await readFile(full));}
   }}
   for(const name of ['services/api','services/voice-worker','web'])await visit(path.join(root,name));
-  for(const name of ['compose.yml','compose.prod.yml','compose.owned-voice.yml'])hash.update(await readFile(path.join(root,name)));
+  for(const name of ['docker-compose.yml'])hash.update(await readFile(path.join(root,name)));
   const model=JSON.parse(await readFile(path.join(root,'services/voice-worker/model-manifest.json'),'utf8'));
   if(createHash('sha256').update(await readFile(path.join(root,'services/voice-worker/.models/silero_vad.onnx'))).digest('hex')!==model.sha256)throw new Error('Worker model checksum mismatch');
   return hash.digest('hex');

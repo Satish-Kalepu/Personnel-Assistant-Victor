@@ -1,9 +1,0 @@
-# Load only the production .env. Do not load .env.dev or compose.dev.yml.
-services:
-  api:
-    build: !reset null
-    environment:
-      NODE_ENV: production
-  web:
-    build: !reset null
-    ports: !override ["${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:8080"]

@@ -1,0 +1,17 @@
+# Isolated project: docker compose -p victor-test ... -f docker-compose.test.yml
+services:
+  api:
+    environment:
+      NODE_ENV: test
+      APP_ORIGIN: http://localhost:18080
+      OPENAI_API_KEY: ""
+      SARVAM_API_KEY: ""
+      VICTOR_TESTING: "true"
+      VOICE_ENDPOINT_MODE: provider
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+  mailpit:
+    ports: !reset []

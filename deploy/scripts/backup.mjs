@@ -10,7 +10,7 @@ const args=process.argv.slice(2),production=args.includes('--production'),restor
 const key=process.env.BACKUP_ENCRYPTION_KEY;
 if(!/^[a-f0-9]{64}$/.test(key||''))throw new Error('Load the private BACKUP_ENCRYPTION_KEY via node --env-file. Keep a separate protected copy for disaster recovery.');
 if(production&&restore)throw new Error('This tool restores only into the isolated victor-restore-test project.');
-const compose=['compose','--progress','quiet','--env-file',production?'.env':'.env.dev',...(!production?['--env-file','.env']:[]),...(restore?['-p','victor-restore-test']:[]),'-f','compose.yml','-f',production?'compose.prod.yml':'compose.dev.yml'];
+const compose=['compose','--progress','quiet','--env-file',production?'.env':'.env.dev',...(!production?['--env-file','.env']:[]),...(restore?['-p','victor-restore-test']:[]),'-f','docker-compose.yml'];
 function child(extra,streams=['ignore','pipe','pipe']){
   const proc=spawn('docker',[...compose,...extra],{cwd:root,stdio:streams});
   // Neither database credentials nor tool diagnostic output enter logs.
@@ -35,7 +35,7 @@ if(!restore){
   const file=await open(filename,'r'),header=Buffer.alloc(20),tag=Buffer.alloc(16);await file.read(header,0,20,0);await file.read(tag,0,16,size-16);await file.close();
   if(header.subarray(0,8).toString()!=='VICTOR01')throw new Error('Unknown backup format');
   const decipher=createDecipheriv('aes-256-gcm',Buffer.from(key,'hex'),header.subarray(8));decipher.setAuthTag(tag);
-  compose.push('-f','compose.restore.yml');
+  compose.push('-f','docker-compose.restore.yml');
   await child(['up','-d','mongodb','mongo-setup'],['ignore','ignore','pipe']).completed;
   await child(['wait','mongo-setup'],['ignore','ignore','pipe']).completed;
   const {proc,completed}=child(['exec','-T','mongodb','mongorestore','--archive','--gzip','--oplogReplay','--drop'],['pipe','pipe','pipe']);

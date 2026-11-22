@@ -36,8 +36,14 @@ for (const [name, content] of [
 }
 await mkdir(new URL("deploy/.local/", root), { recursive: true });
 const existing=await readFile(new URL('.env.dev',root),'utf8');
+// New local-only Compose settings; preserve every existing private value.
+let composeDefaults='';
+for(const [key,value] of Object.entries({WEB_ASSET_PATH:'./web/dist',COMPOSE_PROFILES:'local'})){
+  if(!new RegExp('^'+key+'=','m').test(existing))composeDefaults+=`\n${key}=${value}\n`;
+}
+if(composeDefaults)await writeFile(new URL('.env.dev',root),existing+composeDefaults,{mode:0o600});
 if(!/^BACKUP_ENCRYPTION_KEY=/m.test(existing)){
-  await writeFile(new URL('.env.dev',root),existing+`\nBACKUP_ENCRYPTION_KEY=${randomBytes(32).toString('hex')}\n`,{mode:0o600});
+  await writeFile(new URL('.env.dev',root),existing+composeDefaults+`\nBACKUP_ENCRYPTION_KEY=${randomBytes(32).toString('hex')}\n`,{mode:0o600});
   console.log('Added a private local backup encryption key; existing values preserved.');
 }
 console.log(
