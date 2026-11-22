@@ -10,7 +10,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const docker=(...args)=>execFileSync('docker',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
 const checks=[];
 function check(name,run){run();checks.push(name);console.log('PASS '+name);}
-const sample={...process.env,COMPOSE_PROFILES:'',WEB_ASSET_PATH:'/srv/victor-web/current'};
+const sample={...process.env,COMPOSE_PROFILES:'',WEB_ASSET_PATH:path.join(root,'deploy/.local/web/current')};
 for(const [name,extra,profiles] of [
   ['laptop',{NODE_ENV:'development',APP_ORIGIN:'http://localhost:8080',WEB_ASSET_PATH:'./web/dist',WEB_BIND:'127.0.0.1',WEB_PORT:'8080'},['local']],
   ['stage-host-nginx',{NODE_ENV:'production',APP_ORIGIN:'https://ai_test.satishk.com',WEB_BIND:'127.0.0.1',WEB_PORT:'18080',VOICE_ENDPOINT_MODE:'owned'},['owned-voice']],

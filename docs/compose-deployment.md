@@ -18,10 +18,10 @@ Only web publishes an application port. MongoDB, Redis, the API and voice worker
 
 ## Frontend mount
 
-Server default:
+Checkout-relative default (server env records the absolute path):
 
 ```yaml
-source: /srv/victor-web/current
+source: ./deploy/.local/web/current
 target: /usr/share/nginx/html
 read_only: true
 bind:
@@ -30,7 +30,7 @@ bind:
 
 `WEB_ASSET_PATH=./web/dist` selects the laptop build instead. The explicit no-create setting rejects a missing published directory. The web image contains Nginx/configuration, not the frontend; its named Docker build target `build` produces the frontend separately. Never mount the Git checkout, private env or user data as the web root.
 
-On servers, Git-built public files go into `/srv/victor-web/releases/<release>` with 0755 directories and 0644 files. `current` is a symlink selected by the app owner. The actual non-root Nginx entrypoint checks all files and required index/worklet/assets, then validates its config before serving. Recreate web after changing the symlink so Docker binds the new release. Retain the old directory and matching API image for rollback; a symlink update alone is not a running-container release.
+On servers, Git-built public files go into `<checkout>/deploy/.local/web/releases/<release>` with 0755 directories and 0644 files. `current` is a symlink selected by the app owner. The actual non-root Nginx entrypoint checks all files and required index/worklet/assets, then validates its config before serving. Recreate web after changing the symlink so Docker binds the new release. Retain the old directory and matching API image for rollback; a symlink update alone is not a running-container release.
 
 ## Laptop
 
@@ -51,25 +51,21 @@ Optional owned VAD uses the same file: privately set `VOICE_ENDPOINT_MODE=owned`
 
 ## Staging and production
 
-Keep settings on each server. Both require `NODE_ENV=production`, an exact HTTPS `APP_ORIGIN`, production provider/SMTP configuration, unchanged database/auth secrets and reviewed versioned image references. Set `WEB_ASSET_PATH=/srv/victor-web/current`. For owned VAD use `VOICE_ENDPOINT_MODE=owned`, `COMPOSE_PROFILES=owned-voice`, a private worker token and `VOICE_WORKER_IMAGE`.
+Keep settings on each server. Both require `NODE_ENV=production`, an exact HTTPS `APP_ORIGIN`, production provider/SMTP configuration, unchanged database/auth secrets and reviewed versioned image references. Set `WEB_ASSET_PATH=<checkout>/deploy/.local/web/current`. For owned VAD use `VOICE_ENDPOINT_MODE=owned`, `COMPOSE_PROFILES=owned-voice`, a private worker token and `VOICE_WORKER_IMAGE`.
 
 For the current staging host, retain `WEB_BIND=127.0.0.1`, `WEB_PORT=18080` and its verified proxy CIDR. Existing host Nginx continues to terminate TLS and forward to the web container. **No host-only static/API snippet, new API host port, TLS edit or reload is needed.** The earlier host-only proposal is superseded.
 
 For a future ALB target, bind web to the server's private interface, allow ingress only from the ALB security group, and set `ALB_TRUSTED_CIDR` to the verified proxy source subnet. Never trust all addresses. The existing variable name also applies to host Nginx; Docker may present the host proxy through a bridge gateway rather than 127.0.0.1, so inspect the real peer address. Nginx accepts forwarded client IP/HTTPS only from that configured proxy, overwrites upstream client headers, and the API trusts just the web Nginx hop. Outer proxies must support WebSocket upgrades and an idle timeout suitable for voice. The app uses its canonical HTTPS origin for production cookies/authentication.
 
-### One-time staging directory setup
+### App-owned publication directory
 
-The last read-only inspection found `/srv/victor-web` absent. Before executing, recheck that it is still absent; stop and inspect if an unexpected path exists. Request scoped sudo for exactly:
+Owner steering2026-11-22, prompt015 supersedes the earlier /srv proposal. Public build output stays inside the designated Git checkout under deploy/.local/web/releases; current selects a retained release. deploy/.local is ignored by Git and excluded from application build contexts. The app user creates these directories without sudo. The publisher checks the canonical path and rejects unexpected symlink traversal before writing.
 
-```sh
-sudo install -d -o ai_assistant -g nginx -m 0755 /srv/victor-web /srv/victor-web/releases
-```
-
-This creates only dedicated public-build directories. Runtime Nginx inside the container is UID101; world-readable public files allow it to read builds without changing private home/checkout permissions. No sudo password belongs in chat. Do not let Docker create a root-owned empty mount as a workaround. Other servers substitute their reviewed app owner/group.
+Only the selected public release is mounted at /usr/share/nginx/html. Other checkout files, private env and database contents are not mounted or served. The script sets WEB_ASSET_PATH to the absolute checkout-local current path in the existing server env so a retained Compose release directory resolves the same publication root. The Nginx runtime reads normalized755/644 public files through the mount; private checkout parent permissions remain unchanged. Do not create /srv directories or request root privileges for this deployment.
 
 ### Git releases
 
-After directory setup, use `node deploy/scripts/deploy-stage.mjs` from a clean, reviewed Stage checkout. It pushes/pulls the expected commit and runs the pulled server-side builder. The builder builds API, frontend, Nginx and enabled worker; runs existing voice tests; extracts only public dist on that server; normalizes modes and checks the exact mount as the Nginx user. It then updates only image/frontend/profile references in the server env and recreates API/web/worker with `--no-deps`, preserving DB containers/volumes.
+Use `node deploy/scripts/deploy-stage.mjs` from a clean, reviewed Stage checkout. It pushes/pulls the expected commit and runs the pulled server-side builder. The builder builds API, frontend, Nginx and enabled worker; runs existing voice tests; extracts only public dist on that server; normalizes modes and checks the exact mount as the Nginx user. It then updates only image/frontend/profile references in the server env and recreates API/web/worker with `--no-deps`, preserving DB containers/volumes.
 
 The script checks readiness and real index/worklet/build asset responses before selecting the app release. On a rollout failure it restores env, previous frontend selection and matching containers; transitional rollback understands the retained old Compose filenames. Keep old image/asset releases and perform normal public auth/voice acceptance. This single-host rollout has a short app interruption and is not zero downtime or high availability. Production requires its own reviewed release/rollback process; the provided deployment CLI targets staging only.
 

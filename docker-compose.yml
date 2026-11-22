@@ -141,7 +141,7 @@ services:
     # Server default. On laptops set WEB_ASSET_PATH=./web/dist in .env.dev.
     volumes:
       - type: bind
-        source: ${WEB_ASSET_PATH:-/srv/victor-web/current}
+        source: ${WEB_ASSET_PATH:-./deploy/.local/web/current}
         target: /usr/share/nginx/html
         read_only: true
         bind:

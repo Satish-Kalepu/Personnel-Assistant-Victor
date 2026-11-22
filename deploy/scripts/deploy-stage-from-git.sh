@@ -5,7 +5,7 @@ umask 077
 app="$HOME/victor-stage"
 repo="$app/repository"
 envfile="$app/shared/.env"
-assetroot=/srv/victor-web
+assetroot="$repo/deploy/.local/web"
 export DOCKER_CONFIG="$app/docker-config"
 export GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=yes'
 
@@ -20,11 +20,12 @@ if [ -n "$expected_commit" ]; then
   [[ "$expected_commit" =~ ^[a-f0-9]{40}$ ]] && [ "$commit" = "$expected_commit" ] || { echo 'Git commit differs from reviewed target.' >&2; exit 1; }
 fi
 
-# Never create this privileged path through Docker or change an existing owner.
-if [ ! -d "$assetroot/releases" ] || [ "$(readlink -f "$assetroot")" != "$assetroot" ] || [ ! -w "$assetroot" ] || [ ! -w "$assetroot/releases" ]; then
-  echo 'Public asset root requires approved setup: /srv/victor-web and /srv/victor-web/releases must be app-owned writable directories. See docs/compose-deployment.md.' >&2
-  exit 1
-fi
+# Public build output belongs to the app-owned, ignored checkout subtree.
+# Refuse unexpected symlink traversal; never modify a path outside this checkout.
+[ "$(readlink -f "$repo")" = "$repo" ]
+[ "$(readlink -m "$assetroot")" = "$repo/deploy/.local/web" ] || { echo 'Unexpected asset path traversal.' >&2; exit 1; }
+mkdir -p "$assetroot/releases"
+[ -w "$assetroot" ] && [ -w "$assetroot/releases" ]
 if [ -e "$assetroot/current" ] && [ ! -L "$assetroot/current" ]; then echo 'Unexpected non-symlink asset current; stopped.' >&2; exit 1; fi
 previous_assets=$(readlink "$assetroot/current" || true)
 if [ -n "$previous_assets" ]; then case "$previous_assets" in "$assetroot/releases/"*) ;; *) echo 'Unexpected previous asset path.' >&2; exit 1;; esac; fi
@@ -113,10 +114,10 @@ services=(api web)
 args=(-f docker-compose.yml)
 if [ "$voice_mode" = owned ]; then args+=(--profile owned-voice); services+=(voice-worker); fi
 trap rollback ERR
-python3 - "$envfile" "$api" "$web" "$voice_mode" "$worker" <<'PY'
+python3 - "$envfile" "$api" "$web" "$voice_mode" "$worker" "$assetroot/current" <<'PY'
 import pathlib,re,sys
 p=pathlib.Path(sys.argv[1]); text=p.read_text(encoding='utf-8')
-updates={'API_IMAGE':sys.argv[2], 'WEB_IMAGE':sys.argv[3], 'WEB_ASSET_PATH':'/srv/victor-web/current', 'COMPOSE_PROFILES':'owned-voice' if sys.argv[4]=='owned' else ''}
+updates={'API_IMAGE':sys.argv[2], 'WEB_IMAGE':sys.argv[3], 'WEB_ASSET_PATH':sys.argv[6], 'COMPOSE_PROFILES':'owned-voice' if sys.argv[4]=='owned' else ''}
 if sys.argv[4]=='owned': updates['VOICE_WORKER_IMAGE']=sys.argv[5]
 for key,value in updates.items():
     line=key+"='"+value+"'"
