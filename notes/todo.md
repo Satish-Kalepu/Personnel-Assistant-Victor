@@ -179,7 +179,7 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Source:** IDEA-024; explicit feature request prompt024.
 - **Priority / dependencies:** P1; existing authenticated voice backend and web UI. Optional press semantics question pending; hold/release stated as implementation assumption.
 - **Completion criteria:** Two usable controls; press ends a user-controlled streamed turn and microphone on release, then plays one checked reply; live stays hands-free with unmistakable theme/status/exit; final PCM tail retained, cancellation/mute/mode/logout/page hiding release resources; existing input retention/auth/usage limits preserved; backend protocol and frontend resource tests pass; responsive browser interaction/visual checks and Git staging rollout with auth/static/live+held synthetic speech acceptance and exact fixture cleanup.
-- **Status:** In progress. API/web builds and22 backend plus4 frontend/worklet tests pass. Live mobile preview checked, no overflow. Browser fixture needs approved cache-query matcher correction before final interaction check; no app bug found.
+- **Status:** Complete2026-11-22 through prompt027's explicit all-changes deployment. stage-git-047e4414086e-20261122174328 active;40 local backend/integration +4 frontend audio,22 server-runtime and actual staging frontend pointer/keyboard held/live/theme/mobile/exit checks passed. Old mocked matcher remains unmodified; actual app supplied acceptance. Exact fixture cleanup verified.
 - **Debt:** DEBT-012 physical Pixel/actual microphone/network quality and current bounded session/context limits remain.
 
 ### TASK-026 - Retain stage env variant outside checkout
@@ -191,5 +191,5 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 ### TASK-027 - Persist all-changes staging workflow and deploy current snapshot
 - **Source:** IDEA-025; owner standing instruction prompt027.
 - **Completion criteria:** AGENTS.md and CLI include untracked/other-thread changes, scan complete staged snapshot and commit/push/pull/build automatically; private env/runtime paths excluded; all current safe changes reach staging; activate prepared voice UI and verify static/auth/live+held speech and real UI/theme; retain DB/env/TLS and exact fixture cleanup.
-- **Status:** In progress. Agreement/tooling/runbook updated; actual release and acceptance pending.
+- **Status:** Complete2026-11-22. Agreement/CLI persist all-current-work authorization; default command included other-thread/untracked files, scanned/committed/pushed/pulled/deployed047e441 and all static/auth/held/live/actual UI acceptance passed. Post-release evidence retained; private files excluded.
 - **Debt:** DEBT-013; concurrent edits after the snapshot stay for the next release, never discarded.

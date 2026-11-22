@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-22",
+  "deployedCommit": "047e4414086e0bfc38c1eae3aae54908f7fd7048",
+  "release": "stage-git-047e4414086e-20261122174328",
+  "allCurrentNonIgnoredThreadsIncluded": true,
+  "secretIndexScan": {
+    "files": 21,
+    "privateValues": 18,
+    "matches": 0
+  },
+  "localTests": {
+    "backendIntegration": 40,
+    "frontendAudio": 4
+  },
+  "serverRuntimeVoiceTests": 22,
+  "publicAuthChecks": true,
+  "actualStageBrowser": {
+    "syntheticMicrophone": true,
+    "physicalMicrophone": false,
+    "pointerPress": {
+      "replyBeforeRelease": false,
+      "microphoneStopped": true,
+      "normalTheme": true,
+      "reply": "12 times 13 is 156."
+    },
+    "keyboardPress": {
+      "heldAriaPressed": true,
+      "microphoneStopped": true,
+      "outputPcmBytes": 142080,
+      "peak": 22030
+    },
+    "live": {
+      "themeChanged": true,
+      "panelVisible": true,
+      "microphoneStaysOn": true,
+      "outputPcmBytes": 134400,
+      "peak": 22046,
+      "newReply": true,
+      "mobileNoOverflow": true,
+      "exitRestoresTheme": true,
+      "exitStopsMicrophone": true
+    },
+    "javascriptErrors": []
+  },
+  "directHeldPauseCheck": {
+    "passed": true,
+    "outputPcmBytes": 157440,
+    "peak": 22093,
+    "syntheticAccountCleanupVerified": true,
+    "emailSent": false,
+    "globalSpendPreserved": true
+  },
+  "oldLocalMockMatcherRepaired": false,
+  "envFilesOutsideRepo": true
+}

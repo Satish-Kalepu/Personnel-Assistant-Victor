@@ -1,3 +1,10 @@
+# Voice controls deployed ? 2026-11-22
+
+- Active release: stage-git-047e4414086e-20261122174328, application commit047e441. All current safe workspace files, including untracked/other-thread work, published by default Git workflow under prompt027.
+- Press and speak: hold/release, explicit manual STT, microphone off after release, checked reply completes before session close. Live: continuous owned VAD with distinct theme/status/exit and responsive phone layout.
+-40 full isolated backend/integration +4 browser audio checks;22 server-runtime checks; public auth/static and actual staging pointer/keyboard/live speech/theme/cleanup acceptance passed with synthetic input. No physical microphone/Pixel/latency claim; exact synthetic account removed.
+- Private primary/stage env files remain outside repo; MongoDB/Redis/TLS unchanged. [Evidence](../research/voice-chatbot-2026-11-21/evidence-chat-voice-stage-2026-11-22.json). The earlier deployment records below are historical.
+
 # Current staging release ? 2026-11-22
 
 - URL: https://ai_test.satishk.com
