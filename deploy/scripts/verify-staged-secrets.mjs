@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {parseEnv} from 'node:util';
 const secrets=new Set();
-for(const name of ['../PersonnelAssistant.env','.env','.env.dev','.env.stage']){
+for(const name of ['../PersonnelAssistant.env','../PersonnelAssistant.env.stage','.env','.env.dev','.env.stage']){
   let text;try{text=await readFile(name,'utf8');}catch(error){if(error.code==='ENOENT')continue;throw error;}
   for(const [key,value] of Object.entries(parseEnv(text)))
     if(/(?:API_KEY|PASSWORD|SECRET|ENCRYPTION_KEY|REPLICA_KEY)$/i.test(key)&&value.length>=16&&!value.startsWith('GENERATE_'))secrets.add(value);

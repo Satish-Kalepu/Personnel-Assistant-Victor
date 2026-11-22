@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-22",
+  "local": {
+    "canonicalPath": "../PersonnelAssistant.env.stage",
+    "legacyFileAbsent": true,
+    "bytesPreserved": true,
+    "initializerPreservesExisting": true,
+    "composeValid": true
+  },
+  "remote": {
+    "repoStageVariantAbsent": true,
+    "activePrimary": "../PersonnelAssistant.env",
+    "activePrimaryMode": "0600",
+    "appReady": true,
+    "workstationSecretsTransferred": false
+  },
+  "runtimeChanged": false
+}

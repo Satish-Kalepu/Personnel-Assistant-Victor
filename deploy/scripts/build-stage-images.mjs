@@ -13,7 +13,7 @@ const hash=source.digest('hex'),tag=`${label}-${hash.slice(0,12)}`;
 async function build(service,image){await new Promise((resolve,reject)=>{const task=spawn('docker',['build','--quiet','--label',`org.opencontainers.image.revision=sha256:${hash}`,'-t',image,service],{cwd:root,stdio:['ignore','ignore','pipe']});let diagnostic='';task.stderr.on('data',data=>{diagnostic=(diagnostic+data.toString()).slice(-2000);});task.once('error',reject);task.once('close',code=>code===0?resolve():reject(new Error(`Image build failed for ${service}: ${diagnostic}`)));});}
 const apiImage=`victor-api:${tag}`,webImage=`victor-web:${tag}`;
 await build('services/api',apiImage);await build('web',webImage);
-const target=path.join(root,'.env.stage');
+const target=path.resolve(root,'../PersonnelAssistant.env.stage');
 let env=await readFile(target,'utf8');env=env.replace(/^API_IMAGE=.*\r?\n?/gm,'').replace(/^WEB_IMAGE=.*\r?\n?/gm,'');
 await writeFile(target,env+`API_IMAGE='${apiImage}'\nWEB_IMAGE='${webImage}'\n`,{mode:0o600});
 const result={apiImage,webImage,sourceSha256:hash,built:true,containsEnvironmentFiles:false};

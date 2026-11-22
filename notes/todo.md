@@ -173,3 +173,9 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** Two usable controls; press ends a user-controlled streamed turn and microphone on release, then plays one checked reply; live stays hands-free with unmistakable theme/status/exit; final PCM tail retained, cancellation/mute/mode/logout/page hiding release resources; existing input retention/auth/usage limits preserved; backend protocol and frontend resource tests pass; responsive browser interaction/visual checks and Git staging rollout with auth/static/live+held synthetic speech acceptance and exact fixture cleanup.
 - **Status:** In progress. API/web builds and22 backend plus4 frontend/worklet tests pass. Live mobile preview checked, no overflow. Browser fixture needs approved cache-query matcher correction before final interaction check; no app bug found.
 - **Debt:** DEBT-012 physical Pixel/actual microphone/network quality and current bounded session/context limits remain.
+
+### TASK-026 - Retain stage env variant outside checkout
+- **Source:** IDEA-023 extension, prompt026 explicit owner instruction.
+- **Completion criteria:** Local .env.stage absent, identical bytes at ../PersonnelAssistant.env.stage, relevant helpers/scanner updated and syntax/Compose validated; do not overwrite different settings or transfer secrets to remote; inspect remote repo and preserve its existing external primary config. Publish only scoped references/records through Git.
+- **Status:** In progress; move/hash verification, initializer preservation, Compose and JS checks passed; remote repo has no stage variant and app is ready. Scoped Git publication pending.
+- **Debt:** No new operating compromise; existing credential backup/retention policy applies.
