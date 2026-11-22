@@ -20,8 +20,8 @@ go ahead and update stage environment.
 
 ## Verification
 
-- Prior local verification:10 routing/security groups,18 voice regressions, frontend/Nginx builds, mount permission preflight and retained no-build release plan passed. Remote rollout pending.
+- Reviewed source committed as a7df321, non-force pushed and fast-forward pulled on staging. Index scan31 files /18 private values: zero matches. All four images built on staging; pinned model checksum,18 isolated voice regressions and non-root worker/model smoke passed. No live rollout yet; directory setup pending. Evidence saved under research/voice-chatbot-2026-11-21/evidence-compose-stage-preflight-2026-11-22.json.
 
 ## Outcome
 
-- Preparing reviewed Git publication. Deployment is authorized but public-root setup needs owner-scoped sudo before the mount can be used.
+- Code published/pulled and server-side build preflight passed. Requested exactly sudo install -d -o ai_assistant -g nginx -m0755 for /srv/victor-web and /srv/victor-web/releases, or owner-run equivalent. Required answer/action pending; activation and public auth/voice verification remain. Current healthy release/database/TLS unchanged.
