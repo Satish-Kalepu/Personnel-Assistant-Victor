@@ -1,4 +1,5 @@
 import { SarvamAIClient } from "sarvamai";
+import {manualListener} from "./manual.mjs";
 import { WebSocket as NodeWebSocket } from "ws";
 
 // The SDK selects globalThis.WebSocket before its Node transport. Explicitly
@@ -87,6 +88,7 @@ export class WavPcm {
 export function sarvamProvider(apiKey, speaker = "simran_en_customer") {
   const client = new SarvamAIClient({ apiSubscriptionKey: apiKey });
   return {
+    listenManual(onEvent,onError) { return manualListener(apiKey,onEvent,onError); },
     async listen(onEvent, onError) {
       const socket = await client.speechToTextRealtimeStreaming.connect({
         "Api-Subscription-Key": apiKey,

@@ -15,8 +15,10 @@ window.VictorVoice = class {
     this.sources = new Set();
     this.active = false;
   }
-  async start(mode, conversationId, muted = false) {
-    this.stop();
+  async start(mode, conversationId, muted = false, inputMode = "live") {
+    this.stop(false);
+    this.inputMode = inputMode;
+    this.inputEnded = this.finishing = this.replyReceived = false;
     const generation = this.generation;
     const current = () => generation === this.generation;
     try {
@@ -74,6 +76,7 @@ window.VictorVoice = class {
             token: this.token(),
             mode,
             conversationId,
+            inputMode,
           }),
         );
       };
@@ -90,6 +93,17 @@ window.VictorVoice = class {
             );
             this.worklet.port.onmessage = (frame) => {
               if (!current() || ws.readyState !== WebSocket.OPEN) return;
+              if (frame.data?.type === "flushed") {
+                if (!this.finishing) return;
+                clearTimeout(this.flushTimer);
+                this.worklet.disconnect();
+                this.input.disconnect();
+                this.stream.getTracks().forEach(track => track.stop());
+                this.inputEnded = true;
+                ws.send(JSON.stringify({type:"finishInput"}));
+                this.onState("thinking");
+                return;
+              }
               if (ws.bufferedAmount > 64000) {
                 this.fail(
                   "Voice connection is too slow. Start again or use text.",
@@ -109,13 +123,20 @@ window.VictorVoice = class {
             if (message.turn === this.turn && !this.muted) this.play(message);
           } else if (message.type === "speechEnd") {
             this.playbackEnded = true;
-            if (!this.sources.size) this.onState("listening");
+            if (!this.sources.size) this.returnToListening();
           } else if (message.type === "transcript")
             this.onTranscript(message.text, message.final);
-          else if (message.type === "reply") this.onReply(message);
+          else if (message.type === "reply") { this.replyReceived = true; this.onReply(message); }
           else if (message.type === "speechBoundary") this.onActivity(message);
-          else if (message.type === "state") this.onState(message.state);
-          else if (message.type === "error") this.onError(message.message);
+          else if (message.type === "state") {
+            if (message.state === "listening") this.returnToListening();
+            else this.onState(message.state);
+          } else if (message.type === "inputComplete" && message.empty) {
+            this.stop(); this.onError("No speech was detected. Press and speak to try again.");
+          } else if (message.type === "error") {
+            if (this.inputMode === "push-to-talk") this.fail(message.message);
+            else this.onError(message.message);
+          }
         } catch {
           this.fail("Voice audio could not be read. Please start again.");
         }
@@ -161,7 +182,7 @@ window.VictorVoice = class {
       this.sources.delete(source);
       source.disconnect();
       if (!this.sources.size && this.playbackEnded && this.active)
-        this.onState("listening");
+        this.returnToListening();
     };
     source.start(start);
     this.nextAudio = start + buffer.duration;
@@ -178,6 +199,22 @@ window.VictorVoice = class {
     this.nextAudio = 0;
     this.playbackEnded = false;
   }
+  returnToListening() {
+    if (this.inputMode === "push-to-talk" && this.inputEnded) {
+      if (this.replyReceived) this.stop();
+      else this.onState("thinking");
+    } else this.onState("listening");
+  }
+  finishInput() {
+    if (!this.active || this.finishing) return;
+    if (this.inputMode !== "push-to-talk" || !this.worklet) {
+      this.fail("Microphone was not ready yet. Hold again and wait for Listening before speaking.");
+      return;
+    }
+    this.finishing = true;
+    this.worklet.port.postMessage({type:"flush"});
+    this.flushTimer = setTimeout(() => this.fail("Microphone could not finish. Please try again."), 3000);
+  }
   interrupt() {
     this.clearPlayback();
     if (this.socket?.readyState === WebSocket.OPEN)
@@ -193,11 +230,13 @@ window.VictorVoice = class {
     this.stop();
     this.onError(message);
   }
-  stop() {
+  stop(notify = true) {
     this.generation++;
     this.active = false;
     this.muted = false;
+    this.finishing = this.inputEnded = this.replyReceived = false;
     clearTimeout(this.connectTimer);
+    clearTimeout(this.flushTimer);
     this.clearPlayback();
     this.worklet?.disconnect();
     this.input?.disconnect();
@@ -208,6 +247,6 @@ window.VictorVoice = class {
     }
     if (this.context) this.context.close().catch(() => {});
     this.worklet = this.input = this.stream = this.socket = this.context = null;
-    this.onState("idle");
+    if (notify) this.onState("idle");
   }
 };

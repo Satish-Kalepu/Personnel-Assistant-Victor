@@ -321,3 +321,11 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Options / rationale:** Prior ignored in-repo local files and staging shared/.env remain history. Parent file survives checkout replacement and simplifies startup; canonical path explicitly chosen by owner.
 - **Acceptance:** Complete2026-11-22 through prompts021/022. Approved guard correction verified; all29 local values/Compose unchanged, exact old bytes archived outside repo; commitf5418ea pushed/pulled, staging parent0600 and full Compose equal. All five running container IDs/start times and readiness unchanged. No new open architecture question.
 - **Task / debt:** TASK-024; no new runtime compromise selected. Preserve private permissions and existing backup/restore responsibilities under DEBT-010/011. Exact legacy local bytes archived beside the canonical parent file, not in Git.
+
+### IDEA-024 - Separate press-to-speak and live conversation controls
+
+- **Opened:**2026-11-22, prompt024.
+- **Status:** Finalized for the explicitly requested two controls and distinct live theme; press interaction uses a stated hold/release implementation assumption after optional clarification grace, pending owner preference feedback.
+- **Summary / decision:** Frontend chat offers a single held message and a continuous hands-free live session. Live mode visibly changes the whole screen theme, shows microphone/session state and a clear exit. Backend identity/memory/usage/checked-TTS remain authoritative.
+- **Options / open questions:** Asked hold/release versus dictation/tap-to-finish; no answer yet, proceeded visibly with recommended hold/release. Hold connects private streaming manual STT, release flushes final partial PCM, closes microphone and ends the utterance, then waits for the checked reply/audio completion. Live retains owned Silero endpointing and interruptions.
+- **Tasks / debt:** TASK-025; DEBT-012 existing voice/device limits remain. First use may require microphone permission/connection; UI says wait for Listening. No measured latency improvement or physical-device acceptance claimed.

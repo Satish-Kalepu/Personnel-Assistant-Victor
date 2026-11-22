@@ -166,3 +166,10 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** Parent canonical file selected locally/on staging; current effective values and rendered Compose identical; legacy bytes retained privately outside repo; references/init/scanners/docs updated through Git; server file0600, current app/DB container identities/health unchanged; no credentials printed/transferred.
 - **Status:** Complete2026-11-22. Local values/rendered Compose/provider reader preserved, root active files archived outside repo; canonical single env-file config passes. Git commitf5418ea pulled, server0600 parent relocation and full Compose equality passed; all five container identities/start times and readiness unchanged. No workstation credentials transferred.
 - **Debt:** No new runtime compromise; DEBT-010/011 existing credential backup/recovery responsibilities retained.
+
+### TASK-025 - Chat voice entry controls and live theme
+- **Source:** IDEA-024; explicit feature request prompt024.
+- **Priority / dependencies:** P1; existing authenticated voice backend and web UI. Optional press semantics question pending; hold/release stated as implementation assumption.
+- **Completion criteria:** Two usable controls; press ends a user-controlled streamed turn and microphone on release, then plays one checked reply; live stays hands-free with unmistakable theme/status/exit; final PCM tail retained, cancellation/mute/mode/logout/page hiding release resources; existing input retention/auth/usage limits preserved; backend protocol and frontend resource tests pass; responsive browser interaction/visual checks and Git staging rollout with auth/static/live+held synthetic speech acceptance and exact fixture cleanup.
+- **Status:** In progress. API/web builds and22 backend plus4 frontend/worklet tests pass. Live mobile preview checked, no overflow. Browser fixture needs approved cache-query matcher correction before final interaction check; no app bug found.
+- **Debt:** DEBT-012 physical Pixel/actual microphone/network quality and current bounded session/context limits remain.

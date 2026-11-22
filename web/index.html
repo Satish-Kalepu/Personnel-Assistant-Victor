@@ -103,6 +103,16 @@
         </select>
         <button id="more-conversations" class="secondary" hidden>Load more conversations</button>
         <p id="usage" class="fact-added"></p>
+        <section id="live-zone" class="live-zone-panel" aria-label="Live conversation" hidden>
+          <div class="live-heading">
+            <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> Live mode</span>
+            <button id="live-exit" type="button" class="secondary">Exit live mode</button>
+          </div>
+          <div class="live-orb" aria-hidden="true"><span></span></div>
+          <h2>Your conversation space</h2>
+          <p id="live-state" role="status">Connecting…</p>
+          <p class="live-help">Speak naturally. Your microphone stays on until you leave live mode.</p>
+        </section>
         <section
           id="messages"
           class="messages"
@@ -113,12 +123,23 @@
           Load earlier messages
         </button>
         <div class="voice-controls">
-          <button id="voice-start" class="secondary">Start voice</button
-          ><button id="voice-stop" class="secondary" disabled>Stop voice</button
-          ><button id="voice-interrupt" class="secondary" disabled>
+          <div class="voice-entry">
+            <button id="voice-press" type="button" class="press-speak" aria-pressed="false" aria-describedby="voice-hint">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v3M8 21h8"/></svg>
+              <span id="voice-press-label">Press and speak</span>
+            </button>
+            <button id="voice-live" type="button" class="secondary live-mode-button" aria-pressed="false" aria-controls="live-zone">
+              <span class="mode-dot" aria-hidden="true"></span> <span id="voice-live-label">Live mode</span>
+            </button>
+          </div>
+          <p id="voice-hint" class="voice-hint">Speak one message, or enter live mode for a hands-free conversation.</p>
+          <div id="voice-session-controls" class="voice-session-controls" hidden>
+          <button id="voice-stop" type="button" class="secondary">Cancel voice</button
+          ><button id="voice-interrupt" type="button" class="secondary" disabled>
             Stop speaking</button
           ><label><input id="voice-muted" type="checkbox" /> Mute replies</label
           ><span id="voice-status" role="status">Voice off</span>
+          </div>
           <p id="voice-transcript" aria-live="polite"></p>
           <p id="voice-activity" class="muted" aria-live="polite"></p>
         </div>

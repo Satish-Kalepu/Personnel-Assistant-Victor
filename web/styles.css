@@ -345,3 +345,71 @@ dialog button {
 [hidden] {
   display: none !important;
 }
+.voice-entry,
+.voice-session-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.voice-entry { width: 100%; }
+.press-speak,
+.live-mode-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem; min-height: 48px; }
+.press-speak { touch-action: none; user-select: none; -webkit-user-select: none; }
+.press-speak[aria-pressed="true"] { background: #a63d2f; box-shadow: 0 0 0 4px #a63d2f20; }
+.mode-dot,
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.voice-hint { width: 100%; margin: 0.2rem 0 0.4rem; color: #597069; font-size: 0.85rem; }
+.voice-session-controls { width: 100%; padding-top: 0.5rem; }
+.live-zone-panel { margin: 1rem; padding: 1.1rem 1.25rem 1.4rem; border: 1px solid #284654; border-radius: 1rem; text-align: center; background: linear-gradient(145deg, #142e3b, #131f35); }
+.live-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.live-badge { display: inline-flex; align-items: center; gap: 0.5rem; color: #91ead7; font-size: 0.8rem; font-weight: 650; }
+.live-dot { box-shadow: 0 0 12px #6fd5be80; }
+.live-orb { width: 116px; height: 116px; margin: 1.2rem auto; display: grid; place-items: center; border-radius: 50%; border: 1px solid #5cd5c24a; background: radial-gradient(circle, #2f8c8230, transparent 70%); }
+.live-orb span { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #b0f8dd, #47bba6 55%, #3f718b); box-shadow: 0 0 40px #4fdbbd35; animation: live-breathe 3s ease-in-out infinite; }
+.live-zone-panel h2 { color: #edf8f6; font-size: 1.3rem; }
+#live-state { color: #94ead6; margin: 0.55rem 0; font-weight: 550; }
+.live-help { max-width: 33rem; margin: auto; color: #b0c4d4; font-size: 0.85rem; line-height: 1.6; }
+:root.live-zone { color: #e2eaf4; background: #0b1423; color-scheme: dark; }
+.live-zone body { background: radial-gradient(ellipse at 50% 0, #163442 0, #0b1423 65%); }
+.live-zone .eyebrow { color: #88beaf; }
+.live-zone .workspace { background: #101d2d; border-color: #2c4050; box-shadow: 0 20px 80px #0003; }
+.live-zone .secondary,
+.live-zone .memory-tabs button { color: #b8ede1; background: #243b48; }
+.live-zone .secondary:hover { background: #2d4c58; }
+.live-zone .modes button { color: #b0c4d4; }
+.live-zone .modes button[aria-pressed="true"],
+.live-zone .memory-tabs button[aria-pressed="true"] { background: #286f64; color: white; }
+.live-zone .notice:not(.error) { background: #1c343e; color: #cce5e3; }
+.live-zone .toolbar,
+.live-zone .composer,
+.live-zone .voice-controls,
+.live-zone .memory-panel,
+.live-zone .fact { border-color: #2b4050; }
+.live-zone .toolbar p,
+.live-zone .fact-added,
+.live-zone .fact-review,
+.live-zone .empty,
+.live-zone .voice-hint,
+.live-zone .memory-panel p,
+.live-zone .muted,
+.live-zone small { color: #b0c4d4; }
+.live-zone .message.assistant { background: #203445; }
+.live-zone .message.user { background: #286f64; }
+.live-zone textarea,
+.live-zone select { color: #e2eaf4; background: #172b3b; border-color: #405b6b; }
+.live-zone textarea::placeholder { color: #9cb3c3; }
+.live-zone #voice-transcript { color: #a1e4ce; }
+.live-zone .live-mode-button { background: #367e70; color: white; }
+.live-zone dialog { color: #202d36; background: white; color-scheme: light; }
+.live-zone[data-voice-state="thinking"] .live-orb span { animation-duration: 1.6s; }
+.live-zone[data-voice-state="speaking"] .live-orb span { box-shadow: 0 0 50px #4fdbbd70; }
+@keyframes live-breathe { 0%,100% { transform: scale(0.94); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
+@media (max-width: 650px) {
+  .voice-entry > button { flex: 1; padding-inline: 0.7rem; }
+  .live-zone-panel { margin: 0.75rem; padding: 1rem; }
+  .live-heading { gap: 0.4rem; }
+  .live-heading button { font-size: 0.82rem; padding: 0.6rem 0.75rem; }
+  .live-zone .messages { min-height: 180px; max-height: 35vh; }
+}
+@media (prefers-reduced-motion: reduce) { .live-orb span { animation: none; } }

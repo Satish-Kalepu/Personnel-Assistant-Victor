@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-22",
+  "apiBuild": true,
+  "webBuild": true,
+  "isolatedBackendTests": 40,
+  "frontendAudioTests": 4,
+  "providerCalls": false,
+  "physicalMicrophoneTested": false,
+  "initialLiveLayout": {
+    "desktopNoOverflow": true,
+    "mobileNoOverflow": true
+  },
+  "finalBrowserInteraction": "awaiting-approved-cache-query-mock-correction",
+  "stagingActivated": false
+}

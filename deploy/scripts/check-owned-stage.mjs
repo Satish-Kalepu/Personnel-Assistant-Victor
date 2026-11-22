@@ -54,7 +54,8 @@ try{
 `);
   const {unlink}=await import('node:fs/promises');await unlink(fixturePath);
   console.log(JSON.stringify({syntheticFixtureRemoved:true,otherAccountsUntouched:true,globalSpendPreserved:true}));
-}else if(process.argv[2]==='check'){
+}else if(['check','check-press'].includes(process.argv[2])){
+  const press=process.argv[2]==='check-press';
   const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
   const api=async(path,body,token)=>{
     const response=await fetch(base+'/api'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Victor-Client':'android',...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(35000)});
@@ -68,12 +69,12 @@ try{
   const pcm=await readFile(new URL('../../research/voice-chatbot-2026-11-21/owned-server-poc/.local/fixture.pcm',import.meta.url));
   const count=Math.floor(pcm.length/3),audio=Buffer.alloc(count*2);
   for(let i=0;i<count;i++){const position=i*1.5,a=Math.floor(position),b=Math.min(a+1,pcm.length/2-1);audio.writeInt16LE(Math.round(pcm.readInt16LE(a*2)*(1-(position-a))+pcm.readInt16LE(b*2)*(position-a)),i*2);}
-  const events=[];let outputBytes=0,peak=0,firstAudio,endedAt,offset=0,timer,complete=false;
+  const events=[];let outputBytes=0,peak=0,firstAudio,endedAt,offset=0,timer,complete=false,heldSilence=0,releasedAt,earlyReply=false;
   try{
     await new Promise((resolve,reject)=>{
       const ws=new WebSocket(config.gatewayUrl,{origin:base});
       const deadline=setTimeout(()=>{ws.terminate();reject(new Error('Owned stage check timed out'));},45000);
-      ws.on('open',()=>ws.send(JSON.stringify({type:'start',token:login.token,mode:'practice'})));
+      ws.on('open',()=>ws.send(JSON.stringify({type:'start',token:login.token,mode:'practice',...(press?{inputMode:'push-to-talk'}:{})})));
       ws.on('message',raw=>{
         const event=JSON.parse(raw);
         if(event.type!=='audio'&&!(event.type==='transcript'&&!event.final))events.push({event,at:Math.round(performance.now())});
@@ -81,13 +82,16 @@ try{
           timer=setInterval(()=>{
             if(ws.readyState!==1)return;
             if(offset<audio.length){const chunk=audio.subarray(offset,offset+3200);ws.send(chunk);offset+=chunk.length;if(offset>=audio.length)endedAt=performance.now();}
-            else ws.send(Buffer.alloc(3200));
+            else if(press&&heldSilence>=9){
+              releasedAt=performance.now();clearInterval(timer);ws.send(JSON.stringify({type:'finishInput'}));
+            }else{ws.send(Buffer.alloc(3200));heldSilence++;}
           },100);
         }
         if(event.type==='audio'){
           firstAudio??=performance.now();const chunk=Buffer.from(event.audio,'base64');outputBytes+=chunk.length;
           for(let i=0;i+1<chunk.length;i+=2)peak=Math.max(peak,Math.abs(chunk.readInt16LE(i)));
         }
+        if(press&&event.type==='reply'&&!releasedAt)earlyReply=true;
         if(event.type==='error'){clearInterval(timer);ws.close();reject(new Error('Stage voice returned an error: '+event.message));}
         if(event.type==='speechEnd'&&outputBytes){complete=true;ws.send(JSON.stringify({type:'interrupt'}));ws.send(JSON.stringify({type:'stop'}));ws.close();}
       });
@@ -97,10 +101,12 @@ try{
     const reply=events.find(x=>x.event.type==='reply')?.event.reply?.content||'';
     const final=events.find(x=>x.event.type==='transcript'&&x.event.final)?.event.text||'';
     const boundaries=events.filter(x=>x.event.type==='speechBoundary').map(x=>x.event);
-    const passed=peak>100&&/156|one hundred and fifty.six/i.test(reply)&&/12|twelve/i.test(final)&&boundaries.some(x=>x.state==='started')&&boundaries.some(x=>x.state==='ended');
+    const passed=peak>100&&/156|one hundred and fifty.six/i.test(reply)&&/12|twelve/i.test(final)&&(press?Boolean(releasedAt)&&!earlyReply:boundaries.some(x=>x.state==='started')&&boundaries.some(x=>x.state==='ended'));
     const result={date:'2026-11-21',passed,publicUrl:base,transport:'authenticated HTTPS/WSS PCM; private Silero worker',endpointMode:config.endpointMode,syntheticOnly:true,transcript:final,reply,boundaries,outputPcmBytes:outputBytes,peak,firstAudioAfterSyntheticInputMs:Math.round(firstAudio-endedAt),events,physicalMicrophoneTested:false,pixelTested:false};
-    await writeFile(new URL('../../research/voice-chatbot-2026-11-21/owned-server-poc/evidence-staging.json',import.meta.url),JSON.stringify(result,null,2)+'\n');
+    if(press)Object.assign(result,{transport:'authenticated HTTPS/WSS PCM; user-ended manual STT',executionDate:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(new Date()),inputMode:'push-to-talk',heldSilenceMs:heldSilence*100,replyBeforeRelease:earlyReply,firstAudioAfterReleaseMs:Math.round(firstAudio-releasedAt)});
+    if(press)result.date=result.executionDate;
+    await writeFile(new URL(`../../research/voice-chatbot-2026-11-21/owned-server-poc/${press?'evidence-staging-press.json':'evidence-staging.json'}`,import.meta.url),JSON.stringify(result,null,2)+'\n');
     console.log(JSON.stringify({passed,endpointMode:config.endpointMode,transcript:final,reply,outputPcmBytes:outputBytes,peak,firstAudioAfterSyntheticInputMs:result.firstAudioAfterSyntheticInputMs}));
     if(!passed)throw new Error('Stage acceptance failed; inspect synthetic evidence');
   }finally{clearInterval(timer);await api('/auth/sign-out',{},login.token);}
-}else throw new Error('Choose create, check or cleanup');
+}else throw new Error('Choose create, check, check-press or cleanup');

@@ -18,15 +18,20 @@ export class VoiceSession {
     this.retryInput = null;
     this.inputPaused = false;
   }
-  async start(mode, conversationId) {
+  async start(mode, conversationId, inputMode = "live") {
     if (!["personal", "practice"].includes(mode))
       throw new Error("Choose a conversation mode.");
     this.mode = mode;
+    if (!["live", "push-to-talk"].includes(inputMode)) throw new Error("Invalid voice input mode.");
+    this.inputMode = inputMode;
+    this.inputFinished = inputMode === "live";
     this.conversationId = conversationId || randomUUID();
     const { maxSeconds } = await this.api("/voice/session", { mode });
     if (this.closed) return;
     this.deadline = this.now() + Math.min(maxSeconds, 300) * 1000;
-    this.stt = await this.provider.listen(
+    const listen = inputMode === "push-to-talk" ? this.provider.listenManual : this.provider.listen;
+    if (!listen) throw new Error("Press and speak is unavailable.");
+    this.stt = await listen.call(this.provider,
       (event) => this.event(event),
       () => this.fail("Speech recognition disconnected. Start voice again."),
     );
@@ -45,7 +50,7 @@ export class VoiceSession {
     this.send({ type: "state", state: "listening" });
   }
   audio(bytes) {
-    if (!this.started || this.closed || bytes.length > 3200 || bytes.length % 2)
+    if (!this.started || this.closed || (this.inputMode === "push-to-talk" && this.inputFinished) || bytes.length > 3200 || bytes.length % 2)
       throw new Error("Invalid microphone frame.");
     this.audioBytes += bytes.length;
     // Enforce wall-clock duration and real-time pacing on the trusted gateway.
@@ -55,6 +60,13 @@ export class VoiceSession {
     )
       throw new Error("Voice session limit reached.");
     this.stt.send(bytes);
+  }
+  finishInput() {
+    if (this.closed || !this.started || this.inputMode !== "push-to-talk" || this.inputFinished)
+      throw new Error("Invalid input finish.");
+    this.inputFinished = true;
+    this.send({type:"state",state:"thinking"});
+    this.stt.finish();
   }
   event(event) {
     if (this.closed) return;
@@ -76,6 +88,7 @@ export class VoiceSession {
     if (event.event === "transcript.partial")
       this.send({ type: "transcript", text: event.text || "", final: false });
     if (event.event === "transcript.final" && event.text?.trim()) {
+      this.manualHasSpeech = true;
       if (event.utteranceId !== undefined) {
         if (this.seenUtterances.has(event.utteranceId)) return;
         this.seenUtterances.add(event.utteranceId);
@@ -90,7 +103,11 @@ export class VoiceSession {
       this.send({ type: "transcript", text, final: true });
       this.drainInput();
     }
-    if (event.event === "transcript.final" && !event.text?.trim()) this.drainInput();
+    if (event.event === "transcript.final" && !event.text?.trim()) {
+      if (this.inputMode === "push-to-talk" && this.inputFinished && !this.manualHasSpeech)
+        this.send({type:"inputComplete",empty:true});
+      this.drainInput();
+    }
     if (event.event === "error" && event.is_fatal)
       this.fail(
         "Speech service unavailable. Check the provider account or try later.",
@@ -107,7 +124,7 @@ export class VoiceSession {
     this.send({ type: "state", state: "listening" });
   }
   drainInput() {
-    if (this.closed || this.processingInput || this.inputPaused || this.speechActive || this.awaitingTranscripts > 0) return;
+    if (this.closed || this.processingInput || this.inputPaused || this.speechActive || this.awaitingTranscripts > 0 || (this.inputMode === "push-to-talk" && !this.inputFinished)) return;
     const batch = this.retryInput || this.takeInput();
     if (!batch) return;
     this.processingInput = true;

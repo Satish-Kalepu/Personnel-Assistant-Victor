@@ -135,6 +135,7 @@ export function attachVoice(
               type: z.literal("start"),
               mode: modeSchema,
               conversationId: idSchema.nullish(),
+              inputMode: z.enum(["live", "push-to-talk"]).default("live"),
               token: z.string().max(1024).nullish(),
             })
             .strict()
@@ -215,7 +216,7 @@ export function attachVoice(
             void stop();
             ws.close();
           }, maxSeconds * 1000);
-          await session.start(mode, conversationId);
+          await session.start(mode, conversationId, start.inputMode);
           if (closed) session.stop();
           return;
         }
@@ -227,6 +228,7 @@ export function attachVoice(
         else {
           const data = JSON.parse(bytes.toString());
           if (data.type === "interrupt") session.interrupt();
+          else if (data.type === "finishInput") session.finishInput();
           else if (data.type === "mute" && typeof data.value === "boolean")
             session.setMuted(data.value);
           else if (data.type === "stop") {

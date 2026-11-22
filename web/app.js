@@ -68,22 +68,39 @@ const post = (path, body) =>
 const showError = (error) => {
   if (error.name !== "AbortError") notice(error.message, true);
 };
+let voiceKind = null, voiceState = "idle", pressing = false;
+function showVoiceState(state) {
+  voiceState = state;
+  const active = state !== "idle";
+  if (!active) { voiceKind = null; pressing = false; }
+  const live = active && voiceKind === "live";
+  document.documentElement.classList.toggle("live-zone", live);
+  document.documentElement.dataset.voiceState = state;
+  document.querySelector('meta[name="color-scheme"]').content = live ? "dark" : "light";
+  $("live-zone").hidden = !live;
+  $("voice-session-controls").hidden = !active;
+  $("voice-stop").hidden = live;
+  $("voice-interrupt").disabled = !active;
+  $("voice-live").setAttribute("aria-pressed", String(live));
+  $("voice-live-label").textContent = live ? "Exit live mode" : "Live mode";
+  $("voice-live").disabled = active && !live;
+  $("voice-press").disabled = live || (active && voiceKind === "push-to-talk" && !pressing);
+  $("voice-press").setAttribute("aria-pressed", String(pressing));
+  $("voice-press-label").textContent = pressing ? (state === "connecting" ? "Connecting…" : "Release to send") : "Press and speak";
+  const label = {idle:"Voice off",connecting:"Connecting…",listening:"Listening to you",thinking:"Preparing your reply…",speaking:"Victor is speaking"}[state] || state;
+  $("voice-status").textContent = label;
+  $("live-state").textContent = label;
+  $("voice-hint").textContent = live
+    ? "Live mode is on. You can interrupt Victor by speaking."
+    : active
+      ? pressing ? "Wait for Listening, then speak. Release to send your message." : "Microphone off. Victor will finish this reply."
+      : "Hold to speak, then release for a reply. Choose Live mode to keep talking.";
+}
 const voice = new window.VictorVoice({
   api,
   token: () => null,
   onState(state) {
-    const active = state !== "idle";
-    $("voice-start").disabled = active;
-    $("voice-stop").disabled = !active;
-    $("voice-interrupt").disabled = !active;
-    $("voice-status").textContent =
-      {
-        idle: "Voice off",
-        connecting: "Connecting…",
-        listening: "Listening…",
-        thinking: "Thinking…",
-        speaking: "Speaking…",
-      }[state] || state;
+    showVoiceState(state);
   },
   onTranscript(text) {
     $("voice-transcript").textContent = text;
@@ -499,11 +516,50 @@ $("fact-form").addEventListener("submit", async (event) => {
   }
 });
 $("cancel-fact").addEventListener("click", () => $("fact-dialog").close());
-$("voice-start").addEventListener("click", () =>
-  voice.start(mode, conversations[mode], $("voice-muted").checked),
-);
+$("voice-live").addEventListener("click", () => {
+  if (voiceKind === "live") { voice.stop(); return; }
+  voiceKind = "live";
+  $("voice-transcript").textContent = "";
+  $("voice-activity").textContent = "";
+  voice.start(mode, conversations[mode], $("voice-muted").checked);
+});
+$("live-exit").addEventListener("click", () => { voice.stop(); $("voice-live").focus(); });
+function beginPress() {
+  if (voiceState !== "idle" || pressing) return;
+  pressing = true; voiceKind = "push-to-talk";
+  $("voice-transcript").textContent = "";
+  $("voice-activity").textContent = "";
+  voice.start(mode, conversations[mode], $("voice-muted").checked, "push-to-talk");
+}
+function endPress(cancel = false) {
+  if (!pressing) return;
+  pressing = false;
+  if (cancel) voice.stop();
+  else { voice.finishInput(); showVoiceState(voiceState); }
+}
+const pressButton = $("voice-press");
+pressButton.addEventListener("pointerdown", event => {
+  if (event.button !== 0 || voiceState !== "idle") return;
+  event.preventDefault(); pressButton.setPointerCapture(event.pointerId); beginPress();
+});
+pressButton.addEventListener("pointerup", () => endPress());
+pressButton.addEventListener("pointercancel", () => endPress(true));
+pressButton.addEventListener("lostpointercapture", () => endPress(true));
+pressButton.addEventListener("contextmenu", event => event.preventDefault());
+pressButton.addEventListener("keydown", event => {
+  if (![" ","Enter"].includes(event.key)) return;
+  event.preventDefault(); if (!event.repeat) beginPress();
+});
+pressButton.addEventListener("keyup", event => {
+  if ([" ","Enter"].includes(event.key)) { event.preventDefault(); endPress(); }
+});
+pressButton.addEventListener("blur", () => endPress(true));
+pressButton.addEventListener("click", event => {
+  if (event.detail === 0) { if (pressing) endPress(); else beginPress(); }
+});
+window.addEventListener("blur", () => endPress(true));
 $("voice-stop").addEventListener("click", () => voice.stop());
-$("voice-interrupt").addEventListener("click", () => voice.interrupt());
+$("voice-interrupt").addEventListener("click", () => voiceKind === "push-to-talk" ? voice.stop() : voice.interrupt());
 $("voice-muted").addEventListener("change", () =>
   voice.setMuted($("voice-muted").checked),
 );

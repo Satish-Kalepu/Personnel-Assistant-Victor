@@ -39,6 +39,10 @@ const runtime = createApplication(store, config, {
 });
 const listeners = [];
 const speechStub = {
+  async listenManual(callback) {
+    listeners.push(callback);
+    return { send() {}, finish() { callback({event:'vad.speech_end',pendingTranscripts:0,speechActive:false}); }, close() {} };
+  },
   async listen(callback) {
     listeners.push(callback);
     return { send() {}, close() {} };
@@ -751,4 +755,30 @@ test("paused personal voice keeps earlier facts/history when a newer statement i
     ws.close();
     await runtime.identity.auth.api.signOut({headers:new Headers({authorization:`Bearer ${login.token}`})});
   }
+});
+
+test('authenticated held voice commits only after release through the same tenant-scoped chat path',async()=>{
+  const email=`voice-held-${run}@example.test`,clientIp='192.0.2.21';
+  assert.equal((await call('/api/account/register',{method:'POST',body:{email},clientIp})).status,200);
+  const code=await mailCode(email);
+  assert.equal((await call('/api/account/verify-registration',{method:'POST',body:{email,code,password,name:'Held voice test'},clientIp})).status,200);
+  const login=await call('/api/auth/sign-in/email',{method:'POST',body:{email,password},native:true,origin:null,clientIp});assert.equal(login.status,200);
+  const ws=new WebSocket(base.replace('http:','ws:')+'/voice');
+  const waitFor=type=>new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{ws.off('message',handler);reject(Error('No held '+type));},7000);
+    function handler(raw){const e=JSON.parse(raw);if(e.type===type){clearTimeout(timer);ws.off('message',handler);resolve(e);}}
+    ws.on('message',handler);
+  });
+  try{
+    await once(ws,'open');const ready=waitFor('ready');
+    ws.send(JSON.stringify({type:'start',token:login.token,mode:'personal',inputMode:'push-to-talk'}));await ready;
+    const user=await store.db.collection('user').findOne({email}),priorCalls=seen.length,emit=listeners.at(-1);
+    emit({event:'transcript.final',text:'I prefer tea.',utteranceId:1,speechActive:false,pendingTranscripts:0});
+    emit({event:'transcript.final',text:'I enjoy hiking.',utteranceId:2,speechActive:false,pendingTranscripts:0});
+    assert.equal(seen.length,priorCalls);assert.equal(await store.db.collection('messages').countDocuments({tenantId:String(user._id)}),0);
+    const reply=waitFor('reply');ws.send(JSON.stringify({type:'finishInput'}));const answer=await reply;
+    assert.equal(seen.length,priorCalls+1);
+    const messages=await store.db.collection('messages').find({tenantId:String(user._id),conversationId:answer.conversationId,role:'user'}).toArray();
+    assert.equal(messages.length,1);assert.equal(messages[0].content,'I prefer tea.\nI enjoy hiking.');
+  }finally{ws.close();await runtime.identity.auth.api.signOut({headers:new Headers({authorization:`Bearer ${login.token}`})});}
 });
