@@ -1,0 +1,153 @@
+{
+  "date": "2026-11-21",
+  "passed": true,
+  "publicUrl": "https://ai_test.satishk.com",
+  "transport": "authenticated HTTPS/WSS PCM; private Silero worker",
+  "endpointMode": "owned",
+  "syntheticOnly": true,
+  "transcript": "Hello Victor, what is 12 times 13?",
+  "reply": "12 times 13 is 156.",
+  "boundaries": [
+    {
+      "type": "speechBoundary",
+      "state": "started",
+      "semanticCompletion": false
+    },
+    {
+      "type": "speechBoundary",
+      "state": "ended",
+      "silenceMs": 640,
+      "semanticCompletion": false
+    }
+  ],
+  "outputPcmBytes": 161280,
+  "peak": 27374,
+  "firstAudioAfterSyntheticInputMs": 5916,
+  "events": [
+    {
+      "event": {
+        "type": "ready",
+        "sampleRate": 16000,
+        "outputSampleRate": 24000,
+        "maxSeconds": 300
+      },
+      "at": 5722
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5723
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "started",
+        "semanticCompletion": false
+      },
+      "at": 5982
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 1
+      },
+      "at": 5982
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5982
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "ended",
+        "silenceMs": 640,
+        "semanticCompletion": false
+      },
+      "at": 10055
+    },
+    {
+      "event": {
+        "type": "transcript",
+        "text": "Hello Victor, what is 12 times 13?",
+        "final": true
+      },
+      "at": 10983
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 2
+      },
+      "at": 10983
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 10983
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 10983
+    },
+    {
+      "event": {
+        "type": "reply",
+        "conversationId": "5f0961f7-e007-47d4-aacb-173a56255d4c",
+        "reply": {
+          "id": "fe3e7a86-df3a-4e83-a6ce-4e34ed4eb1be",
+          "mode": "practice",
+          "conversationId": "5f0961f7-e007-47d4-aacb-173a56255d4c",
+          "turnId": "5a75ee24-88fa-429e-b944-4ad611b775ff",
+          "role": "assistant",
+          "content": "12 times 13 is 156.",
+          "createdAt": "2026-11-22T11:14:29.821Z"
+        },
+        "factsAdded": 0
+      },
+      "at": 15042
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "speaking"
+      },
+      "at": 15062
+    },
+    {
+      "event": {
+        "type": "speechEnd",
+        "turn": 2
+      },
+      "at": 15835
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 3
+      },
+      "at": 15872
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 15872
+    }
+  ],
+  "physicalMicrophoneTested": false,
+  "pixelTested": false,
+  "executionDate": "2026-11-22",
+  "releaseCommit": "f2f0646806e4210d02f70219bef7fdef758fae49"
+}

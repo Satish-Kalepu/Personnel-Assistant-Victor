@@ -2,7 +2,7 @@
 
 Owner instruction2026-11-22, [prompt005](../prompts/2026-11-22-005-prefer-git-stage-deployment.md): use Git push/pull for application code and request scoped sudo when a necessary host operation requires it. This supersedes workstation image/env upload procedures.
 
-**Current direction:** Owner selected one `docker-compose.yml`, web-container Nginx and a read-only `<checkout>/deploy/.local/web/current` frontend mount (prompt010). The earlier root-owned worklet403 failure and verified rollback remain historical evidence. The new Git-built publication path normalizes public file modes and checks the exact mount as Nginx before rollout. Local validation and staging image-build preflight passed; owner prompt015 selects app-owned checkout-local publication with no /srv/sudo setup. Staging remains on the restored stage-owned-4becaff17ef6 until the Git release passes acceptance. See [Compose deployment](compose-deployment.md).
+**Current direction:** Owner selected one `docker-compose.yml`, web-container Nginx and a read-only `<checkout>/deploy/.local/web/current` frontend mount (prompt010). The earlier root-owned worklet403 failure and verified rollback remain historical evidence. The new Git-built publication path normalizes public file modes and checks the exact mount as Nginx before rollout. Local validation and staging image-build preflight passed; owner prompt015 selects app-owned checkout-local publication with no /srv/sudo setup. Staging now runs stage-git-f2f0646806e4-20261122111218 from commitf2f0646; public static/auth and authenticated synthetic voice acceptance passed, original DB containers preserved. See the current stage deployment record. See [Compose deployment](compose-deployment.md).
 
 ## Normal release
 

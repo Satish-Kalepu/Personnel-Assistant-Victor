@@ -24,4 +24,4 @@ go ahead and update stage environment.
 
 ## Outcome
 
-- Code published/pulled and server-side build preflight passed. Requested exactly sudo install -d -o ai_assistant -g nginx -m0755 for /srv/victor-web and /srv/victor-web/releases, or owner-run equivalent. Required answer/action pending; activation and public auth/voice verification remain. Current healthy release/database/TLS unchanged.
+- Completed through prompt015 after owner cancelled /srv/sudo and selected checkout-local publication. Commitf2f0646 deployed as stage-git-f2f0646806e4-20261122111218; static/auth and authenticated synthetic voice acceptance passed, fixture removed. Original MongoDB/Redis containers, private config location and host TLS preserved. No sudo or /srv creation. See prompt015 and release evidence for details.

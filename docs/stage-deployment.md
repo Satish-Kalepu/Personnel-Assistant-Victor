@@ -1,3 +1,13 @@
+# Current staging release ? 2026-11-22
+
+- URL: https://ai_test.satishk.com
+- Reviewed source: f2f0646806e4210d02f70219bef7fdef758fae49; active release: stage-git-f2f0646806e4-20261122111218.
+- One root docker-compose.yml. Existing host Nginx handles TLS and routes to loopback18080; web-container Nginx serves mounted public files and proxies API/WSS internally.
+- Frontend publication: /home/ai_assistant/victor-stage/repository/deploy/.local/web/releases/<release>; /home/ai_assistant/victor-stage/repository/deploy/.local/web/current mounted at /usr/share/nginx/html read-only. No /srv or privileged host setup. Checkout/deploy parents remain0700; public files0644/directories0755.
+- Git non-force push/exact fast-forward pull; all builds on staging; no workstation images/private-env/data transfer. Existing MongoDB/Redis containers and start times preserved; host TLS unchanged.
+- Checks:10 local routing/security groups,18 server-runtime voice regressions, worker/model and mounted non-root preflight, public index/worklet/build assets, HTTPS readiness/CSP/anonymous auth controls. Fresh synthetic authenticated STT/LLM/TTS produced correct156 and 161280 nonzero PCM bytes; exact synthetic fixture removed, no email/global-spend reset.
+- Evidence: [release](../research/voice-chatbot-2026-11-21/evidence-compose-stage-release-2026-11-22.json), [voice](../research/voice-chatbot-2026-11-21/evidence-compose-stage-voice-2026-11-22.json). Earlier failed attempts/initial deployment below are historical. Physical Pixel/microphone/latency and deliberate rollback drill are separate acceptance work.
+
 ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¿# Stage deployment record
 
 ## Running service - 2026-11-21
