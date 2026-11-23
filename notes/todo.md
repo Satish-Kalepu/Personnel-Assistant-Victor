@@ -193,3 +193,10 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** AGENTS.md and CLI include untracked/other-thread changes, scan complete staged snapshot and commit/push/pull/build automatically; private env/runtime paths excluded; all current safe changes reach staging; activate prepared voice UI and verify static/auth/live+held speech and real UI/theme; retain DB/env/TLS and exact fixture cleanup.
 - **Status:** Complete2026-11-22. Agreement/CLI persist all-current-work authorization; default command included other-thread/untracked files, scanned/committed/pushed/pulled/deployed047e441 and all static/auth/held/live/actual UI acceptance passed. Post-release evidence retained; private files excluded.
 - **Debt:** DEBT-013; concurrent edits after the snapshot stay for the next release, never discarded.
+
+### TASK-028 - Compact frontend and full-screen live zone
+
+- **Source:** IDEA-027, prompt2026-11-23-003.
+- **Completion criteria:** Requested menu/actions/layout, separate conversations open/delete screen, plus-only new chat, hidden verbose guidance; full-screen live with only Exit, focus containment and clean return; responsive 320/390/1280px checks, unchanged voice regression tests, Git staging deployment and real synthetic live audio acceptance with fixture cleanup.
+- **Status:** In progress. Web build and four voice regressions passed; new UI API fixture passed Profile/Memory/new/open/delete/practice/Escape at all three widths without horizontal overflow or JS errors. Staging/live acceptance pending.
+- **Debt:** Existing DEBT-012 physical microphone/device acceptance remains.

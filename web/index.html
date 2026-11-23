@@ -11,15 +11,17 @@
   <body>
     <main class="shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Your private space</p>
-          <h1>Victor</h1>
-        </div>
-        <div class="session">
-          <span id="session-status" role="status">Signed out</span
-          ><button id="settings-button" class="secondary" hidden>Account</button
-          ><button id="sign-out" hidden>Sign out</button>
-        </div>
+        <h1>Victor</h1>
+        <details id="profile-menu" class="profile-menu" hidden>
+          <summary aria-label="Profile menu" title="Profile menu">&#9776;</summary>
+          <div class="profile-menu-panel">
+            <span id="session-status" class="menu-name" role="status">Signed out</span>
+            <button id="settings-button" class="secondary" type="button" hidden>Profile</button>
+            <button id="memory-button" class="secondary" type="button">Memory</button>
+            <button id="sign-out" class="secondary" type="button" hidden>Sign out</button>
+            <p id="usage" class="fact-added menu-usage"></p>
+          </div>
+        </details>
       </header>
       <div id="notice" class="notice" role="status">
         Welcome. Sign in or create an account.
@@ -81,38 +83,21 @@
         hidden
         aria-label="Victor workspace"
       >
-        <nav class="modes">
-          <button id="personal-mode" aria-pressed="true">Personal</button
-          ><button id="practice-mode" aria-pressed="false">
-            English practice
-          </button>
-        </nav>
-        <div class="toolbar">
-          <p id="mode-description">
-            Victor can use and add to your personal memory.
-          </p>
-          <div>
-            <button id="memory-button" class="secondary">Memory</button
-            ><button id="new-chat" class="secondary">New chat</button
-            ><button id="delete-chat" class="danger">Delete chat</button>
+        <section id="chat-screen" aria-label="Chat">
+          <div class="workspace-topbar">
+            <nav class="modes" aria-label="Conversation mode" aria-describedby="mode-description">
+              <button id="personal-mode" aria-pressed="true">Personal</button>
+              <button id="practice-mode" aria-pressed="false">English practice</button>
+            </nav>
+            <div class="chat-actions">
+              <button id="conversations-button" class="secondary icon-button" type="button" aria-label="Conversations" title="Conversations">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 6h14M7 12h14M7 18h14M2 6h1M2 12h1M2 18h1"/></svg>
+              </button>
+              <button id="new-chat" class="secondary icon-button new-chat-button" type="button" aria-label="New chat" title="New chat">+</button>
+            </div>
           </div>
-        </div>
-        <label for="conversation-list">Conversation</label
-        ><select id="conversation-list">
-          <option value="">New conversation</option>
-        </select>
-        <button id="more-conversations" class="secondary" hidden>Load more conversations</button>
-        <p id="usage" class="fact-added"></p>
-        <section id="live-zone" class="live-zone-panel" aria-label="Live conversation" hidden>
-          <div class="live-heading">
-            <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> Live mode</span>
-            <button id="live-exit" type="button" class="secondary">Exit live mode</button>
-          </div>
-          <div class="live-orb" aria-hidden="true"><span></span></div>
-          <h2>Your conversation space</h2>
-          <p id="live-state" role="status">Connecting…</p>
-          <p class="live-help">Speak naturally. Your microphone stays on until you leave live mode.</p>
-        </section>
+          <p id="mode-description" class="sr-only">Victor can use and add to your personal memory.</p>
+
         <section
           id="messages"
           class="messages"
@@ -132,7 +117,7 @@
               <span class="mode-dot" aria-hidden="true"></span> <span id="voice-live-label">Live mode</span>
             </button>
           </div>
-          <p id="voice-hint" class="voice-hint">Speak one message, or enter live mode for a hands-free conversation.</p>
+          <p id="voice-hint" class="sr-only">Hold to speak. Release to send.</p>
           <div id="voice-session-controls" class="voice-session-controls" hidden>
           <button id="voice-stop" type="button" class="secondary">Cancel voice</button
           ><button id="voice-interrupt" type="button" class="secondary" disabled>
@@ -144,16 +129,16 @@
           <p id="voice-activity" class="muted" aria-live="polite"></p>
         </div>
         <form id="chat-form" class="composer">
-          <label for="message-input">Your message</label
+          <label for="message-input" class="sr-only">Your message</label
           ><textarea
             id="message-input"
-            rows="3"
+            rows="2"
             maxlength="4000"
             placeholder="Write to Victor…"
             required
           ></textarea>
           <div class="composer-footer">
-            <small>Do not send passwords or account numbers.</small
+            <small>Keep passwords private.</small
             ><button id="send-button" type="submit">Send</button>
           </div>
         </form>
@@ -176,8 +161,23 @@
             Load more memory
           </button>
         </section>
+        </section>
+        <section id="conversations-screen" class="conversations-screen" aria-labelledby="conversations-title" hidden>
+          <div class="conversations-heading">
+            <button id="conversations-back" class="secondary icon-button" type="button" aria-label="Back to chat" title="Back to chat">&#8592;</button>
+            <h2 id="conversations-title">Conversations</h2>
+            <button id="new-conversation" class="secondary icon-button new-chat-button" type="button" aria-label="New chat" title="New chat">+</button>
+          </div>
+          <div id="conversation-list" class="conversation-items"></div>
+          <button id="more-conversations" class="secondary" type="button" hidden>Load more</button>
+        </section>
       </section>
     </main>
+    <section id="live-zone" class="live-zone-panel" role="dialog" aria-modal="true" aria-label="Live conversation" hidden>
+      <div class="live-heading"><button id="live-exit" type="button" class="secondary">Exit live mode</button></div>
+      <div class="live-orb" aria-hidden="true"><span></span></div>
+      <p id="live-state" class="sr-only" role="status">Connecting&hellip;</p>
+    </section>
     <dialog id="fact-dialog">
       <form id="fact-form">
         <h2>Correct a fact</h2>
@@ -206,7 +206,7 @@
       <button id="close-recovery">I have saved them</button>
     </dialog>
     <dialog id="settings-dialog">
-      <h2>Account</h2>
+      <h2>Profile</h2>
       <form id="password-form">
         <label for="current-password">Current password</label
         ><input

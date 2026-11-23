@@ -374,3 +374,12 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Primary reference:** Android AudioRecord permission/API guidance https://developer.android.com/reference/android/media/AudioRecord and latency measurement https://developer.android.com/ndk/guides/audio/audio-latency.
 
 - **IDEA-026 Android configuration clarification (2026-11-23, prompt002):** Current Gradle defines exactly one app endpoint variable, API_URL in android/victor.properties. Use https://ai_test.satishk.com/api for staging. Native account code calls backend email/password/verification/recovery APIs and stores returned signed session encrypted with Android Keystore; no Cognito client/domain/pool/region or provider/AWS credentials in APK. Voice gateway comes from /voice/config automatically. Build-machine JDK/SDK setup is separate; permission/device/native voice parity/mute acceptance remains open. No settings/code/repair changes.
+
+### IDEA-027 - Compact chat and immersive live view
+
+- **Opened / finalized:** 2026-11-23, explicit owner UI direction in prompt003.
+- **Status:** Finalized; acceptance tracked in TASK-028.
+- **Decision:** Move name/Profile/Memory/Sign out and usage into a top-right menu. Compact chat mode bar with conversations icon and plus-only New chat. Deletion belongs exclusively to a separate conversations screen. Live fills the viewport with its theme, decorative orb and only Exit live mode; hide the ordinary interface and remove verbose visible guidance.
+- **Prior choice:** Refines IDEA-024's inline live panel and visible navigation; voice transport/agent behavior is unchanged.
+- **Options / rationale / open questions:** Owner chose space-saving controls and an immersive live zone. Preserve Personal/practice separation and accessible names, hidden status announcements, focus containment and Escape exit. No open product choice required for this requested scope.
+- **Task / debt:** TASK-028; no new runtime compromise selected. Existing DEBT-012 physical device/audio acceptance remains.

@@ -12,10 +12,12 @@ let user = null,
   memoryQuery = 0,
   messageCursor = null;
 let memoryFacts = [],
-  chatMessages = [];
+  chatMessages = [],
+  conversationItems = [];
 const conversations = { personal: null, practice: null };
 const notice = (message, error = false) => {
   $("notice").textContent = message;
+  $("notice").hidden = !message;
   $("notice").classList.toggle("error", error);
 };
 function signedOut(message = "Signed out.") {
@@ -30,6 +32,11 @@ function signedOut(message = "Signed out.") {
   $("messages").replaceChildren();
   $("facts").replaceChildren();
   $("conversation-list").replaceChildren();
+  conversationItems = [];
+  conversationCursor = null;
+  $("profile-menu").open = false;
+  $("profile-menu").hidden = true;
+  showScreen("chat");
   $("workspace").hidden = true;
   $("auth-panel").hidden = false;
   $("settings-button").hidden = true;
@@ -74,10 +81,15 @@ function showVoiceState(state) {
   const active = state !== "idle";
   if (!active) { voiceKind = null; pressing = false; }
   const live = active && voiceKind === "live";
+  const wasLive = document.documentElement.classList.contains("live-zone");
   document.documentElement.classList.toggle("live-zone", live);
+  document.querySelector(".shell").inert = live;
+  if (live) $("profile-menu").open = false;
   document.documentElement.dataset.voiceState = state;
   document.querySelector('meta[name="color-scheme"]').content = live ? "dark" : "light";
   $("live-zone").hidden = !live;
+  if (live && !wasLive) $("live-exit").focus();
+  if (!live && wasLive) $("voice-live").focus();
   $("voice-session-controls").hidden = !active;
   $("voice-stop").hidden = live;
   $("voice-interrupt").disabled = !active;
@@ -94,7 +106,7 @@ function showVoiceState(state) {
     ? "Live mode is on. You can interrupt Victor by speaking."
     : active
       ? pressing ? "Wait for Listening, then speak. Release to send your message." : "Microphone off. Victor will finish this reply."
-      : "Hold to speak, then release for a reply. Choose Live mode to keep talking.";
+      : "Hold to speak. Release to send.";
 }
 const voice = new window.VictorVoice({
   api,
@@ -163,6 +175,8 @@ async function loadSession() {
   const data = await api("/me");
   user = data.user;
   $("session-status").textContent = user.name;
+  $("profile-menu").hidden = false;
+  $("profile-menu").open = false;
   $("workspace").hidden = false;
   $("auth-panel").hidden = true;
   $("settings-button").hidden = false;
@@ -172,7 +186,7 @@ async function loadSession() {
   showUsage(data.usage);
   notice(
     data.providers.chat
-      ? "Ready. Choose Personal or English practice."
+      ? ""
       : "Account ready. The owner still needs to configure the OpenAI API key.",
   );
   await Promise.all([refreshConversations(), refreshMessages()]);
@@ -299,28 +313,90 @@ async function refreshMessages(older = false) {
   messageCursor = result.nextCursor;
   renderMessages();
 }
-async function refreshConversations(more = false) {
-  const selected = mode,
-    generation = view,
-    result = await api(`/conversations?${new URLSearchParams({mode:selected,...(more&&conversationCursor?{cursor:conversationCursor}:{})})}`);
-  if (generation !== view || selected !== mode) return;
+function showScreen(screen) {
+  $("chat-screen").hidden = screen !== "chat";
+  $("conversations-screen").hidden = screen !== "conversations";
+  $("conversations-title").textContent = mode === "personal" ? "Conversations" : "English practice chats";
+}
+function renderConversations() {
   const list = $("conversation-list");
-  if(!more) list.replaceChildren(new Option("New conversation", ""));
-  for (const conversation of result.conversations)
-    list.add(
-      new Option(
-        new Date(conversation.createdAt).toLocaleString(),
-        conversation.id,
-      ),
-    );
-  list.value = conversations[selected] || "";
-  conversationCursor=result.nextCursor;
-  $("more-conversations").hidden=!conversationCursor;
+  list.replaceChildren();
+  if (!conversationItems.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = "No conversations yet.";
+    list.append(empty);
+  }
+  for (const conversation of conversationItems) {
+    const row = document.createElement("div");
+    row.className = "conversation-row";
+    const date = new Date(conversation.createdAt).toLocaleString();
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "secondary conversation-open";
+    open.textContent = date;
+    if (conversation.id === conversations[mode]) open.setAttribute("aria-current", "true");
+    open.addEventListener("click", () => {
+      voice.stop();
+      view++;
+      conversations[mode] = conversation.id;
+      showScreen("chat");
+      refreshMessages().catch(showError);
+      $("message-input").focus();
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "danger icon-button";
+    remove.title = "Delete conversation";
+    remove.setAttribute("aria-label", "Delete conversation from " + date);
+    remove.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
+    remove.addEventListener("click", () => deleteConversation(conversation.id).catch(showError));
+    row.append(open, remove);
+    list.append(row);
+  }
+  $("more-conversations").hidden = !conversationCursor;
+}
+async function refreshConversations(more = false) {
+  const selected = mode, generation = view;
+  const query = new URLSearchParams({ mode: selected });
+  if (more && conversationCursor) query.set("cursor", conversationCursor);
+  const result = await api(`/conversations?${query}`);
+  if (generation !== view || selected !== mode) return;
+  conversationItems = more ? [...conversationItems, ...result.conversations] : result.conversations;
+  conversationCursor = result.nextCursor;
+  renderConversations();
+}
+async function deleteConversation(id) {
+  const selected = mode;
+  if (!confirm("Permanently delete this conversation and its derived memory?")) return;
+  voice.stop();
+  await api(`/conversations/${id}?mode=${selected}`, { method: "DELETE" });
+  if (conversations[selected] === id) conversations[selected] = null;
+  if (mode === selected) {
+    view++;
+    await Promise.all([refreshMessages(), refreshConversations()]);
+  }
+  notice("Conversation and derived memory deleted.");
+}
+function newChat() {
+  voice.stop();
+  view++;
+  conversations[mode] = null;
+  $("memory-panel").hidden = true;
+  showScreen("chat");
+  notice("");
+  refreshMessages().catch(showError);
+  $("message-input").focus();
 }
 function chooseMode(next) {
   voice.stop();
   view++;
   mode = next;
+  conversationItems = [];
+  conversationCursor = null;
+  renderConversations();
+  showScreen("chat");
+  notice("");
   $("voice-transcript").textContent = "";
   $("memory-panel").hidden = true;
   $("personal-mode").setAttribute("aria-pressed", String(next === "personal"));
@@ -334,39 +410,19 @@ function chooseMode(next) {
 }
 $("personal-mode").addEventListener("click", () => chooseMode("personal"));
 $("practice-mode").addEventListener("click", () => chooseMode("practice"));
-$("conversation-list").addEventListener("change", () => {
+$("new-chat").addEventListener("click", newChat);
+$("new-conversation").addEventListener("click", newChat);
+$("conversations-button").addEventListener("click", () => {
   voice.stop();
   view++;
-  conversations[mode] = $("conversation-list").value || null;
-  refreshMessages().catch(showError);
+  $("memory-panel").hidden = true;
+  showScreen("conversations");
+  refreshConversations().catch(showError);
+  $("conversations-back").focus();
 });
-$("new-chat").addEventListener("click", () => {
-  voice.stop();
-  view++;
-  conversations[mode] = null;
-  $("conversation-list").value = "";
-  refreshMessages().catch(showError);
-});
-$("delete-chat").addEventListener("click", async () => {
-  const selected = mode,
-    id = conversations[selected];
-  if (
-    !id ||
-    !confirm("Permanently delete this conversation and its derived memory?")
-  )
-    return;
-  voice.stop();
-  try {
-    await api(`/conversations/${id}?mode=${selected}`, { method: "DELETE" });
-    if (mode === selected) {
-      conversations[selected] = null;
-      view++;
-      await Promise.all([refreshMessages(), refreshConversations()]);
-    }
-    notice("Conversation and derived memory deleted.");
-  } catch (error) {
-    showError(error);
-  }
+$("conversations-back").addEventListener("click", () => {
+  showScreen("chat");
+  $("conversations-button").focus();
 });
 $("older-messages").addEventListener("click", () =>
   refreshMessages(true).catch(showError),
@@ -399,7 +455,7 @@ $("chat-form").addEventListener("submit", async (event) => {
         refreshConversations(),
         refreshUsage(),
       ]);
-      notice("Reply received.");
+      notice("");
     }
   } catch (error) {
     showError(error);
@@ -480,8 +536,11 @@ async function refreshFacts(more = false) {
   renderFacts();
 }
 $("memory-button").addEventListener("click", () => {
+  $("profile-menu").open = false;
+  showScreen("chat");
   memoryView = "pending";
   $("memory-panel").hidden = false;
+  $("memory-panel").scrollIntoView({ block: "nearest" });
   refreshFacts().catch(showError);
 });
 $("close-memory").addEventListener("click", () => {
@@ -567,9 +626,10 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) voice.stop();
 });
 window.addEventListener("pagehide", () => voice.stop());
-$("settings-button").addEventListener("click", () =>
-  $("settings-dialog").showModal(),
-);
+$("settings-button").addEventListener("click", () => {
+  $("profile-menu").open = false;
+  $("settings-dialog").showModal();
+});
 $("close-settings").addEventListener("click", () => {
   $("settings-dialog").close();
   $("password-form").reset();
@@ -615,3 +675,16 @@ $("close-recovery").addEventListener("click", () => {
 api("/auth/get-session")
   .then((active) => active?.session ? loadSession() : signedOut("Welcome. Sign in or create an account."))
   .catch((error) => { signedOut("Unable to check your session."); showError(error); });
+
+document.addEventListener("click", event => {
+  if (!$("profile-menu").contains(event.target)) $("profile-menu").open = false;
+});
+document.addEventListener("keydown", event => {
+  if (document.documentElement.classList.contains("live-zone")) {
+    if (event.key === "Escape") { event.preventDefault(); voice.stop(); }
+    if (event.key === "Tab") { event.preventDefault(); $("live-exit").focus(); }
+  } else if (event.key === "Escape" && $("profile-menu").open) {
+    $("profile-menu").open = false;
+    $("profile-menu").querySelector("summary").focus();
+  }
+});
