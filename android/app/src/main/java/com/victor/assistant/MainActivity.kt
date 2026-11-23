@@ -1,6 +1,11 @@
 package com.victor.assistant
 
 import android.app.AlertDialog
+import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
 import android.os.Bundle
 import android.Manifest
 import android.content.pm.PackageManager
@@ -10,6 +15,9 @@ import android.net.Uri
 import java.util.UUID
 import android.widget.*
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.activity.result.contract.ActivityResultContracts
 import okhttp3.MediaType.Companion.toMediaType
@@ -32,7 +40,10 @@ class MainActivity : ComponentActivity() {
     private var mode = "personal"
     private val conversationIds = mutableMapOf<String, String>()
     private lateinit var status: TextView
-    private lateinit var history: TextView
+    private lateinit var chat: LinearLayout
+    private lateinit var chatScroll: ScrollView
+    private lateinit var accountButton: Button
+    private val shownMessages = mutableListOf<Pair<String, String>>()
     private lateinit var input: EditText
     private lateinit var send: Button
     private lateinit var memory: Button
@@ -57,65 +68,159 @@ class MainActivity : ComponentActivity() {
         sessionStore = SessionStore(this)
         sessionToken = sessionStore.load()
         account = NativeAccount(this, http, sessionStore) { token -> resetSession(token) }
+        enableEdgeToEdge()
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
+            setBackgroundColor(color(R.color.victor_background))
         }
-        val title = TextView(this).apply { text = "Victor"; textSize = 26f }
-        root.addView(title)
-        status = TextView(this).apply { text = if (sessionToken == null) "Signed out" else "Signed in" }
-        root.addView(status)
-        val signIn = Button(this).apply { text = "Account / sign in"; setOnClickListener { signIn() } }
-        root.addView(signIn)
-        val modes = LinearLayout(this)
-        personal = Button(this).apply { text = "Personal"; setOnClickListener { chooseMode("personal") } }
-        practice = Button(this).apply { text = "English Practice"; setOnClickListener { chooseMode("practice") } }
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            view.setPadding(dp(16) + bars.left, dp(12) + bars.top, dp(16) + bars.right, dp(12) + bars.bottom)
+            insets
+        }
+
+        // Header: logo, name, tagline, account
+        val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        header.addView(ImageView(this).apply { setImageResource(R.drawable.ic_victor_logo) }, LinearLayout.LayoutParams(dp(44), dp(44)))
+        val titles = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(12), 0, dp(8), 0)
+        }
+        titles.addView(TextView(this).apply {
+            text = getString(R.string.app_title)
+            textSize = 22f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(color(R.color.victor_text))
+        })
+        titles.addView(TextView(this).apply {
+            text = getString(R.string.app_tagline)
+            textSize = 12f
+            setTextColor(color(R.color.victor_text_muted))
+        })
+        header.addView(titles, LinearLayout.LayoutParams(0, -2, 1f))
+        accountButton = pillButton("Sign in", filled = true).apply { setOnClickListener { signIn() } }
+        header.addView(accountButton)
+        root.addView(header)
+
+        status = TextView(this).apply {
+            visibility = View.GONE
+            textSize = 12f
+            setTextColor(color(R.color.victor_primary_dark))
+            background = rounded(color(R.color.victor_chip), dp(12).toFloat())
+            setPadding(dp(10), dp(4), dp(10), dp(4))
+        }
+        root.addView(status, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(10) })
+
+        // Mode switch
+        val modes = LinearLayout(this).apply {
+            background = rounded(color(R.color.victor_surface), dp(24).toFloat(), color(R.color.victor_outline))
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+        personal = pillButton("Personal", filled = true, dimWhenDisabled = false).apply { setOnClickListener { chooseMode("personal") } }
+        practice = pillButton("English Practice", filled = false, dimWhenDisabled = false).apply { setOnClickListener { chooseMode("practice") } }
         modes.addView(personal, LinearLayout.LayoutParams(0, -2, 1f))
         modes.addView(practice, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(modes)
-        val actions = LinearLayout(this)
-        memory = Button(this).apply { text = "Memory"; setOnClickListener { showMemory() } }
-        val newChat = Button(this).apply {
-            text = "New chat"
+        root.addView(modes, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+
+        // Conversation tools
+        val tools = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        memory = textButton("Memory").apply { setOnClickListener { showMemory() } }
+        tools.addView(memory)
+        tools.addView(textButton("Conversations").apply { setOnClickListener { showConversations() } })
+        tools.addView(textButton("New chat").apply {
             setOnClickListener {
                 conversationIds.remove(mode)
                 stopVoice()
-                history.text = ""
+                clearChat()
                 messageCursor = null
                 olderMessages.visibility = View.GONE
             }
+        })
+        tools.addView(textButton("Delete").apply {
+            setTextColor(color(R.color.victor_danger))
+            setOnClickListener { deleteConversation() }
+        })
+        root.addView(HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(tools)
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+
+        // Conversation card
+        val chatCard = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
         }
-        actions.addView(memory, LinearLayout.LayoutParams(0, -2, 1f))
-        actions.addView(newChat, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(actions)
-        val historyActions = LinearLayout(this)
-        historyActions.addView(Button(this).apply { text = "Conversations"; setOnClickListener { showConversations() } }, LinearLayout.LayoutParams(0, -2, 1f))
-        historyActions.addView(Button(this).apply { text = "Delete chat"; setOnClickListener { deleteConversation() } }, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(historyActions)
-        val scroll = ScrollView(this)
-        history = TextView(this).apply { textSize = 16f }
-        scroll.addView(history)
-        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        olderMessages = Button(this).apply { text = "Earlier messages"; visibility = View.GONE; setOnClickListener { refresh(messageCursor, true) } }
-        root.addView(olderMessages)
-        val voiceActions = LinearLayout(this)
-        voiceStart = Button(this).apply { text = "Start voice"; setOnClickListener { startVoice() } }
-        voiceStop = Button(this).apply { text = "Stop voice"; isEnabled = false; setOnClickListener { stopVoice() } }
+        olderMessages = textButton("Earlier messages").apply { visibility = View.GONE; setOnClickListener { refresh(messageCursor, true) } }
+        chatCard.addView(olderMessages, LinearLayout.LayoutParams(-2, -2).apply { gravity = Gravity.CENTER_HORIZONTAL })
+        chatScroll = ScrollView(this).apply {
+            setPadding(dp(12), dp(4), dp(12), dp(12))
+            clipToPadding = false
+        }
+        chat = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        chatScroll.addView(chat)
+        chatCard.addView(chatScroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        root.addView(chatCard, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(4) })
+
+        // Voice panel
+        val voicePanel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = rounded(color(R.color.victor_chip), dp(18).toFloat())
+            setPadding(dp(12), dp(8), dp(12), dp(10))
+        }
+        val voiceTop = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        voiceStatus = TextView(this).apply {
+            text = "Voice off"
+            textSize = 13f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(color(R.color.victor_primary_dark))
+        }
+        voiceTop.addView(voiceStatus, LinearLayout.LayoutParams(0, -2, 1f))
+        muteReplies = CheckBox(this).apply {
+            text = "Mute replies"
+            textSize = 13f
+            setTextColor(color(R.color.victor_text))
+            buttonTintList = ColorStateList.valueOf(color(R.color.victor_primary))
+            setOnCheckedChangeListener { _, checked -> voice?.muteReplies(checked) }
+        }
+        voiceTop.addView(muteReplies)
+        voicePanel.addView(voiceTop)
+        voiceTranscript = TextView(this).apply {
+            textSize = 14f
+            setTypeface(typeface, Typeface.ITALIC)
+            setTextColor(color(R.color.victor_text_muted))
+        }
+        voicePanel.addView(voiceTranscript)
+        val voiceActions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        voiceStart = pillButton("Start voice", filled = true).apply { setOnClickListener { startVoice() } }
+        voiceStop = pillButton("Stop", filled = false).apply {
+            background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
+            isEnabled = false
+            setOnClickListener { stopVoice() }
+        }
         voiceActions.addView(voiceStart, LinearLayout.LayoutParams(0, -2, 1f))
-        voiceActions.addView(voiceStop, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(voiceActions)
-        val speechActions = LinearLayout(this)
-        speechActions.addView(Button(this).apply { text = "Stop speaking"; setOnClickListener { voice?.interrupt() } }, LinearLayout.LayoutParams(0, -2, 1f))
-        muteReplies = CheckBox(this).apply { text = "Mute replies"; setOnCheckedChangeListener { _, checked -> voice?.muteReplies(checked) } }
-        speechActions.addView(muteReplies, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(speechActions)
-        voiceStatus = TextView(this).apply { text = "Voice off" }; root.addView(voiceStatus)
-        voiceTranscript = TextView(this); root.addView(voiceTranscript)
-        input = EditText(this).apply { hint = "Message Victor"; minLines = 1; maxLines = 4 }
-        root.addView(input)
-        send = Button(this).apply { text = "Send"; setOnClickListener { sendMessage() } }
-        root.addView(send)
+        voiceActions.addView(voiceStop, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(8) })
+        voiceActions.addView(textButton("Stop speaking").apply { setOnClickListener { voice?.interrupt() } })
+        voicePanel.addView(voiceActions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        root.addView(voicePanel, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+
+        // Composer
+        val composer = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        input = EditText(this).apply {
+            hint = "Message Victor"
+            minLines = 1
+            maxLines = 4
+            textSize = 15f
+            setTextColor(color(R.color.victor_text))
+            background = rounded(color(R.color.victor_surface), dp(24).toFloat(), color(R.color.victor_outline))
+            setPadding(dp(16), dp(10), dp(16), dp(10))
+        }
+        composer.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
+        send = pillButton("Send", filled = true).apply { setOnClickListener { sendMessage() } }
+        composer.addView(send, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(8) })
+        root.addView(composer, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+
         setContentView(root)
+        updateAccountUi(sessionToken != null)
         chooseMode("personal")
     }
 
@@ -129,10 +234,10 @@ class MainActivity : ComponentActivity() {
         sessionToken = token
         stopVoice()
         conversationIds.clear()
-        history.text = ""
+        clearChat()
         input.text.clear()
         voiceTranscript.text = ""
-        status.text = if (token == null) "Signed out" else "Signed in"
+        updateAccountUi(token != null)
         if (token != null) refresh()
     }
 
@@ -142,8 +247,10 @@ class MainActivity : ComponentActivity() {
         mode = selected
         personal.isEnabled = selected != "personal"
         practice.isEnabled = selected != "practice"
+        stylePill(personal, selected == "personal")
+        stylePill(practice, selected == "practice")
         memory.visibility = if (selected == "personal") View.VISIBLE else View.GONE
-        history.text = ""
+        clearChat()
         messageCursor = null
         olderMessages.visibility = View.GONE
         if (sessionToken != null) refresh()
@@ -198,12 +305,12 @@ class MainActivity : ComponentActivity() {
         request("GET", path) { body ->
             if (selected != mode || conversation != conversationIds[selected]) return@request
             val messages = body.optJSONArray("messages") ?: JSONArray()
-            val lines = (0 until messages.length()).map { index ->
+            val items = (0 until messages.length()).map { index ->
                 val message = messages.getJSONObject(index)
-                "${message.optString("role")}: ${message.optString("content")}"
+                message.optString("role") to message.optString("content")
             }
-            val text = lines.joinToString("\n\n")
-            history.text = if (append) "$text\n\n${history.text}" else text
+            if (append) shownMessages.addAll(0, items) else { shownMessages.clear(); shownMessages.addAll(items) }
+            renderMessages(scrollToEnd = !append)
             messageCursor = body.optString("nextCursor").takeUnless { it.isBlank() || it == "null" }
             olderMessages.visibility = if (messageCursor == null) View.GONE else View.VISIBLE
         }
@@ -257,7 +364,7 @@ class MainActivity : ComponentActivity() {
                 stopVoice()
                 request("DELETE", "/conversations/$id?mode=$selected") {
                     conversationIds.remove(selected)
-                    if (mode == selected) history.text = ""
+                    if (mode == selected) clearChat()
                 }
             }.show()
     }
@@ -311,6 +418,7 @@ class MainActivity : ComponentActivity() {
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         status.text = message
+        status.visibility = View.VISIBLE
     }
 
     private fun startVoice() {
@@ -355,6 +463,103 @@ class MainActivity : ComponentActivity() {
         voiceGeneration++
         voice?.stop(); voice = null
         if (this::voiceStart.isInitialized) { voiceStart.isEnabled = true; voiceStop.isEnabled = false; voiceStatus.text = "Voice off" }
+    }
+
+    private fun updateAccountUi(signedIn: Boolean) {
+        accountButton.text = if (signedIn) "Account" else "Sign in"
+        stylePill(accountButton, filled = !signedIn)
+        if (!signedIn) accountButton.background = rounded(color(R.color.victor_primary), dp(20).toFloat())
+        else accountButton.background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
+        status.text = if (signedIn) "Signed in" else ""
+        status.visibility = if (signedIn) View.VISIBLE else View.GONE
+    }
+
+    private fun clearChat() {
+        shownMessages.clear()
+        renderMessages()
+    }
+
+    private fun renderMessages(scrollToEnd: Boolean = true) {
+        chat.removeAllViews()
+        if (shownMessages.isEmpty()) {
+            chat.addView(TextView(this).apply {
+                text = when {
+                    sessionToken == null -> "Sign in to start chatting with Victor."
+                    mode == "practice" -> "Practice your English with Victor.\nType or start voice to begin."
+                    else -> "Hi, I'm Victor.\nAsk me anything, by text or voice."
+                }
+                gravity = Gravity.CENTER
+                textSize = 15f
+                setTextColor(color(R.color.victor_text_muted))
+                setPadding(dp(16), dp(40), dp(16), dp(40))
+            }, LinearLayout.LayoutParams(-1, -2))
+            return
+        }
+        val maxBubble = (resources.displayMetrics.widthPixels * 0.78).toInt()
+        for ((role, content) in shownMessages) {
+            val mine = role == "user"
+            chat.addView(TextView(this).apply {
+                text = content
+                textSize = 15f
+                maxWidth = maxBubble
+                setTextIsSelectable(true)
+                setLineSpacing(0f, 1.15f)
+                setPadding(dp(14), dp(10), dp(14), dp(10))
+                setTextColor(if (mine) color(R.color.victor_surface) else color(R.color.victor_text))
+                background = rounded(if (mine) color(R.color.victor_primary) else color(R.color.victor_chip), dp(18).toFloat())
+            }, LinearLayout.LayoutParams(-2, -2).apply {
+                gravity = if (mine) Gravity.END else Gravity.START
+                topMargin = dp(8)
+            })
+        }
+        chatScroll.post { chatScroll.fullScroll(if (scrollToEnd) View.FOCUS_DOWN else View.FOCUS_UP) }
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private fun color(id: Int): Int = getColor(id)
+
+    private fun rounded(fill: Int, radius: Float, stroke: Int? = null) = GradientDrawable().apply {
+        setColor(fill)
+        cornerRadius = radius
+        if (stroke != null) setStroke(dp(1), stroke)
+    }
+
+    private fun pillButton(label: String, filled: Boolean, dimWhenDisabled: Boolean = true): Button =
+        (if (dimWhenDisabled) DimmingButton(this) else Button(this)).apply {
+            text = label
+            isAllCaps = false
+            textSize = 14f
+            stateListAnimator = null
+            minHeight = dp(40)
+            minimumHeight = dp(40)
+            setPadding(dp(16), 0, dp(16), 0)
+            stylePill(this, filled)
+        }
+
+    private fun stylePill(button: Button, filled: Boolean) {
+        button.background = rounded(if (filled) color(R.color.victor_primary) else 0x00000000, dp(20).toFloat())
+        button.setTextColor(if (filled) color(R.color.victor_surface) else color(R.color.victor_primary_dark))
+    }
+
+    private fun textButton(label: String): Button = DimmingButton(this).apply {
+        text = label
+        isAllCaps = false
+        textSize = 14f
+        stateListAnimator = null
+        background = null
+        minWidth = 0
+        minimumWidth = 0
+        setPadding(dp(10), 0, dp(10), 0)
+        setTextColor(color(R.color.victor_primary))
+    }
+
+    /** Fades out when disabled, since the custom rounded backgrounds have no disabled state of their own. */
+    private class DimmingButton(context: Context) : Button(context) {
+        override fun setEnabled(enabled: Boolean) {
+            super.setEnabled(enabled)
+            alpha = if (enabled) 1f else 0.4f
+        }
     }
 
     override fun onStop() {

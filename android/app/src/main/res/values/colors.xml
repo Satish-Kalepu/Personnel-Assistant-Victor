@@ -9,4 +9,6 @@
     <color name="victor_chip">#EDE9FE</color>
     <color name="victor_text">#1E1B4B</color>
     <color name="victor_text_muted">#6B7280</color>
+    <color name="victor_danger">#DC2626</color>
+    <color name="victor_success">#059669</color>
 </resources>
