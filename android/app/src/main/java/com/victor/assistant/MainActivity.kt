@@ -4,7 +4,10 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
+import android.animation.ValueAnimator
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.view.MotionEvent
 import android.view.Gravity
 import android.os.Bundle
 import android.Manifest
@@ -15,7 +18,9 @@ import android.net.Uri
 import java.util.UUID
 import android.widget.*
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -51,20 +56,39 @@ class MainActivity : ComponentActivity() {
     private lateinit var personal: Button
     private var voice: VoiceConnection? = null
     private var voiceGeneration = 0
-    private lateinit var voiceStart: Button
+    private lateinit var holdTalk: Button
+    private lateinit var liveButton: Button
     private lateinit var voiceStop: Button
+    private var voiceKind: String? = null          // "live" | "push-to-talk" while a session is open
+    private var pendingVoiceKind = "live"
+    private var holding = false
+    private lateinit var liveOverlay: FrameLayout
+    private lateinit var liveState: TextView
+    private lateinit var liveHint: TextView
+    private lateinit var liveTranscript: TextView
+    private lateinit var liveMute: Button
+    private lateinit var liveRing: View
+    private var livePulse: ValueAnimator? = null
+    private val liveBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() { stopVoice() }
+    }
     private lateinit var voiceStatus: TextView
     private lateinit var voiceTranscript: TextView
     private lateinit var muteReplies: CheckBox
     private lateinit var olderMessages: Button
     private var messageCursor: String? = null
     private val microphonePermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) startVoice() else showError("Allow microphone access to use voice.")
+        when {
+            !granted -> showError("Allow microphone access to use voice.")
+            pendingVoiceKind == "live" -> startVoice("live")
+            else -> Toast.makeText(this, "Microphone allowed. Hold to talk again.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // Screenshots/screen recording are blocked in release builds for privacy; allowed in debug builds for testing.
+        if (!BuildConfig.DEBUG) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         sessionStore = SessionStore(this)
         sessionToken = sessionStore.load()
         account = NativeAccount(this, http, sessionStore) { token -> resetSession(token) }
@@ -161,7 +185,8 @@ class MainActivity : ComponentActivity() {
         chatCard.addView(chatScroll, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(chatCard, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(4) })
 
-        // Voice panel
+        // Voice panel: press-and-speak, live mode, reply controls
+        buildLiveOverlay()
         val voicePanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = rounded(color(R.color.victor_chip), dp(18).toFloat())
@@ -180,7 +205,10 @@ class MainActivity : ComponentActivity() {
             textSize = 13f
             setTextColor(color(R.color.victor_text))
             buttonTintList = ColorStateList.valueOf(color(R.color.victor_primary))
-            setOnCheckedChangeListener { _, checked -> voice?.muteReplies(checked) }
+            setOnCheckedChangeListener { _, checked ->
+                voice?.muteReplies(checked)
+                liveMute.text = if (checked) "Unmute replies" else "Mute replies"
+            }
         }
         voiceTop.addView(muteReplies)
         voicePanel.addView(voiceTop)
@@ -191,16 +219,32 @@ class MainActivity : ComponentActivity() {
         }
         voicePanel.addView(voiceTranscript)
         val voiceActions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        voiceStart = pillButton("Start voice", filled = true).apply { setOnClickListener { startVoice() } }
-        voiceStop = pillButton("Stop", filled = false).apply {
-            background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
-            isEnabled = false
-            setOnClickListener { stopVoice() }
+        holdTalk = pillButton("Hold to talk", filled = true).apply {
+            contentDescription = "Hold to talk. Release to send."
+            // Hold = record, release = send, finger slides off / gesture cancelled = discard.
+            setOnTouchListener { view, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> { view.isPressed = true; holding = true; startVoice("push-to-talk") }
+                    MotionEvent.ACTION_UP -> { view.isPressed = false; if (holding) { holding = false; releaseTalk() } }
+                    MotionEvent.ACTION_CANCEL -> { view.isPressed = false; if (holding) { holding = false; stopVoice() } }
+                }
+                true
+            }
+            // Accessibility (TalkBack double-tap has no touch events): first activation starts, second sends.
+            setOnClickListener { if (voiceKind == "push-to-talk" && voice != null) releaseTalk() else startVoice("push-to-talk") }
         }
-        voiceActions.addView(voiceStart, LinearLayout.LayoutParams(0, -2, 1f))
-        voiceActions.addView(voiceStop, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(8) })
-        voiceActions.addView(textButton("Stop speaking").apply { setOnClickListener { voice?.interrupt() } })
+        liveButton = pillButton("Live mode", filled = false).apply {
+            background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
+            setOnClickListener { if (voiceKind == "live") stopVoice() else startVoice("live") }
+        }
+        voiceActions.addView(holdTalk, LinearLayout.LayoutParams(0, -2, 1f))
+        voiceActions.addView(liveButton, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(8) })
         voicePanel.addView(voiceActions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        val replyActions = LinearLayout(this).apply { gravity = Gravity.END }
+        voiceStop = textButton("Stop voice").apply { isEnabled = false; setOnClickListener { stopVoice() } }
+        replyActions.addView(voiceStop)
+        replyActions.addView(textButton("Stop speaking").apply { setOnClickListener { voice?.interrupt() } })
+        voicePanel.addView(replyActions)
         root.addView(voicePanel, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
 
         // Composer
@@ -219,7 +263,11 @@ class MainActivity : ComponentActivity() {
         composer.addView(send, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(8) })
         root.addView(composer, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
 
-        setContentView(root)
+        val screen = FrameLayout(this)
+        screen.addView(root, FrameLayout.LayoutParams(-1, -1))
+        screen.addView(liveOverlay, FrameLayout.LayoutParams(-1, -1))
+        setContentView(screen)
+        onBackPressedDispatcher.addCallback(this, liveBack)
         updateAccountUi(sessionToken != null)
         chooseMode("personal")
     }
@@ -421,35 +469,40 @@ class MainActivity : ComponentActivity() {
         status.visibility = View.VISIBLE
     }
 
-    private fun startVoice() {
+    private fun startVoice(kind: String) {
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            pendingVoiceKind = kind
+            holding = false
             microphonePermission.launch(Manifest.permission.RECORD_AUDIO); return
         }
         stopVoice()
+        voiceKind = kind
+        voiceTranscript.text = ""
+        liveTranscript.text = ""
+        if (kind == "live") showLive(true)
+        updateVoiceUi("connecting")
         val generation = voiceGeneration
         val selected = mode
-        request("GET", "/voice/config") { config ->
+        request("GET", "/voice/config", failed = { if (generation == voiceGeneration) stopVoice() }) { config ->
             if (generation != voiceGeneration || selected != mode || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@request
             val url = config.optString("gatewayUrl")
             val endpoint = Uri.parse(url)
             val base = Uri.parse(BuildConfig.API_URL)
             val expectedScheme = if (base.scheme == "https") "wss" else if (BuildConfig.DEBUG) "ws" else "wss"
             if (endpoint.scheme != expectedScheme || endpoint.authority != base.authority || endpoint.path != "/voice" || endpoint.query != null || endpoint.fragment != null) {
-                showError("Voice is not enabled yet. Text chat is available."); return@request
+                stopVoice(); showError("Voice is not enabled yet. Text chat is available."); return@request
             }
             withToken { token ->
                 if (generation != voiceGeneration || selected != mode || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@withToken
-                voice = VoiceConnection(this, http, url, token, selected, conversationIds[selected],
+                voice = VoiceConnection(this, http, url, token, selected, conversationIds[selected], kind,
                     onState = stateChanged@{ state ->
                         if (generation != voiceGeneration) return@stateChanged
-                        voiceStart.isEnabled = state == "idle"
-                        voiceStop.isEnabled = state != "idle"
-                        voiceStatus.text = when (state) {
-                            "connecting" -> "Connecting…"; "listening" -> "Listening…"
-                            "thinking" -> "Thinking…"; "speaking" -> "Speaking…"; else -> "Voice off"
-                        }
+                        if (state == "idle") { voice = null; voiceKind = null; showLive(false) }
+                        updateVoiceUi(state)
                     },
-                    onTranscript = { text -> if (generation == voiceGeneration && selected == mode) voiceTranscript.text = text },
+                    onTranscript = { text ->
+                        if (generation == voiceGeneration && selected == mode) { voiceTranscript.text = text; liveTranscript.text = text }
+                    },
                     onReply = { response ->
                         if (generation == voiceGeneration && selected == mode) { conversationIds[selected] = response.getString("conversationId"); refresh() }
                     },
@@ -459,10 +512,182 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Push-to-talk release: send the turn, or cancel clearly if the microphone never started. */
+    private fun releaseTalk() {
+        if (voiceKind != "push-to-talk") return
+        val session = voice
+        if (session == null) {
+            stopVoice()
+            showError("Microphone was not ready yet. Hold again and wait for Listening before speaking.")
+        } else session.finishInput()
+    }
+
     private fun stopVoice() {
         voiceGeneration++
         voice?.stop(); voice = null
-        if (this::voiceStart.isInitialized) { voiceStart.isEnabled = true; voiceStop.isEnabled = false; voiceStatus.text = "Voice off" }
+        voiceKind = null
+        if (this::liveOverlay.isInitialized) showLive(false)
+        if (this::holdTalk.isInitialized) updateVoiceUi("idle")
+    }
+
+    private fun updateVoiceUi(state: String) {
+        val kind = voiceKind
+        val active = state != "idle"
+        val label = when (state) {
+            "connecting" -> "Connecting…"; "listening" -> "Listening…"
+            "thinking" -> "Thinking…"; "speaking" -> "Speaking…"; else -> "Voice off"
+        }
+        voiceStatus.text = when {
+            kind == "push-to-talk" && state == "listening" -> "Listening… release to send"
+            kind == "live" && active -> "Live mode · $label"
+            else -> label
+        }
+        holdTalk.text = when {
+            kind == "push-to-talk" && state == "listening" -> "Release to send"
+            kind == "push-to-talk" && active -> label
+            else -> "Hold to talk"
+        }
+        holdTalk.isEnabled = !active || kind == "push-to-talk"
+        liveButton.text = if (kind == "live") "Exit live mode" else "Live mode"
+        liveButton.isEnabled = !active || kind == "live"
+        voiceStop.isEnabled = active
+        liveState.text = label
+        liveHint.text = when (state) {
+            "listening" -> "Speak naturally. Interrupt Victor any time by speaking."
+            "thinking" -> "Victor is thinking…"
+            "speaking" -> "Victor is speaking. Just talk to interrupt."
+            "connecting" -> "Starting a private voice session…"
+            else -> ""
+        }
+        livePulse?.duration = when (state) { "speaking" -> 900L; "thinking" -> 2400L; else -> 1600L }
+    }
+
+    private fun showLive(on: Boolean) {
+        if ((liveOverlay.visibility == View.VISIBLE) == on) return
+        liveOverlay.visibility = if (on) View.VISIBLE else View.GONE
+        liveBack.isEnabled = on
+        // Like the web client's inert shell: hide the chat underneath from TalkBack while live.
+        (liveOverlay.parent as? android.view.ViewGroup)?.getChildAt(0)?.importantForAccessibility =
+            if (on) View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS else View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !on
+            isAppearanceLightNavigationBars = !on
+        }
+        if (on) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            livePulse?.start()
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            livePulse?.cancel()
+            liveRing.scaleX = 1f; liveRing.scaleY = 1f; liveRing.alpha = 0f
+            if (this::liveButton.isInitialized) liveButton.requestFocus()
+        }
+    }
+
+    /** Full-screen dark teal/navy live view, matching the web client's live zone. */
+    private fun buildLiveOverlay() {
+        val teal = Color.parseColor("#5EEAD4")
+        liveOverlay = FrameLayout(this).apply {
+            visibility = View.GONE
+            isClickable = true // swallow touches meant for the chat underneath
+            background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(Color.parseColor("#0B1324"), Color.parseColor("#0F2A3D"), Color.parseColor("#134E4A")))
+        }
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(dp(20) + bars.left, dp(16) + bars.top, dp(20) + bars.right, dp(20) + bars.bottom)
+            insets
+        }
+        // LIVE badge
+        val badge = LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            background = rounded(Color.parseColor("#33FFFFFF"), dp(14).toFloat())
+            setPadding(dp(10), dp(4), dp(12), dp(4))
+        }
+        badge.addView(View(this).apply { background = rounded(Color.parseColor("#F43F5E"), dp(4).toFloat()) }, LinearLayout.LayoutParams(dp(8), dp(8)))
+        badge.addView(TextView(this).apply {
+            text = "LIVE"
+            textSize = 12f
+            letterSpacing = 0.15f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            setPadding(dp(6), 0, 0, 0)
+        })
+        content.addView(badge, LinearLayout.LayoutParams(-2, -2).apply { gravity = Gravity.START })
+        content.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        // Pulsing orb
+        val orb = FrameLayout(this)
+        liveRing = View(this).apply {
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(3), teal) }
+            alpha = 0f
+        }
+        orb.addView(liveRing, FrameLayout.LayoutParams(dp(150), dp(150), Gravity.CENTER))
+        orb.addView(View(this).apply {
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.parseColor("#1A5EEAD4")) }
+        }, FrameLayout.LayoutParams(dp(150), dp(150), Gravity.CENTER))
+        orb.addView(ImageView(this).apply { setImageResource(R.drawable.ic_victor_logo) }, FrameLayout.LayoutParams(dp(96), dp(96), Gravity.CENTER))
+        content.addView(orb, LinearLayout.LayoutParams(dp(220), dp(220)))
+        livePulse = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 1600L
+            repeatCount = ValueAnimator.INFINITE
+            addUpdateListener {
+                val v = it.animatedValue as Float
+                liveRing.scaleX = 1f + 0.35f * v; liveRing.scaleY = 1f + 0.35f * v
+                liveRing.alpha = 0.8f * (1f - v)
+            }
+        }
+        liveState = TextView(this).apply {
+            textSize = 28f
+            gravity = Gravity.CENTER
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.WHITE)
+        }
+        content.addView(liveState, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+        liveHint = TextView(this).apply {
+            textSize = 14f
+            gravity = Gravity.CENTER
+            setTextColor(teal)
+        }
+        content.addView(liveHint, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        liveTranscript = TextView(this).apply {
+            textSize = 17f
+            gravity = Gravity.CENTER
+            maxLines = 4
+            setTypeface(typeface, Typeface.ITALIC)
+            setTextColor(Color.parseColor("#E2E8F0"))
+        }
+        content.addView(liveTranscript, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
+        content.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
+        // Controls
+        fun ghost(label: String) = Button(this).apply {
+            text = label
+            isAllCaps = false
+            textSize = 14f
+            stateListAnimator = null
+            setTextColor(Color.WHITE)
+            background = rounded(Color.parseColor("#1AFFFFFF"), dp(22).toFloat(), Color.parseColor("#4DFFFFFF"))
+        }
+        val controls = LinearLayout(this)
+        liveMute = ghost("Mute replies").apply { setOnClickListener { muteReplies.isChecked = !muteReplies.isChecked } }
+        controls.addView(liveMute, LinearLayout.LayoutParams(0, dp(46), 1f))
+        controls.addView(ghost("Stop speaking").apply { setOnClickListener { voice?.interrupt() } },
+            LinearLayout.LayoutParams(0, dp(46), 1f).apply { marginStart = dp(10) })
+        content.addView(controls, LinearLayout.LayoutParams(-1, -2))
+        content.addView(Button(this).apply {
+            text = "Exit live mode"
+            isAllCaps = false
+            textSize = 16f
+            stateListAnimator = null
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(Color.parseColor("#0B1324"))
+            background = rounded(teal, dp(26).toFloat())
+            setOnClickListener { stopVoice() }
+        }, LinearLayout.LayoutParams(-1, dp(52)).apply { topMargin = dp(12) })
+        liveOverlay.addView(content, FrameLayout.LayoutParams(-1, -1))
     }
 
     private fun updateAccountUi(signedIn: Boolean) {

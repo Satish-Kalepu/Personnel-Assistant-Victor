@@ -157,7 +157,7 @@ class NativeAccount(
         root.addView(header, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
         dialog.setContentView(ScrollView(activity).apply { addView(root) })
         dialog.window?.apply {
-            addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            if (!BuildConfig.DEBUG) addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             setBackgroundDrawable(rounded(color(R.color.victor_surface), 24))
         }
         dialog.setOnShowListener {
