@@ -361,3 +361,14 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Task/debt:** TASK-027; existing DEBT-013 coordinated-release/interruption limitations remain. Combined concurrent work is the owner-selected staging integration policy; immutable snapshots and server build/test/rollback checks bound each release.
 
 - **IDEA-025 / IDEA-024 deployment result (2026-11-22, prompt027):** Default all-changes CLI included other-thread/untracked files, scanned21 files/18 private values0 matches, committed/pushed/pulled047e441 and activated stage-git-047e4414086e-20261122174328.40 local backend/integration+4 frontend audio,22 actual runtime and genuine staging UI pointer/keyboard held/live/theme/mobile/exit plus direct900ms-held-pause speech checks passed. No JS runtime errors; exact synthetic fixture removed. TASK-025/027 complete. Old local mock matcher remains unchanged; no repair consent inferred. Explicit all-changes deployment instruction supersedes the earlier self-imposed activation wait; defect-repair rule remains.
+
+### IDEA-026 - Next Android milestone after staged web voice controls
+
+- **Opened:**2026-11-23, prompt001.
+- **Status:** Discussing; no Android implementation or defect repair approval inferred from the planning question.
+- **Summary:** Owner asks whether Android is the next step. Existing native Kotlin app has account/chat/memory and AudioRecord/AudioTrack WSS voice; reuse current backend rather than another platform/provider migration.
+- **Recommendation / options:** First establish a reproducible baseline debug APK against https://ai_test.satishk.com/api, using prior friend build path or an approved local toolchain setup. Then bring web hold/release and distinct live UI/lifecycle parity to native and perform Pixel8a/Android16+ physical audio acceptance. Alternative first ports all controls before a baseline compile; baseline-first reduces uncertainty in unverified source.
+- **Evidence / readiness:** No gradle wrapper/debug APK found; Java/Gradle/adb/sdkmanager not on PATH and default local Android SDK absent. Source-only inspection does not prove compilation. Existing native mute field muted differs from backend value (DEBT-012); proposed alignment needs explicit repair consent before editing.
+- **Open questions:** Owner selects next implementation scope/build route; physical device connection, speaker/headset/Bluetooth and network acceptance. Preserve earlier friend/Pixel scope; do not repeatedly ask already chosen platform/provider questions.
+- **Tasks/debt:** Existing TASK-004/TASK-013 native/device acceptance and DEBT-012 remain open; no new implementation task finalized. No new runtime compromise introduced by this recommendation.
+- **Primary reference:** Android AudioRecord permission/API guidance https://developer.android.com/reference/android/media/AudioRecord and latency measurement https://developer.android.com/ndk/guides/audio/audio-latency.
