@@ -31,4 +31,4 @@ git -C "$repo" merge --ff-only origin/Stage
 [ "$(git -C "$repo" rev-parse HEAD)" = '${commit}' ] || { printf 'Remote branch changed; review before deploying.\\n' >&2; exit 1; }
 exec bash "$repo/deploy/scripts/deploy-stage-from-git.sh" '${commit}'
 `);
-console.log(JSON.stringify({deployedFromGit:true,commit,url:'https://ai_test.satishk.com'}));
+console.log(JSON.stringify({deployedFromGit:true,commit,url:'https://ai-test.satishk.com'}));

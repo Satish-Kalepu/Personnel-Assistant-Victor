@@ -133,3 +133,27 @@ No resolved entries yet.
 - **IDEA-022/TASK-023 finalization (2026-11-22, prompt018):** Owner selects the existing stack for reuse; documentation is now an independent concise specification. No new runtime compromise introduced. Existing DEBT-012 queue/context/device limits and native mute-contract defect, plus DEBT-013 coordinated release limits, are not closed by documentation. The guide specifies the correct common mute field `value`; application/native source is unchanged.
 
 - **DEBT-012 frontend voice-mode follow-up (2026-11-22, IDEA-024/TASK-025):** Hold/release and continuous-live UI use the same authoritative app/provider path; held turns use explicit manual STT instead of silence endpointing. First press waits for microphone permission/socket readiness; release before readiness cancels visibly. Mock lifecycle/functional tests do not prove physical touch/mic/Pixel quality or acoustic latency; retain those acceptance items.
+
+### DEBT-014 - Native Android dependency exceeds configured SDK
+
+- **Source:** IDEA-026/TASK-029, prompts2026-11-23-004/005/006.
+- **Status:** Open; repair consent requested, pending.
+- **Evidence:** Actual Docker assembleDebug fails at checkDebugAarMetadata: okhttp-android5.5.1 requirescompileSDK37; currentcompileSDK36/AGP8.13.2 maxrecommended36. Published5.4.0 AAR metadata requires36.
+- **Options/completion:** Owner selects minimal5.4.0 pin versus broaderSDK37/toolchain upgrade; approved change must pass assembleDebug/signature/package/config checks. No defect repair yet and no APK available. Existing native mute/UI/device limitations remain DEBT-012.
+
+- **DEBT-014 resolved (2026-11-23, prompt007):** Owner's direct required-changes rebuild instruction approves the proposed OkHttp5.4.0 pin. Actual SDK36 Docker assembleDebug succeeds37tasks; valid signed APK/package/URL and private-value checks pass. Preserve earlier failure as history. This closes build incompatibility only; DEBT-012 physical/native behavior remains open.
+
+### DEBT-015 - Backend origin still uses old staging hostname
+
+- **Source:** Prompt007 domain change; IDEA-026/TASK-029.
+- **Status:** Open; explicit configuration-repair permission requested, pending.
+- **Evidence:** HTTPS readiness works at ai-test.satishk.com, but running API APP_ORIGIN is https://ai_test.satishk.com. app.ts derives voice gateway from APP_ORIGIN; Native MainActivity requires gateway authority to equal APK API_URL. security.ts/voice.ts/auth.ts reject differing browser origins.
+- **Proposed completion:** Approved update to server-only external APP_ORIGIN plus active staging check-script URLs, Git rollout and authenticated/new-origin/voice-config acceptance. No TLS/database changes required. APK itself embeds corrected new domain; native voice remains unavailable until backend correction.
+
+
+### DEBT-016 - Owner-selected permissive credentialed CORS
+
+- **Source:** IDEA-028/TASK-030; prompt2026-11-23-008 explicitly requests all origins/headers/methods.
+- **Status:** Accepted operating compromise; rollout verification pending.
+- **Behavior / impact:** Reflect every Origin including null for credentialed requests, permit requested header/method values on preflight, trust all auth origins and disable Better Auth CSRF checks; authenticated voice accepts all origins. Any website may request API access and use credentials available under browser cookie rules; CORS/origin-based CSRF is no longer a protective boundary. Existing SameSite=Lax/HttpOnly/Secure flags, password/session/tenant authorization, endpoint allowlists and usage limits remain. Browser third-party-cookie restrictions are not bypassed.
+- **Follow-up:** Reintroducing a reviewed origin allowlist or independent CSRF protection would be a later owner decision. Do not silently reverse the explicitly selected policy. Unauthenticated and cross-tenant negatives must keep passing.

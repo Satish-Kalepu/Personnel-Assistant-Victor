@@ -45,3 +45,8 @@ The approved [architecture plan](docs/docker-mongodb-saas-plan.md), [tasks](note
 The service is running privately on the supplied EC2. With the operator's verified SSH tunnel, open http://localhost:18080 and read stage verification emails at http://localhost:18025. See [stage deployment record](docs/stage-deployment.md) for the exact release, verification and remaining domain/ALB/production-email requirements. No public endpoint is claimed yet. Existing host databases/security rules were preserved per owner choice.
 
 Stage domain: **https://ai_test.satishk.com/**. The app is configured for HTTPS and supplied SMTP; the owner is applying the voice proxy settings in [the Nginx handoff](docs/stage-nginx.md). Use the domain for stage sign-in; the earlier localhost tunnel was the initial private preview. Real inbox and device audio acceptance remain open.
+
+
+## API origin policy
+
+Owner-selected policy (2026-11-23): all request origins, headers and methods are permitted by CORS, including credentialed requests and OPTIONS preflights. Responses reflect the requesting origin/headers/method instead of using cookie-incompatible wildcard values; preflight permission does not create new API routes. Authentication and tenant authorization still apply. Browser auth and voice no longer restrict the request origin; Better Auth CSRF checks are disabled for this policy. Secure/HttpOnly/SameSite=Lax cookie attributes remain; browser third-party-cookie restrictions still apply. See DEBT-016 for the accepted cross-origin exposure. The canonical staging origin is https://ai-test.satishk.com, including generated voice URLs.

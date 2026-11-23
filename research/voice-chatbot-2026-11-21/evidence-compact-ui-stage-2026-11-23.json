@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-23",
+  "feature": "Compact chat and full-screen live UI",
+  "url": "https://ai_test.satishk.com",
+  "applicationCommit": "0ec2cc7607ac6dcc0ca34920fe87226cfb692fb3",
+  "release": "stage-git-0ec2cc7607ac-20261123101212",
+  "checks": {
+    "syntax": true,
+    "productionBuild": true,
+    "voiceClientTests": 4,
+    "serverVoiceTests": 22,
+    "localUiFixture": {
+      "widths": [
+        320,
+        390,
+        1280
+      ],
+      "horizontalOverflow": false,
+      "pageErrors": [],
+      "flows": [
+        "Profile",
+        "Memory",
+        "open conversation",
+        "delete synthetic conversation",
+        "new chat",
+        "practice isolation",
+        "menu Escape"
+      ]
+    },
+    "actualStaging": {
+      "syntheticAudio": true,
+      "realApiAndVoiceProviders": true,
+      "replyContains156": true,
+      "pcmBytes": 153600,
+      "pcmPeak": 22686,
+      "playbackCompleted": true,
+      "micRetainedDuringLive": true,
+      "exitStopsMic": true,
+      "escapeStopsMic": true,
+      "mainInertDuringLive": true,
+      "focusContained": true,
+      "normalChatRestored": true,
+      "mobileOverlay": {
+        "width": 390,
+        "height": 844,
+        "x": 0,
+        "y": 0
+      },
+      "desktopViewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "screenshotsReviewed": true,
+      "onlyVisibleLiveControl": "Exit live mode",
+      "flows": [
+        "Memory",
+        "Profile",
+        "open conversation",
+        "new chat",
+        "delete synthetic conversation",
+        "sign out"
+      ],
+      "pageErrors": []
+    },
+    "publicHealthAuthCsp": true,
+    "exactSyntheticFixtureRemoved": true,
+    "privateValuesScanned": 18,
+    "secretMatches": 0
+  },
+  "observations": [
+    "Readiness briefly returned502 while containers restarted; final deployment and repeated readiness passed.",
+    "checkVisibility() default ignores visibility:hidden; its raw button inventory includes hidden underlying controls. Reviewed mobile/desktop screenshots confirm hidden shell, with inert preventing interaction."
+  ],
+  "limitations": [
+    "Synthetic microphone input; physical Android/microphone acceptance remains separate."
+  ]
+}

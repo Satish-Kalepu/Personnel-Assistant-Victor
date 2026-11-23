@@ -4,7 +4,7 @@ import {spawn} from 'node:child_process';
 import {readFile,writeFile} from 'node:fs/promises';
 import {WebSocket} from '../../services/api/node_modules/ws/wrapper.mjs';
 import {host,sshOptions} from './stage-ssh.mjs';
-const base='https://ai_test.satishk.com';
+const base='https://ai-test.satishk.com';
 const fixturePath=new URL('../.local/owned-stage-fixture.json',import.meta.url);
 async function privateRemote(source){
   const child=spawn('ssh',[...sshOptions,host,'docker exec -i victor-stage-api-1 node --input-type=module'],{stdio:['pipe','pipe','pipe']});

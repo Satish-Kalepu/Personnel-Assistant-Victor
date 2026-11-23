@@ -38,10 +38,8 @@ export function attachVoice(
     ? ownedProvider(baseProvider, {url: config.VOICE_WORKER_URL, token: config.VOICE_GATEWAY_TOKEN, key: config.SARVAM_API_KEY})
     : baseProvider;
   server.on("upgrade", (request, socket, head) => {
-    const origin = request.headers.origin;
     if (
       request.url !== "/voice" ||
-      (origin && origin !== config.APP_ORIGIN) ||
       wss.clients.size >= 30
     ) {
       socket.destroy();

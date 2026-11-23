@@ -1,6 +1,6 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {WebSocket} from '../../services/api/node_modules/ws/wrapper.mjs';
-const base='https://ai_test.satishk.com';
+const base='https://ai-test.satishk.com';
 const fixture=JSON.parse(await readFile(new URL('../.local/owned-stage-fixture.json',import.meta.url),'utf8'));
 async function api(path,token,body){
   const response=await fetch(base+'/api'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Victor-Client':'android',...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(30000)});

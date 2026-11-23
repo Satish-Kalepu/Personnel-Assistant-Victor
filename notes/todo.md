@@ -193,3 +193,25 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** AGENTS.md and CLI include untracked/other-thread changes, scan complete staged snapshot and commit/push/pull/build automatically; private env/runtime paths excluded; all current safe changes reach staging; activate prepared voice UI and verify static/auth/live+held speech and real UI/theme; retain DB/env/TLS and exact fixture cleanup.
 - **Status:** Complete2026-11-22. Agreement/CLI persist all-current-work authorization; default command included other-thread/untracked files, scanned/committed/pushed/pulled/deployed047e441 and all static/auth/held/live/actual UI acceptance passed. Post-release evidence retained; private files excluded.
 - **Debt:** DEBT-013; concurrent edits after the snapshot stay for the next release, never discarded.
+
+### TASK-028 - Compact frontend and full-screen live zone
+
+- **Source:** IDEA-027, prompt2026-11-23-003.
+- **Completion criteria:** Requested menu/actions/layout, separate conversations open/delete screen, plus-only new chat, hidden verbose guidance; full-screen live with only Exit, focus containment and clean return; responsive 320/390/1280px checks, unchanged voice regression tests, Git staging deployment and real synthetic live audio acceptance with fixture cleanup.
+- **Status:** Complete2026-11-23. Active stage-git-0ec2cc7607ac-20261123101212; build/four client/22 server regressions, responsive UI navigation and actual staged synthetic live audio passed. Fullscreen screenshot/focus/Exit/Escape/mic/return acceptance passed, no JS errors; exact synthetic fixture removed. Evidence: research/voice-chatbot-2026-11-21/evidence-compact-ui-stage-2026-11-23.json.
+- **Debt:** Existing DEBT-012 physical microphone/device acceptance remains.
+
+### TASK-029 - Build baseline native staging APK locally without Android Studio
+
+- **Source:** IDEA-026, explicit owner prompts004/005/006.
+- **Completion criteria:** Docker command-line assembleDebug succeeds; inspect APK package/version/minSDK, signature and staging API setting; provide local artifact and SHA256. Preserve other projects, private configs and current Android source; record any compile failure before asking repair consent.
+- **Status:** Complete2026-11-23 through prompt007 approved required-changes rebuild. OkHttp5.4.0 pin passes assembleDebug37tasks; local signedAPK0.2.0 embeds https://ai-test.satishk.com/api, package/signature/18-private-value checks pass. Evidence: research/voice-chatbot-2026-11-21/evidence-android-apk-2026-11-23.json. DEBT-014 resolved. Backend-origin mismatch separately discovered/requested, pending DEBT-015; no device behavior acceptance claimed.
+- **Debt:** DEBT-012 native mute mismatch, UI parity and physical-device acceptance remain.
+
+
+### TASK-030 - Apply permissive CORS and correct staging origin
+
+- **Source:** IDEA-028; explicit owner repair prompt2026-11-23-008.
+- **Completion criteria:** Any origin/header/requested method passes credential-compatible preflight; login/session/sign-out accept foreign origins; anonymous/cross-tenant protection remains; canonical app/voice URL matches ai-test.satishk.com.42 isolated regressions pass; Git push/pull/server-build deployment, live synthetic login/cookie/voice-config checks and exact fixture cleanup pass with DB containers/settings preserved.
+- **Status:** In progress. Source/API build,2 focused CORS tests and42 isolated auth/tenant/voice tests pass. Deployment/live verification pending. Existing unrelated workspace work is included in the owner-authorized deployment snapshot, without unapproved repairs.
+- **Debt:** DEBT-016 accepted origin/CSRF exposure; DEBT-015 closes only after canonical runtime URL acceptance.

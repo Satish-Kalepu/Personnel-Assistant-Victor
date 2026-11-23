@@ -85,7 +85,7 @@ export function createIdentity(store: Store, config: Config, mail: Mailer) {
     basePath: "/api/auth",
     secret: config.AUTH_SECRET,
     database: mongodbAdapter(store.db, { client: store.mongo }),
-    trustedOrigins: [config.APP_ORIGIN],
+    trustedOrigins: ["*"],
     emailAndPassword: {
       enabled: true,
       autoSignIn: false,
@@ -117,6 +117,9 @@ export function createIdentity(store: Store, config: Config, mail: Mailer) {
       cookieCache: { enabled: false },
     },
     advanced: {
+      // Explicit owner policy: allow browser authentication from every origin,
+      // including cross-site Fetch Metadata requests and opaque/null origins.
+      disableCSRFCheck: true,
       useSecureCookies: config.NODE_ENV === "production",
       defaultCookieAttributes: { httpOnly: true, sameSite: "lax" },
     },
