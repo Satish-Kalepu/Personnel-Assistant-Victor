@@ -38,3 +38,11 @@ For the running EC2 preview before the HTTPS domain is supplied, build with `API
 
 
 Stage HTTPS update (2026-11-21): use `API_URL=https://ai_test.satishk.com/api` for the supplied domain. The app now trusts that origin and uses real SMTP. The earlier loopback/tunnel instructions above describe the initial private deployment; use the HTTPS domain for current stage sign-in. Voice needs the owner-applied Nginx directives in docs/stage-nginx.md and real device acceptance remains pending.
+
+## Local command-line APK built - 2026-11-23
+
+The owner now builds locally using Docker, without Android Studio. A debug APK was successfully built against https://ai-test.satishk.com/api, replacing the earlier underscore staging hostname. OkHttp is pinned to5.4.0 because5.5.1 requiresSDK37 while this project usesSDK36/AGP8.13.2. Java17/Gradle8.13/tools35.0.0 were used.
+
+Local artifact: deploy/.local/android-build/victor-staging-debug.apk (ignored;8312713 bytes). SHA256: 92c5aa934962b2750e316584933b6f7f63a1aeaab932ea45f153cdcf3e9b6ac1. Signature/package/embedded HTTPS URL and18-known-private-value checks passed. Public evidence: research/voice-chatbot-2026-11-21/evidence-android-apk-2026-11-23.json. Debug signing key is retained privately in victor-android-build-cache at /cache/android-user/debug.keystore; preserve that volume for matching future debug updates. SDK cache is victor-android-sdk. Other project containers/caches are unchanged.
+
+This proves compilation and APK inspection, not physical Pixel/audio acceptance. Native UI parity and the known mute-field defect remain DEBT-012. At inspection, the running staging backend still had the old APP_ORIGIN, so native voice config fails the new APK's host check until the separately proposed backend-origin repair is approved/applied.

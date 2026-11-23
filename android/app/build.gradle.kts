@@ -33,7 +33,7 @@ android {
 
 dependencies {
     implementation("androidx.activity:activity-ktx:1.12.4")
-    implementation("com.squareup.okhttp3:okhttp:5.5.1")
+    implementation("com.squareup.okhttp3:okhttp:5.4.0")
 }
 
 gradle.taskGraph.whenReady {

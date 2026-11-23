@@ -140,3 +140,12 @@ No resolved entries yet.
 - **Status:** Open; repair consent requested, pending.
 - **Evidence:** Actual Docker assembleDebug fails at checkDebugAarMetadata: okhttp-android5.5.1 requirescompileSDK37; currentcompileSDK36/AGP8.13.2 maxrecommended36. Published5.4.0 AAR metadata requires36.
 - **Options/completion:** Owner selects minimal5.4.0 pin versus broaderSDK37/toolchain upgrade; approved change must pass assembleDebug/signature/package/config checks. No defect repair yet and no APK available. Existing native mute/UI/device limitations remain DEBT-012.
+
+- **DEBT-014 resolved (2026-11-23, prompt007):** Owner's direct required-changes rebuild instruction approves the proposed OkHttp5.4.0 pin. Actual SDK36 Docker assembleDebug succeeds37tasks; valid signed APK/package/URL and private-value checks pass. Preserve earlier failure as history. This closes build incompatibility only; DEBT-012 physical/native behavior remains open.
+
+### DEBT-015 - Backend origin still uses old staging hostname
+
+- **Source:** Prompt007 domain change; IDEA-026/TASK-029.
+- **Status:** Open; explicit configuration-repair permission requested, pending.
+- **Evidence:** HTTPS readiness works at ai-test.satishk.com, but running API APP_ORIGIN is https://ai_test.satishk.com. app.ts derives voice gateway from APP_ORIGIN; Native MainActivity requires gateway authority to equal APK API_URL. security.ts/voice.ts/auth.ts reject differing browser origins.
+- **Proposed completion:** Approved update to server-only external APP_ORIGIN plus active staging check-script URLs, Git rollout and authenticated/new-origin/voice-config acceptance. No TLS/database changes required. APK itself embeds corrected new domain; native voice remains unavailable until backend correction.

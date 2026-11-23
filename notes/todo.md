@@ -205,5 +205,5 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 
 - **Source:** IDEA-026, explicit owner prompts004/005/006.
 - **Completion criteria:** Docker command-line assembleDebug succeeds; inspect APK package/version/minSDK, signature and staging API setting; provide local artifact and SHA256. Preserve other projects, private configs and current Android source; record any compile failure before asking repair consent.
-- **Status:** Awaiting explicit repair decision. Toolchain ready without Android Studio, but actual build fails on OkHttp5.5.1 requiringSDK37 versus configured36. Minimal5.4.0 pin versus broader toolchain upgrade proposed; no APK and no source change yet. DEBT-014.
+- **Status:** Complete2026-11-23 through prompt007 approved required-changes rebuild. OkHttp5.4.0 pin passes assembleDebug37tasks; local signedAPK0.2.0 embeds https://ai-test.satishk.com/api, package/signature/18-private-value checks pass. Evidence: research/voice-chatbot-2026-11-21/evidence-android-apk-2026-11-23.json. DEBT-014 resolved. Backend-origin mismatch separately discovered/requested, pending DEBT-015; no device behavior acceptance claimed.
 - **Debt:** DEBT-012 native mute mismatch, UI parity and physical-device acceptance remain.
