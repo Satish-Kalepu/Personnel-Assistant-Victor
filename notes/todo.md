@@ -200,3 +200,10 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** Requested menu/actions/layout, separate conversations open/delete screen, plus-only new chat, hidden verbose guidance; full-screen live with only Exit, focus containment and clean return; responsive 320/390/1280px checks, unchanged voice regression tests, Git staging deployment and real synthetic live audio acceptance with fixture cleanup.
 - **Status:** Complete2026-11-23. Active stage-git-0ec2cc7607ac-20261123101212; build/four client/22 server regressions, responsive UI navigation and actual staged synthetic live audio passed. Fullscreen screenshot/focus/Exit/Escape/mic/return acceptance passed, no JS errors; exact synthetic fixture removed. Evidence: research/voice-chatbot-2026-11-21/evidence-compact-ui-stage-2026-11-23.json.
 - **Debt:** Existing DEBT-012 physical microphone/device acceptance remains.
+
+### TASK-029 - Build baseline native staging APK locally without Android Studio
+
+- **Source:** IDEA-026, explicit owner prompts004/005/006.
+- **Completion criteria:** Docker command-line assembleDebug succeeds; inspect APK package/version/minSDK, signature and staging API setting; provide local artifact and SHA256. Preserve other projects, private configs and current Android source; record any compile failure before asking repair consent.
+- **Status:** Awaiting explicit repair decision. Toolchain ready without Android Studio, but actual build fails on OkHttp5.5.1 requiringSDK37 versus configured36. Minimal5.4.0 pin versus broader toolchain upgrade proposed; no APK and no source change yet. DEBT-014.
+- **Debt:** DEBT-012 native mute mismatch, UI parity and physical-device acceptance remain.

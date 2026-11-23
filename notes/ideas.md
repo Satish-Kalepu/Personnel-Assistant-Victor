@@ -383,3 +383,7 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **Prior choice:** Refines IDEA-024's inline live panel and visible navigation; voice transport/agent behavior is unchanged.
 - **Options / rationale / open questions:** Owner chose space-saving controls and an immersive live zone. Preserve Personal/practice separation and accessible names, hidden status announcements, focus containment and Escape exit. No open product choice required for this requested scope.
 - **Task / debt:** TASK-028; no new runtime compromise selected. Existing DEBT-012 physical device/audio acceptance remains.
+
+- **IDEA-026 local build choice (2026-11-23, prompts004/005/006):** Owner explicitly requests a local APK with no Android Studio and notes another project builds with Docker. Finalized only the baseline command-line Docker debug build against staging. Reuse immutable existing builder image in a separate container and Victor SDK/Gradle caches; add required Gradle8.13/API36 without modifying the other project. No native UI parity or known mute-defect repair authorized. TASK-029; physical device/native parity remain DEBT-012.
+
+- **IDEA-026 build-blocker options (2026-11-23):** First actual compile fails because OkHttp5.5.1 requiresSDK37 while compileSdk36/AGP8.13.2 supports36. Version5.4.0 metadata supports36. Status Discussing for dependency choice: proposed minimal5.4.0 pin/rebuild versus broaderSDK37/AGP/Gradle upgrade; explicit repair consent pending. No source repair applied. TASK-029/DEBT-014.

@@ -133,3 +133,10 @@ No resolved entries yet.
 - **IDEA-022/TASK-023 finalization (2026-11-22, prompt018):** Owner selects the existing stack for reuse; documentation is now an independent concise specification. No new runtime compromise introduced. Existing DEBT-012 queue/context/device limits and native mute-contract defect, plus DEBT-013 coordinated release limits, are not closed by documentation. The guide specifies the correct common mute field `value`; application/native source is unchanged.
 
 - **DEBT-012 frontend voice-mode follow-up (2026-11-22, IDEA-024/TASK-025):** Hold/release and continuous-live UI use the same authoritative app/provider path; held turns use explicit manual STT instead of silence endpointing. First press waits for microphone permission/socket readiness; release before readiness cancels visibly. Mock lifecycle/functional tests do not prove physical touch/mic/Pixel quality or acoustic latency; retain those acceptance items.
+
+### DEBT-014 - Native Android dependency exceeds configured SDK
+
+- **Source:** IDEA-026/TASK-029, prompts2026-11-23-004/005/006.
+- **Status:** Open; repair consent requested, pending.
+- **Evidence:** Actual Docker assembleDebug fails at checkDebugAarMetadata: okhttp-android5.5.1 requirescompileSDK37; currentcompileSDK36/AGP8.13.2 maxrecommended36. Published5.4.0 AAR metadata requires36.
+- **Options/completion:** Owner selects minimal5.4.0 pin versus broaderSDK37/toolchain upgrade; approved change must pass assembleDebug/signature/package/config checks. No defect repair yet and no APK available. Existing native mute/UI/device limitations remain DEBT-012.
