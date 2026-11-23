@@ -23,7 +23,9 @@ save space
 
 ## Actions
 
-- Inspect current frontend structure, app navigation and live-state handling before editing.
+- Implemented compact account menu, chat actions, separate conversation management and full-screen live overlay; normal shell inert with keyboard containment, Escape and Exit cleanup. Existing voice transport/backend unchanged.
+- Secret-scanned all current changes, committed/pushed/pulled 0ec2cc7, server-built and activated stage-git-0ec2cc7607ac-20261123101212.
+- Tested actual staged app using isolated synthetic account/audio; signed out and verified exact account/data cleanup.
 
 ## Files changed
 
@@ -33,8 +35,11 @@ save space
 
 - JS syntax and Vite production build passed; four existing voice-client regressions passed.
 - Independent UI API fixture: Profile, Memory, new/open/delete conversations, practice separation, Escape, no JS errors; 320/390/1280 widths had no horizontal overflow. Reviewed mobile screenshot. Dedicated dev server started after initial connection unavailable.
-- Staging and actual live audio acceptance pending.
+- Server22 voice tests, non-root worker/model, Nginx/assets and final anonymous/auth/CSP/readiness checks passed. A transitional502 during app restart cleared by final health acceptance.
+- Actual staged Memory/Profile/open/new/delete/signout passed. Real synthetic live reply156,153600 PCM bytes/peak22686; playback complete, mic retained during live, Exit/Escape release, focus containment and chat return passed;0 JS errors.
+- Reviewed390x844 and1280x900 live screenshots: theme fills viewport, only Exit visible. Default checkVisibility inventory includes visibility:hidden controls, so visual evidence/inert/focus checks establish shell hiding.
+- Evidence: research/voice-chatbot-2026-11-21/evidence-compact-ui-stage-2026-11-23.json. Physical device acceptance remains separate.
 
 ## Outcome
 
-- In progress.
+- Complete. Requested web UI is deployed and verified at https://ai_test.satishk.com. Synthetic fixture removed; no out-of-scope defect repair.

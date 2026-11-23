@@ -198,5 +198,5 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 
 - **Source:** IDEA-027, prompt2026-11-23-003.
 - **Completion criteria:** Requested menu/actions/layout, separate conversations open/delete screen, plus-only new chat, hidden verbose guidance; full-screen live with only Exit, focus containment and clean return; responsive 320/390/1280px checks, unchanged voice regression tests, Git staging deployment and real synthetic live audio acceptance with fixture cleanup.
-- **Status:** In progress. Web build and four voice regressions passed; new UI API fixture passed Profile/Memory/new/open/delete/practice/Escape at all three widths without horizontal overflow or JS errors. Staging/live acceptance pending.
+- **Status:** Complete2026-11-23. Active stage-git-0ec2cc7607ac-20261123101212; build/four client/22 server regressions, responsive UI navigation and actual staged synthetic live audio passed. Fullscreen screenshot/focus/Exit/Escape/mic/return acceptance passed, no JS errors; exact synthetic fixture removed. Evidence: research/voice-chatbot-2026-11-21/evidence-compact-ui-stage-2026-11-23.json.
 - **Debt:** Existing DEBT-012 physical microphone/device acceptance remains.
