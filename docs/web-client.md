@@ -25,3 +25,10 @@ Each page asset uses one API Gateway request and one Lambda invocation. For occa
 The corrected page and assets returned HTTP 200, and `/web` redirected to the page. Cognito's authorization page returned HTTP 200 for the new callback; its private user is `CONFIRMED`. Signed-out `/facts`, `/messages`, and POST `/chat` returned HTTP 401. The owner reports successful browser sign-in, replies in English Practice and Personal, a Personal memory correction and deletion, and sign-out with sign-in required on reload. TASK-011 is complete. The signed-in checks were owner-reported rather than agent-observed.
 
 The owner approved and executed Memory review change set `samcli-deploy1794246063`. The live page and assets include Pending review, All memory, Confirm, and added timestamps; unsigned fact access still returns 401. The owner has not yet verified the new signed-in queue behavior or the displayed local time.
+
+
+## Voice source update (2026-11-19)
+
+Prepared local source adds foreground Sarvam streaming voice, partial transcripts, automatic spoken replies, mute, stop speaking, and stop voice. Capture/playback stops on mode change, new chat, typed submission, sign-out, and tab backgrounding. The new assets are voice.js and voice-worklet.js; the reviewed gateway origin is included in CSP. The Sarvam key stays on the gateway server. See [setup and protocol](../voice-gateway/README.md).
+
+No live voice deployment or browser microphone/playback validation has occurred. VoiceGatewayUrl defaults empty until a persistent secure gateway, provider key/zero-retention settings, and reviewed AWS deployment are ready. Text chat remains available. The current model reply completes before TTS, so actual response smoothness must be measured rather than inferred from provider benchmarks.

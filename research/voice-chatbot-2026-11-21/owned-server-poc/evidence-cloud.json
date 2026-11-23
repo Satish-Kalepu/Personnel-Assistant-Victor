@@ -1,0 +1,302 @@
+{
+  "mode": "cloud",
+  "passed": true,
+  "transport": "real local WebRTC / aiortc",
+  "synthetic_phrase": "Hello Victor. What is twelve times thirteen?",
+  "elapsed_seconds": 10.19,
+  "audio": {
+    "frames": 482,
+    "non_silent_frames": 49,
+    "peak": 18118
+  },
+  "events": [
+    {
+      "type": "ready",
+      "mode": "cloud",
+      "detector": "Silero ONNX on our backend",
+      "endpoint": "silence_based",
+      "server_ms": 72670492,
+      "turn": 0
+    },
+    {
+      "type": "clear",
+      "reason": "backend_speech_start",
+      "server_ms": 72671235,
+      "turn": 1
+    },
+    {
+      "type": "speech_start",
+      "audio_ms": 544.0,
+      "server_ms": 72671236,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "",
+      "server_ms": 72671817,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello",
+      "server_ms": 72672135,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello,",
+      "server_ms": 72672175,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor",
+      "server_ms": 72672220,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor.",
+      "server_ms": 72672257,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor.",
+      "server_ms": 72672282,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello,",
+      "server_ms": 72672738,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor",
+      "server_ms": 72672738,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor.",
+      "server_ms": 72672782,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor.",
+      "server_ms": 72672810,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What",
+      "server_ms": 72673247,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is",
+      "server_ms": 72673279,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is",
+      "server_ms": 72673314,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What",
+      "server_ms": 72673665,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is",
+      "server_ms": 72673710,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is",
+      "server_ms": 72673781,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve",
+      "server_ms": 72674166,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve",
+      "server_ms": 72674208,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times",
+      "server_ms": 72674267,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times",
+      "server_ms": 72674307,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times",
+      "server_ms": 72674347,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve",
+      "server_ms": 72674644,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times",
+      "server_ms": 72674693,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times thirteen",
+      "server_ms": 72674736,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times thirteen?",
+      "server_ms": 72674925,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times thirteen?",
+      "server_ms": 72674946,
+      "turn": 1
+    },
+    {
+      "type": "speech_end",
+      "audio_ms": 3904.0,
+      "detected_at_audio_ms": 4544.0,
+      "silence_ms": 640.0,
+      "server_ms": 72675140,
+      "turn": 1
+    },
+    {
+      "type": "turn_end",
+      "audio_ms": 4544.0,
+      "method": "silence_based",
+      "semantic_completion": false,
+      "server_ms": 72675140,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times thirteen?",
+      "server_ms": 72675214,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times thirteen?",
+      "server_ms": 72675252,
+      "turn": 1
+    },
+    {
+      "type": "transcript_partial",
+      "text": "Hello, Victor. What is twelve times thirteen?",
+      "server_ms": 72675373,
+      "turn": 1
+    },
+    {
+      "type": "transcript_final",
+      "text": "Hello Victor, what is 12 times 13?",
+      "turn": 1,
+      "superseded": false,
+      "server_ms": 72675429
+    },
+    {
+      "type": "agent_started",
+      "turn": 1,
+      "agent": "openai",
+      "server_ms": 72675429
+    },
+    {
+      "type": "reply_delta",
+      "text": "12",
+      "turn": 1,
+      "server_ms": 72678675
+    },
+    {
+      "type": "reply_delta",
+      "text": " times",
+      "turn": 1,
+      "server_ms": 72678675
+    },
+    {
+      "type": "reply_delta",
+      "text": " ",
+      "turn": 1,
+      "server_ms": 72678715
+    },
+    {
+      "type": "reply_delta",
+      "text": "13",
+      "turn": 1,
+      "server_ms": 72678715
+    },
+    {
+      "type": "reply_delta",
+      "text": " is",
+      "turn": 1,
+      "server_ms": 72678715
+    },
+    {
+      "type": "reply_delta",
+      "text": " ",
+      "turn": 1,
+      "server_ms": 72678715
+    },
+    {
+      "type": "reply_delta",
+      "text": "156",
+      "turn": 1,
+      "server_ms": 72678715
+    },
+    {
+      "type": "reply_delta",
+      "text": ".",
+      "turn": 1,
+      "server_ms": 72678715
+    },
+    {
+      "type": "first_reply_pcm",
+      "turn": 1,
+      "endpoint_to_pcm_ms": 3941,
+      "measurement": "server endpoint to first received PCM; not acoustic latency",
+      "server_ms": 72679081
+    },
+    {
+      "type": "agent_completed",
+      "turn": 1,
+      "reply": "12 times 13 is 156.",
+      "server_ms": 72679883
+    }
+  ],
+  "limits": [
+    "Synthetic input, localhost; not physical microphone or Pixel testing.",
+    "Server PCM stage timings exclude endpoint wait and acoustic playback."
+  ]
+}

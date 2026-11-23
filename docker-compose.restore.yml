@@ -1,0 +1,13 @@
+# ONLY for the hardwired victor-restore-test project. No host ports/app services.
+# Bootstrap offline to restore admin users without invalidating the tool's auth.
+services:
+  mongodb:
+    entrypoint: [bash, -c, 'chown -R mongodb:mongodb /data/db /data/configdb; exec gosu mongodb mongod --replSet rs0 --bind_ip_all --wiredTigerCacheSizeGB 0.25']
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ""
+      MONGO_INITDB_ROOT_PASSWORD: ""
+      MONGO_REPLICA_KEY: ""
+  mongo-setup:
+    entrypoint: [mongosh, --quiet, --host, mongodb, /boot/restore-init.js]
+    volumes:
+      - ./deploy/mongo/restore-init.js:/boot/restore-init.js:ro

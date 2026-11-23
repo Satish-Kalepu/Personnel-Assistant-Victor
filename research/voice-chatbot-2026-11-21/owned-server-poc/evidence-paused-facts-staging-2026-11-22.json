@@ -1,0 +1,265 @@
+{
+  "date": "2026-11-22",
+  "passed": true,
+  "gapMs": 900,
+  "endpointMs": 640,
+  "syntheticOnly": true,
+  "freshEmptyAccountVerified": true,
+  "speechStarts": 3,
+  "userStatements": [
+    "My favorite outdoor activity is hiking.",
+    "My preferred drink is green tea.",
+    "I am learning Spanish."
+  ],
+  "savedFacts": [
+    {
+      "subject": "user",
+      "predicate": "is learning",
+      "object": "Spanish"
+    },
+    {
+      "subject": "user",
+      "predicate": "preferred drink",
+      "object": "green tea"
+    },
+    {
+      "subject": "user",
+      "predicate": "favorite outdoor activity",
+      "object": "hiking"
+    }
+  ],
+  "allThreeStatementsInHistory": true,
+  "allThreeFactsSaved": true,
+  "outputPcmBytes": 204480,
+  "peak": 24622,
+  "events": [
+    {
+      "event": {
+        "type": "ready",
+        "sampleRate": 16000,
+        "outputSampleRate": 24000,
+        "maxSeconds": 300
+      },
+      "at": 924
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 924
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "started",
+        "semanticCompletion": false
+      },
+      "at": 1697
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 1
+      },
+      "at": 1697
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 1697
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "ended",
+        "silenceMs": 640,
+        "semanticCompletion": false
+      },
+      "at": 5104
+    },
+    {
+      "event": {
+        "type": "transcript",
+        "text": "My favorite outdoor activity is hiking.",
+        "final": true
+      },
+      "at": 5186
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 2
+      },
+      "at": 5186
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5186
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 5186
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "started",
+        "semanticCompletion": false
+      },
+      "at": 5646
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 3
+      },
+      "at": 5647
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5647
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "ended",
+        "silenceMs": 640,
+        "semanticCompletion": false
+      },
+      "at": 8654
+    },
+    {
+      "event": {
+        "type": "transcript",
+        "text": "My preferred drink is green tea.",
+        "final": true
+      },
+      "at": 8715
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 4
+      },
+      "at": 8715
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 8715
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 8715
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "started",
+        "semanticCompletion": false
+      },
+      "at": 9677
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 5
+      },
+      "at": 9677
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 9677
+    },
+    {
+      "event": {
+        "type": "speechBoundary",
+        "state": "ended",
+        "silenceMs": 640,
+        "semanticCompletion": false
+      },
+      "at": 12184
+    },
+    {
+      "event": {
+        "type": "transcript",
+        "text": "I am learning Spanish.",
+        "final": true
+      },
+      "at": 12237
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 6
+      },
+      "at": 12240
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 12240
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 12240
+    },
+    {
+      "event": {
+        "type": "reply",
+        "conversationId": "f180bb9c-b86b-464b-b8f7-8b384d6edb58",
+        "reply": {
+          "id": "e9e208c4-22d4-41f6-a406-fb70e7c17853",
+          "mode": "personal",
+          "conversationId": "f180bb9c-b86b-464b-b8f7-8b384d6edb58",
+          "turnId": "ce21c1be-b93b-4206-aa30-96a02fa4e15d",
+          "role": "assistant",
+          "content": "That’s great! What do you find most challenging about learning Spanish?",
+          "createdAt": "2026-11-21T18:56:40.644Z"
+        },
+        "factsAdded": 1
+      },
+      "at": 13614
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "speaking"
+      },
+      "at": 13623
+    },
+    {
+      "event": {
+        "type": "speechEnd",
+        "turn": 6
+      },
+      "at": 14436
+    }
+  ],
+  "physicalMicrophoneTested": false
+}

@@ -1,0 +1,47 @@
+{
+  "study": "voice-chatbot-2026-11-21",
+  "status": "not_run",
+  "measured_results": [],
+  "run_metadata_template": {
+    "run_id": null,
+    "candidate_id": null,
+    "model_and_snapshot": null,
+    "voice": null,
+    "sdk_versions": null,
+    "client_build_and_os": null,
+    "api_surface_and_regions": null,
+    "audio_route": null,
+    "network_and_impairments": null,
+    "turn_and_buffer_settings": null,
+    "cold_or_warm": null,
+    "calibration_and_uncertainty_ms": null,
+    "source_audio_fixture_hash": null
+  },
+  "turn_template": {
+    "scenario_id": null,
+    "session_id": null,
+    "generation_id": null,
+    "task_stratum": null,
+    "outcome": null,
+    "task_success": null,
+    "response_gap_ms": null,
+    "useful_answer_delay_ms": null,
+    "task_completion_ms": null,
+    "barge_in_yield_ms": null,
+    "premature_end": null,
+    "false_interruption": null,
+    "stale_audio_or_duplicate_action": null,
+    "glitches": null,
+    "timeout_or_censored": null,
+    "owner_preference_and_reason": null,
+    "usage_and_cost": null,
+    "trace_and_acoustic_evidence": null
+  },
+  "rules": [
+    "All null fields are unmeasured placeholders, never zero-valued results.",
+    "Never place a template turn in measured_results until an actual experiment occurs.",
+    "Record failures and timeouts as outcomes; do not silently remove them.",
+    "Record response acknowledgements separately from first useful spoken content.",
+    "Do not store credentials or personal raw audio in this template."
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-22",
+  "syntheticOnly": true,
+  "checkTimedOut": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "My favorite outdoor activity is hiking."
+    },
+    {
+      "role": "assistant",
+      "content": "That’s lovely! Hiking is a great way to enjoy nature and get some exercise."
+    },
+    {
+      "role": "user",
+      "content": "My preferred drink is green tea."
+    },
+    {
+      "role": "assistant",
+      "content": "Green tea is a refreshing choice. Do you usually enjoy it hot or iced?"
+    },
+    {
+      "role": "user",
+      "content": "I am learning Spanish."
+    },
+    {
+      "role": "assistant",
+      "content": "That’s great! What inspired you to learn Spanish?"
+    }
+  ],
+  "facts": [
+    {
+      "subject": "user",
+      "predicate": "is learning",
+      "object": "Spanish"
+    },
+    {
+      "subject": "user",
+      "predicate": "preferred drink",
+      "object": "green tea"
+    },
+    {
+      "subject": "user",
+      "predicate": "favorite outdoor activity",
+      "object": "hiking"
+    }
+  ]
+}

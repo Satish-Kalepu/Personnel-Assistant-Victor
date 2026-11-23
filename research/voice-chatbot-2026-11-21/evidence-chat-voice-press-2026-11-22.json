@@ -1,0 +1,134 @@
+{
+  "date": "2026-11-22",
+  "passed": true,
+  "publicUrl": "https://ai_test.satishk.com",
+  "transport": "authenticated HTTPS/WSS PCM; user-ended manual STT",
+  "endpointMode": "owned",
+  "syntheticOnly": true,
+  "transcript": "Hello Victor, what is 12 times 13?",
+  "reply": "12 times 13 is 156.",
+  "boundaries": [],
+  "outputPcmBytes": 157440,
+  "peak": 22093,
+  "firstAudioAfterSyntheticInputMs": 2799,
+  "events": [
+    {
+      "event": {
+        "type": "ready",
+        "sampleRate": 16000,
+        "outputSampleRate": 24000,
+        "maxSeconds": 269
+      },
+      "at": 5674
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5675
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 1
+      },
+      "at": 5821
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 5821
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 10414
+    },
+    {
+      "event": {
+        "type": "transcript",
+        "text": "Hello Victor, what is 12 times 13?",
+        "final": true
+      },
+      "at": 10513
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 2
+      },
+      "at": 10513
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 10513
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "thinking"
+      },
+      "at": 10513
+    },
+    {
+      "event": {
+        "type": "reply",
+        "conversationId": "e24af349-d4bc-4991-98ef-3982b4192bff",
+        "reply": {
+          "id": "d8629a9c-35d2-42d7-85ed-883a4fbd5989",
+          "mode": "practice",
+          "conversationId": "e24af349-d4bc-4991-98ef-3982b4192bff",
+          "turnId": "803e3dbc-b34e-4e23-85e6-99371f72f7c7",
+          "role": "assistant",
+          "content": "12 times 13 is 156.",
+          "createdAt": "2026-11-22T17:53:49.809Z"
+        },
+        "factsAdded": 0
+      },
+      "at": 11890
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "speaking"
+      },
+      "at": 11898
+    },
+    {
+      "event": {
+        "type": "speechEnd",
+        "turn": 2
+      },
+      "at": 12608
+    },
+    {
+      "event": {
+        "type": "clear",
+        "turn": 3
+      },
+      "at": 12646
+    },
+    {
+      "event": {
+        "type": "state",
+        "state": "listening"
+      },
+      "at": 12646
+    }
+  ],
+  "physicalMicrophoneTested": false,
+  "pixelTested": false,
+  "executionDate": "2026-11-22",
+  "inputMode": "push-to-talk",
+  "heldSilenceMs": 900,
+  "replyBeforeRelease": false,
+  "firstAudioAfterReleaseMs": 1739
+}

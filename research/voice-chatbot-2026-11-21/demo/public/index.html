@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Victor · Voice architecture lab</title>
+  <meta name="description" content="Local research demos for two Victor voice architectures.">
+  <link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="Victor voice lab home"><span class="brand-icon">v</span> victor<span class="brand-sub">VOICE LAB</span></a><span class="environment">Local research workspace</span></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">CONVERSATION, WITHOUT THE WAIT</p><h1>Find Victor’s voice.</h1><p class="lead">Two architectures. One assistant. Explore the interaction first, then measure the real conversation.</p></div><span class="study-tag">EXPERIENCE FIRST</span></div>
+    <div class="workspace">
+      <aside class="plans" aria-label="Architecture choices">
+        <p class="section-label">CHOOSE AN ARCHITECTURE</p>
+        <button class="plan active" data-plan="a" aria-pressed="true"><span class="plan-tag">RECOMMENDED</span><strong>Continuous conversation</strong><span>OpenAI GPT-Live</span><small>Direct WebRTC · independent backend</small></button>
+        <button class="plan" data-plan="b" aria-pressed="false"><span class="plan-tag secondary">SECONDARY</span><strong>Managed voice agent</strong><span>Gemini Live + LiveKit</span><small>Native SDKs · server-owned worker</small></button>
+        <section class="ownership"><h2>One shared brain.</h2><p>Accounts, memory, permissions and tools belong to the backend. Each interface owns its audio and controls.</p><div class="mini-stack"><span>Node / TypeScript</span><span>MongoDB + Redis</span><span>Web + Kotlin</span></div></section>
+      </aside>
+      <section class="conversation" aria-label="Voice demo">
+        <div class="session-header"><div><p class="section-label">VOICE SESSION</p><h2 id="session-title">Continuous conversation</h2></div><span id="mode-badge" class="badge">Scenario simulation</span></div>
+        <div class="mode-switch" role="group" aria-label="Demo mode"><button id="simulation-mode" aria-pressed="true" class="selected">Explore a scenario</button><button id="live-mode" aria-pressed="false">Live microphone</button></div>
+        <p class="mode-note" id="mode-note">Scripted UI demo. No microphone, provider call or vendor latency measurement.</p>
+        <div class="voice-stage" id="voice-stage"><div class="orb" aria-hidden="true"><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><h3 id="state-label">Ready when you are.</h3><p id="state-detail">Choose a scenario to see how Victor listens, works and yields.</p></div>
+        <div class="scenario-row" id="scenario-row"><label for="scenario">Try a conversation</label><select id="scenario"><option value="simple">A quick answer</option><option value="lookup">A slow backend lookup</option><option value="correction">A mid-sentence correction</option></select></div>
+        <div class="controls"><button id="start" class="primary">Start scenario</button><button id="interrupt" class="outline" disabled>Interrupt</button><button id="mute" class="outline" aria-pressed="false">Mute reply</button><button id="reset" class="text-button">Reset</button></div>
+        <div id="notice" role="status" aria-live="polite" class="notice" hidden></div>
+        <section class="transcript" aria-label="Conversation captions"><div class="transcript-heading"><h3>Conversation</h3><span>Session only · never saved</span></div><div id="messages" role="log" aria-live="polite"><p class="empty">Your conversation will appear here.</p></div></section>
+      </section>
+      <aside class="insights"><section class="route-card"><p class="section-label">HOW THIS PLAN CONNECTS</p><h2 id="route-title">A voice that keeps listening.</h2><ol id="route"><li>Web or Android audio</li><li>OpenAI live voice session</li><li>Private backend reasoning and tools</li></ol><p id="route-note">Audio takes the direct path. The backend works independently.</p></section><section class="measure-card"><p class="section-label">EVIDENCE, NOT ESTIMATES</p><h2>No live results yet.</h2><p id="measurement-note">Scenario delays are prescribed and identical for both plans. They cannot rank providers.</p><div class="measure"><span>Useful answer</span><strong>Unmeasured</strong></div><div class="measure"><span>Audible interruption</span><strong>Unmeasured</strong></div><div class="measure"><span>Pixel voice quality</span><strong>Pending</strong></div></section><section class="events"><p class="section-label">SESSION EVENTS</p><ol id="events"><li>Waiting for a session</li></ol></section></aside>
+    </div>
+    <footer><span>Victor research · 21 November 2026</span><span id="provider-status">Checking local provider configuration…</span></footer>
+  </main>
+  <audio id="remote-audio" autoplay></audio>
+</body></html>

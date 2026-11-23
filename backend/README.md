@@ -30,3 +30,10 @@ python -m unittest discover -s backend/tests -v
 ```
 
 The Phase 1 application stack is deployed in Mumbai. Unauthenticated API requests returned 401, and direct synthetic Lambda invocations passed for Practice and Personal modes. Android sign-in and end-to-end API use remain to be tested.
+
+
+## Voice source update (2026-11-19)
+
+Three new source routes inherit the existing Cognito JWT authorizer: GET /voice/config returns the public gateway URL; POST /voice/session reserves the listening allowance; POST /voice/speech validates an owned saved assistant reply, applies the existing secret hold, reserves TTS allowance, and returns the approved text to the gateway. Client-supplied arbitrary synthesis text is ignored. The existing chat route accepts voice=true to request a concise spoken-style answer. No new runtime IAM permission is added.
+
+The Sarvam JavaScript gateway is a separate persistent service, not an audio stream through Lambda's HTTP API. VoiceGatewayUrl defaults empty. This source is not deployed; see [gateway setup](../voice-gateway/README.md) and [research](../docs/voice-research-2026-11-19.md).

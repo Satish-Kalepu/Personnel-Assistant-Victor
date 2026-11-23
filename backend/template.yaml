@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: Victor Phase 1 private text assistant (Mumbai)
 
 Parameters:
+  VoiceGatewayUrl:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^wss://[a-z0-9.-]+(?::[0-9]+)?/voice$'
+    Description: Reviewed secure Sarvam voice gateway URL; empty keeps voice disabled
   CognitoDomainPrefix:
     Type: String
     Description: Globally unique Cognito managed-login domain prefix
@@ -48,6 +53,7 @@ Globals:
         CHAT_RESERVE_CENTS: !Ref ChatReserveCents
         COGNITO_DOMAIN: !Sub https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com
         COGNITO_CLIENT_ID: !Ref UserPoolClient
+        VOICE_GATEWAY_URL: !Ref VoiceGatewayUrl
 
 Resources:
   MonthlyAccountBudget:
@@ -214,6 +220,15 @@ Resources:
       LoggingConfig:
         LogGroup: !Ref ApiLogGroup
       Events:
+        VoiceConfig:
+          Type: HttpApi
+          Properties: {ApiId: !Ref Api, Path: /voice/config, Method: GET}
+        VoiceSession:
+          Type: HttpApi
+          Properties: {ApiId: !Ref Api, Path: /voice/session, Method: POST}
+        VoiceSpeech:
+          Type: HttpApi
+          Properties: {ApiId: !Ref Api, Path: /voice/speech, Method: POST}
         Chat:
           Type: HttpApi
           Properties: {ApiId: !Ref Api, Path: /chat, Method: POST}

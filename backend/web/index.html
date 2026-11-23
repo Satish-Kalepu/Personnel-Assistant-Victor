@@ -7,6 +7,7 @@
   <title>Victor</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="config.js"></script>
+  <script defer src="voice.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -38,6 +39,14 @@
         </div>
       </div>
       <section id="messages" class="messages" aria-label="Conversation" aria-live="polite"></section>
+      <div class="voice-controls" aria-label="Voice conversation">
+        <button id="voice-start" type="button" class="secondary">Start voice</button>
+        <button id="voice-stop" type="button" class="secondary" disabled>Stop voice</button>
+        <button id="voice-interrupt" type="button" class="secondary" disabled>Stop speaking</button>
+        <label><input id="voice-muted" type="checkbox"> Mute replies</label>
+        <span id="voice-status" role="status">Voice off</span>
+        <p id="voice-transcript" aria-live="polite"></p>
+      </div>
       <form id="chat-form" class="composer">
         <label for="message-input">Your message</label>
         <textarea id="message-input" rows="3" maxlength="4000" placeholder="Write to Victor…" required></textarea>

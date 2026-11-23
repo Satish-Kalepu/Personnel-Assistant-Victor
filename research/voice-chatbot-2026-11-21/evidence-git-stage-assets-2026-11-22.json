@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-22",
+  "commit": "c06a61af0960d518091e39d5094febe361a95a88",
+  "git_server_build_and_deployment": true,
+  "voice_tests_passed": 18,
+  "template_readability_smoke_passed": true,
+  "non_root_worker_smoke_passed": true,
+  "container_health_passed": true,
+  "browser_voice_acceptance_passed": false,
+  "static_worklet": {"owner": "root:root", "mode": "600", "runtime_readable": false},
+  "proposed_repair": "Assign built public assets to existing nginx runtime user via Docker COPY ownership and check all public files before release",
+  "repair_consent": "requested; pending at this observation",
+  "host_sudo_required": false,
+  "workstation_artifact_or_env_upload": false,
+  "subsequent_rollback": "stage-owned-4becaff17ef6 restored under failed-release acceptance procedure while source repair awaits approval",
+  "restored_public_health": 200,
+  "restored_worklet": 200,
+  "restored_anonymous_profile": 401
+}

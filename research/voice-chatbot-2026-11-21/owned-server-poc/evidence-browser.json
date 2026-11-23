@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-21",
+  "status": "corrected replay/turn/Stop/End passed after prompt020 approval; initial failure retained",
+  "real_webrtc_connected": true,
+  "backend_speech_start_observed": true,
+  "browser_synthetic_turn_completed": true,
+  "stop_reply_verified": true,
+  "research_browser_energy_sample": "inconclusive; sampled zero despite successful turn/Stop checks; use independent Python and staging browser evidence for nonzero PCM",
+  "initial_failure": "evidence-browser-initial.json",
+  "end_session_cleared_remote_media": true,
+  "simulated_microphone_denial_handled": true,
+  "denial_restored_start_control": true,
+  "missing_origin_post_status": 403,
+  "console_errors_after_approved_cosmetic_fixes": 0,
+  "layouts": [
+    {"viewport_width":1440,"client_width":1425,"scroll_width":1425,"screenshot":"screenshots/desktop-ready.png"},
+    {"viewport_width":390,"client_width":375,"scroll_width":375,"screenshot":"screenshots/mobile-ready.png"}
+  ],
+  "screenshots_visually_reviewed": true,
+  "physical_microphone_tested": false,
+  "pixel_tested": false
+}

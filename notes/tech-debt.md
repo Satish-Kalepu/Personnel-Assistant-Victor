@@ -19,6 +19,7 @@ Track known compromises, why they exist, their impact, and the conditions for re
 - **Impact / risk:** Actual AWS charges may exceed $50.
 - **Proposed follow-up:** Implement per-job reservations, app quotas, and measured Mumbai costs. The $50 account-wide AWS Budget with email notifications is deployed; notifications can lag charges.
 - **Status:** Open
+- **Voice update (2026-11-19, IDEA-013/TASK-013):** Prepared source adds shared reservations of 10 US cents per up-to-five-minute listening session and 2 cents/1,000 TTS characters rounded up, plus normal chat reservations. These use a conservative INR conversion assumption, not actual invoice reconciliation. Sarvam fees are outside the AWS account budget alerts; hosting adds AWS charges. Live metering/reconciliation and other future job types remain open.
 
 ### DEBT-003 — Target phone and wake phrase unknown
 - **Source:** IDEA-005, IDEA-006, TASK-008
@@ -59,7 +60,76 @@ Track known compromises, why they exist, their impact, and the conditions for re
 - **Impact / risk:** Builder must install and select Gradle 8.13 separately; a different local version may cause a build failure.
 - **Proposed follow-up:** Use installed Gradle 8.13 for the first build as documented. A checked-in wrapper can be proposed separately for approval and verified on the builder's machine.
 - **Status:** Open
+### DEBT-008 - Voice waits for the complete chat reply/facts response
+- **Source:** IDEA-013, TASK-013
+- **Recorded:** 2026-11-19
+- **Compromise and reason:** STT/TTS stream, but the current chat Lambda produces and validates a complete reply/facts JSON object before synthesis. The voice flag requests concise answers; no token streaming or asynchronous fact extraction has been added.
+- **Impact / risk:** Model generation and fact parsing can miss the desired first-audio latency despite fast speech APIs. End-to-end voice quality/latency remains unmeasured.
+- **Proposed follow-up:** Benchmark on Pixel and browsers with harmless phrases. If targets fail, propose streaming validated reply text and/or moving memory extraction off the audio critical path while preserving secret/mode/ownership boundaries.
+- **Status:** Open
+
+### DEBT-009 - Voice connection coordination is per gateway process
+- **Source:** IDEA-013, TASK-013
+- **Recorded:** 2026-11-19
+- **Compromise and reason:** Single-process owner/session tracking is sufficient for the initial private gateway and avoids another coordination data store.
+- **Impact / risk:** Multiple replicas would not enforce a global one-voice-session-per-owner limit; session restarts can incur another conservative reservation. In-flight Lambda work may finish after a gateway cancellation, so interruption does not guarantee charge or history rollback.
+- **Proposed follow-up:** Keep one gateway process for the initial reviewed deployment; add shared session leases and cancellation/idempotency design before scaling or promising global limits.
+- **Status:** Open
+
 ## Resolved
 
 No resolved entries yet.
 
+- **2026-11-21 implementation evidence:** Shared Redis leases and three-second session revocation checks now replace process-only ownership in the new API; authenticated duplicate-session/logout tests passed. DEBT-009 stays open for multi-replica/network-failure/load acceptance. Whole-response speech latency (DEBT-008) remains: synthetic first audio measured 3.66s locally and 2.58s through EC2; actual microphone/Pixel quality is unverified. The old Lambda-specific caveats above are historical after retirement.
+
+
+## Planning follow-up
+
+### DEBT-010 - Proposed single-EC2 SaaS failure domain
+- **Source:** IDEA-015; TASK-014/TASK-017; docs/docker-mongodb-saas-plan.md.
+- **Status:** Accepted initial operating compromise under IDEA-015 (2026-11-20); remote deployment and production recovery targets remain pending.
+- **Compromise and reason:** Docker/Compose with MongoDB and Redis on one supplied EC2 is simpler to operate initially and follows the owner's hosting direction.
+- **Impact / risk:** EC2, disk or host maintenance can stop both application and database. ALB/restart policies and a single-node MongoDB replica set do not provide host/database high availability. Logs, indexes and model/voice concurrency can exhaust disk/RAM.
+- **Required before public launch:** Explicit recovery/downtime targets, resource/disk alarms, authenticated private databases, encrypted persistent storage and off-host backups, restore verification, versioned deploy/rollback and documented capacity limits. Old personal data selected for deletion must not be exported into new backups.
+- **Later options:** Separate or managed MongoDB, independent replicas, multi-host deployment and maintenance automation when scale/recovery requirements justify them. Do not label the first Compose host highly available.
+
+- **2026-11-20 migration context:** DEBT-002 needs both per-user and application-wide admission accounting for public signup; the $50 application guard is not an invoice guarantee. DEBT-009 process-local voice ownership must become shared/revocable under TASK-015; planned Redis use does not close it. DEBT-001 secret detection and DEBT-008 speech latency remain unresolved; a provider/backend port alone does not repair them.
+
+- **DEBT-010 accepted direction (2026-11-20):** Owner approved IDEA-015 and the initial Compose/EC2 design. The single-host compromise is selected, not yet deployed remotely. Off-host backup destination, recovery targets and restore evidence remain production release requirements. The initial local implementation is not high availability.
+
+### DEBT-011 - Existing stage host operating limitations
+- **Source:** IDEA-015; TASK-017; prompts 2026-11-21-001 through 004; docs/stage-deployment.md.
+- **Status:** Open; private stage operating on explicitly supplied host. No unrelated host repair authorized.
+- **Evidence:** Amazon Linux 2, kernel 5.10.179, Docker 25.0.3; AWS says AL2 standard support ended 2026-06-30. Root 50GiB gp2 EBS is unencrypted; about 11GiB free/80% used after deployment. Docker service is disabled for boot. Existing native MongoDB listens on 27017 and broad public rules include it.
+- **Owner decision:** On 2026-11-21 owner explicitly declined the proposed MongoDB/security-group restriction and states authentication is enabled. Preserve the service/rules and do not repeat the repair request. Authentication is owner-confirmed, not independently audited; unrelated DB contents were not queried.
+- **Mitigation for this deployment:** Dedicated project/user directory, private unpublished app MongoDB/Redis, loopback web/mail, exact image/runtime verification, bounded resources/logs, env outside Git with restrictive permissions. Existing services and security groups unchanged. App-scoped Compose needs no system upgrade/sudo.
+- **Before public production:** Review supported OS/runtime and encrypted storage migration, off-host backup policy/recovery targets, disk alarms and administrator-controlled Docker boot behavior. Do not upgrade/reboot/migrate/enable unrelated host services automatically. Current restart policies help only while the Docker daemon runs.
+
+- **DEBT-010 stage evidence (2026-11-21):** The single-host compromise is now deployed privately on the supplied EC2; new local encrypted cold-restore/restart proof passed. Off-host production backup destination/retention and recovery targets remain open. Prior ?not yet deployed? text records the earlier planning state.
+
+- **2026-11-21 HTTPS stage follow-up (IDEA-015/TASK-017):** Owner supplied ai_test.satishk.com and SMTP, then chose manual Nginx editing (prompts 006?008). Dedicated app is now production-mode with exact HTTPS origin/Secure cookies and real SMTP; TLS/authentication checks passed from EC2 and operator, no email sent. Supplied endpoint is AWS Mail Manager rather than the earlier planned Mumbai SES SMTP endpoint. DNS uses direct host Nginx, so no ALB was created. Proposed domain-only voice/client-IP location blocks passed isolated host-binary syntax check. Manual host application, actual inbox delivery/suppression and browser/Pixel voice acceptance remain open; no unrelated host repair performed.
+### DEBT-012 - Owned voice-server POC is isolated and not production-ready
+- **Source:** IDEA-017; TASK-018; prompt 2026-11-21-018.
+- **Status:** Open; prototype scope, not an approved production operating compromise.
+- **Known limits:** Local loopback server and in-memory sessions/agent context; no production identity/memory integration, multi-worker coordination, public NAT/TURN/TLS deployment or physical Pixel acceptance. Initial endpointing is silence-based, not a semantic guarantee of thought completion. Provider/network and VAD/echo behavior need real-device measurement.
+- **Measured prototype limits (2026-11-21):** Synthetic cloud chain works, but one endpoint → first-server-PCM result was 3941 ms (LLM first-delta wait 3246 ms); requires comparison/tuning before speed acceptance. Browser clip ended without trailing silence, preventing its silence endpoint; scoped repair consent pending. One early single-session409 was followed by a successful attempt; contention cause not established. Provider-error/reconnect recovery, public media/security, actual speaker barge-in and privacy account controls need separate acceptance.
+- **Staging update (2026-11-21, prompt020/021):** Owned worker is now integrated with existing real app identity/mode/memory policy over WSS; initial local-only/no-identity limit still describes the standalone research server. Browser replay correction and new worker3200-byte transport boundary/web mute defects are approved, repaired and verified. Public WebRTC/TURN, semantic turn detection, streamed reasoning beyond the app’s checked full-reply gate, capacity/reconnect/rollback drill and physical Pixel/acoustic quality remain open. One stage final-input-chunk → first-PCM3978ms observation includes silence wait and cannot be compared directly with the earlier endpoint-based figure. ONNX telemetry-device-ID warning observed; account/provider retention and runtime telemetry remain separate review items. No new subscription required; app usage limits unchanged.
+- **Paused-input repair (2026-11-22, TASK-020 complete):** New speech was discarding delayed earlier transcripts and aborting their model/fact work. Repair and separate checker correction explicitly approved, deployed and verified with35 tests plus fresh-account three-fact/history/audio staging acceptance. Retained pending input remains bounded and session-local; explicit stop/logout/disconnect still abort unsaved work. Accepted input work can finish during a speech interruption, consuming its normal reservation, to preserve facts/history. Pending statements may be grouped within existing4000-character request and five-fact extraction limits; this repair does not promise unlimited extraction, canonical contradictory-fact merging or reconnect persistence. The standalone Python research demo retains its simplified historical cancellation behavior; the actual Node staging path is repaired.
+- **Agent-loop gap (2026-11-22, IDEA-018 Discussing):** Current implementation is one serialized model call per input batch with stored context; it has no LLM-directed tool loop or guaranteed combined summary/input coverage. An ordered agent inbox, tool-result correlation, correction-aware/idempotent side effects and loop-level replanning need a separately finalized design before implementation. The prior retention fix is not evidence these capabilities exist.
+- **Follow-up / completion:** Review the measured POC, select architecture, preserve authoritative user/mode/tool boundaries, validate public media connectivity/security and multi-session isolation, add selected semantic endpoint behavior if needed, and complete speaker/headset/Pixel quality and timing acceptance before production reuse. No existing debt is closed by this POC.
+
+### DEBT-013 - Published frontend and API releases require coordinated rollout
+- **Source:** IDEA-021 / TASK-022, explicit owner choice2026-11-22 prompt010.
+- **Status:** Accepted initial operating compromise; implementation/acceptance tracked separately.
+- **Compromise:** Frontend files live in a host public directory mounted by Nginx, separate from versioned API/Nginx images. A current symlink change requires web recreation; single-host API/frontend deployment has a short interruption. This is not an atomic cross-container or zero-downtime release.
+- **Mitigation / completion:** Git builds on the server; build-only public assets755/644; actual runtime-user readability/config preflight; retain matching previous env/images/assets and rollback on readiness/static failure. Validate staging acceptance and document/drill coordinated rollback before production. Keep /srv root restricted to the app release owner, never publish private checkout/env. Host security/backup follow-ups remain DEBT-010/011.
+
+- **DEBT-013 path update (2026-11-22, prompt015):** Public build publication is now under checkout/deploy/.local/web, not /srv. This avoids host-root setup but ties retained build directories to the checkout location; preserve/exclude this ignored subtree during checkout cleanup/moves and retain the matching absolute mount setting for rollback. Original coordinated-release/interruption limitations remain.
+
+- **DEBT-013 deployment evidence (2026-11-22):** Repository-local public publication, actual non-root/read-only mount and static/auth/voice acceptance passed on staging. Prior DB identities/private parent modes preserved. Keep the accepted coordinated-release interruption and checkout-path retention compromise; deliberate rollback drill and production recovery remain open.
+
+- **DEBT-012 porting audit (2026-11-22, prompts016/017):** Current Android VoiceConnection.control() emits mute boolean field `muted`, while Node voice.ts accepts `value`; web sends `value`. Native mute/unmute may therefore end the voice session instead of toggling playback. Record as an existing protocol defect, not evidence of native control parity. A scoped repair would align the wire field and verify native/server mute/unmute without disconnect; no application repair or permission inferred from the architecture-note request. Known queue/session/context/fact extraction and physical acceptance limits remain in voice-chatbot-skill.md.
+
+- **IDEA-022/TASK-023 finalization (2026-11-22, prompt018):** Owner selects the existing stack for reuse; documentation is now an independent concise specification. No new runtime compromise introduced. Existing DEBT-012 queue/context/device limits and native mute-contract defect, plus DEBT-013 coordinated release limits, are not closed by documentation. The guide specifies the correct common mute field `value`; application/native source is unchanged.
+
+- **DEBT-012 frontend voice-mode follow-up (2026-11-22, IDEA-024/TASK-025):** Hold/release and continuous-live UI use the same authoritative app/provider path; held turns use explicit manual STT instead of silence endpointing. First press waits for microphone permission/socket readiness; release before readiness cancels visibly. Mock lifecycle/functional tests do not prove physical touch/mic/Pixel quality or acoustic latency; retain those acceptance items.

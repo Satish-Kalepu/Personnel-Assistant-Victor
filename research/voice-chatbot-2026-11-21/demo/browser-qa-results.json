@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-21",
+  "scope": "Local isolated browser demo",
+  "desktop_viewport": {"width":1440,"height":1100,"horizontal_overflow":false},
+  "mobile_web_viewport": {"width":390,"height":844,"horizontal_overflow":false},
+  "checks": {
+    "quick_answer_scenario": "passed",
+    "correction_scenario": "passed",
+    "interrupt_discards_late_scripted_reply": "passed",
+    "secondary_live_button_explains_missing_setup": "passed",
+    "synthetic_microphone_permission_denial_cleanup": "passed",
+    "openai_webrtc_session_started_with_synthetic_silent_track": "passed",
+    "synthetic_track_ended_on_stop": "passed"
+  },
+  "physical_microphone_used": false,
+  "pixel_apk_tested": false,
+  "acoustic_or_useful_answer_latency": null,
+  "provider_quality_ranking": null,
+  "limitations": [
+    "Mobile viewport is a browser layout test, not a native Android audio test.",
+    "Synthetic silent-track WebRTC verifies connection and cleanup, not recognition or voice quality.",
+    "A favicon 404 was observed; scenario checks reported no page JavaScript exceptions."
+  ]
+}

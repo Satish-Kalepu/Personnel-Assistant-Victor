@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-22",
+  "reviewedCommit": "a7df321d0f208447d445d81cd42d91ef9ea084ca",
+  "codePublication": {
+    "nonForcePush": true,
+    "stagingFastForwardPull": true
+  },
+  "stagingBuilds": {
+    "api": "passed",
+    "frontend": "passed",
+    "nginx": "passed",
+    "voiceWorker": "passed",
+    "pinnedModelChecksum": "passed"
+  },
+  "checks": {
+    "isolatedVoiceTests": 18,
+    "failedVoiceTests": 0,
+    "nonRootWorkerSmoke": "passed",
+    "priorLocalRoutingGroups": 10
+  },
+  "activation": {
+    "status": "awaiting-scoped-directory-setup",
+    "requiredPaths": [
+      "/srv/victor-web",
+      "/srv/victor-web/releases"
+    ],
+    "sudoAvailable": false,
+    "liveReleaseChanged": false,
+    "privateEnvTransferred": false,
+    "databasesChanged": false,
+    "hostTlsChanged": false
+  },
+  "previousRelease": "stage-owned-4becaff17ef6"
+}

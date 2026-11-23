@@ -16,6 +16,9 @@ h2 { margin: 0; font-size: 1.2rem; }
 .session { flex-wrap: wrap; justify-content: flex-end; }
 .notice { margin: 1rem 0; padding: .85rem 1rem; border-radius: .7rem; background: #e4efed; }
 .notice.error { background: #ffe9e4; color: #8f2d1a; }
+.voice-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding: .8rem 1rem; border-top: 1px solid #e7eeea; }
+.voice-controls label, #voice-status { font-size: .9rem; }
+#voice-transcript { width: 100%; margin: .2rem 0; color: #33574e; }
 .workspace { overflow: hidden; border: 1px solid #d9e3df; border-radius: 1rem; background: white; box-shadow: 0 12px 32px #183f3210; }
 .modes { display: flex; gap: .5rem; padding: 1rem 1rem 0; }
 .modes button { color: #33574e; background: transparent; }

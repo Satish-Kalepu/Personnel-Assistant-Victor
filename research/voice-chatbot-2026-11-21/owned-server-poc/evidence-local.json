@@ -1,0 +1,72 @@
+{
+  "mode": "local",
+  "passed": true,
+  "transport": "real local WebRTC / aiortc",
+  "synthetic_phrase": "Hello Victor. What is twelve times thirteen?",
+  "elapsed_seconds": 8.29,
+  "audio": {
+    "frames": 258,
+    "non_silent_frames": 11,
+    "peak": 1835
+  },
+  "events": [
+    {
+      "type": "ready",
+      "mode": "local",
+      "detector": "Silero ONNX on our backend",
+      "endpoint": "silence_based",
+      "server_ms": 72493370,
+      "turn": 0
+    },
+    {
+      "type": "clear",
+      "reason": "backend_speech_start",
+      "server_ms": 72494100,
+      "turn": 1
+    },
+    {
+      "type": "speech_start",
+      "audio_ms": 544.0,
+      "server_ms": 72494101,
+      "turn": 1
+    },
+    {
+      "type": "speech_end",
+      "audio_ms": 3904.0,
+      "detected_at_audio_ms": 4544.0,
+      "silence_ms": 640.0,
+      "server_ms": 72497993,
+      "turn": 1
+    },
+    {
+      "type": "turn_end",
+      "audio_ms": 4544.0,
+      "method": "silence_based",
+      "semantic_completion": false,
+      "server_ms": 72497993,
+      "turn": 1
+    },
+    {
+      "type": "agent_started",
+      "turn": 1,
+      "agent": "local_fixture",
+      "server_ms": 72497993
+    },
+    {
+      "type": "reply",
+      "turn": 1,
+      "text": "Local demo agent received turn 1. Backend speech detection and routing worked. This acknowledgement is a tone, not cloud TTS.",
+      "server_ms": 72498075
+    },
+    {
+      "type": "agent_completed",
+      "turn": 1,
+      "agent": "local_fixture",
+      "server_ms": 72498079
+    }
+  ],
+  "limits": [
+    "Synthetic input, localhost; not physical microphone or Pixel testing.",
+    "Server PCM stage timings exclude endpoint wait and acoustic playback."
+  ]
+}

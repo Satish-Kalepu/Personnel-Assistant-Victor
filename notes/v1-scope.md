@@ -26,6 +26,8 @@
 - **Gmail:** Google OAuth for each account; Google Cloud Pub/Sub mailbox watch into an authenticated AWS endpoint; periodic reconciliation because notifications can be missed. Company permission is reported; the Workspace administrator must still allow the app and scopes.
 - **Data separation:** Personal memory, English Practice, ambient recordings, personal Gmail, and company Gmail are separate authorization domains. Saving an ambient finding to the personal graph is an explicit user action. Detected password values are kept as encrypted fields in protected conversation and graph records. Ordinary graph indexes/views contain masked metadata; retrieval bypasses the LLM and requires passkey authorization. Automatic detection can miss an unmarked value, so LLM exclusion cannot be guaranteed.
 
+**Speech-provider update (2026-11-19, IDEA-013):** After first reaffirming Mumbai-only processing, the owner explicitly approved Sarvam for speech. Hosted Sarvam STT/TTS is permitted as an exception to the earlier Mumbai-only speech interpretation; no Mumbai-specific guarantee is claimed. Bedrock reasoning, Cognito, and personal memory remain in AWS Mumbai. This does not authorize cross-region Bedrock inference or confidential speech without the existing passkey/offline conditions. See [voice research](../docs/voice-research-2026-11-19.md).
+
 ## Remaining design gates
 
 1. **Automatic password detection:** The user chose to store actual password values from any chat message and may request spoken output in the 15-minute passkey window. A pre-model detector must identify secret spans for encryption, masking, and isolated retrieval. Uncertain messages pause for confirmation. A confident false negative can still reach the model, so the user should review this residual risk before finalizing the feature. [Bedrock sensitive-filter limits](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html).
@@ -43,3 +45,7 @@
 3. Personal and company Gmail summary pipelines, separate scopes, and expiry.
 4. Auto Record on the chosen phone, queued uploads, budget gate, post-processing, and retention.
 5. Google Assistant App Action and device-specific battery testing; evaluate custom “Hi Victor” afterward.
+
+## 2026-11-20 replacement planning direction
+
+See IDEA-015 and [Docker/MongoDB SaaS plan](../docs/docker-mongodb-saas-plan.md). The owner chose Docker/Compose, MongoDB, private personal accounts with public free signup, password login and email OTP at registration/recovery, recovery codes instead of security questions, web and Android together, SES SMTP Mumbai, and permanent deletion of old personal data. Initial limits are 20 chat turns/day and 5 voice minutes/day per verified user, one active voice session/user and a $50/month application AI guard (billing lag and infrastructure costs separate). OpenAI replaces Bedrock for chat/memory; Sarvam continues speech, and processing outside Mumbai is explicitly allowed. This supersedes the old single-owner/serverless/Mumbai-only reasoning deployment direction above while preserving it as history. The full proposed backend design is under review; no migration/deletion performed by this planning entry.

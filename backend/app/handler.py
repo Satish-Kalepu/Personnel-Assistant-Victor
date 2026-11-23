@@ -10,12 +10,16 @@ from botocore.exceptions import ClientError
 
 from app.core import ApiError, Service, fact_partition, partition
 from app.web import web_response
+from app.voice import VoiceService
 
 TABLE = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
 MODEL = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "ap-south-1"))
 
 
 class DynamoRepo:
+    def get_message(self, subject, mode, key):
+        return TABLE.get_item(Key={"pk": partition(subject, mode), "sk": key}, ConsistentRead=True).get("Item")
+
     def save(self, records):
         with TABLE.batch_writer() as batch:
             for record in records:
@@ -51,7 +55,7 @@ class DynamoRepo:
 
 
 class BedrockModel:
-    def reply(self, mode, prior, content, facts):
+    def reply(self, mode, prior, content, facts, voice=False):
         if mode == "practice":
             system = "You are Victor, a friendly English conversation partner. Help the user practice naturally; gently correct a few important errors. Do not refer to personal memory."
         else:
@@ -66,6 +70,8 @@ class BedrockModel:
                     for item in facts
                 ], ensure_ascii=False)
             )
+        if voice:
+            system += " This is a spoken conversation. Keep the reply to two short natural sentences unless the user requests more detail. Avoid markdown."
         messages = [
             {"role": item["role"], "content": [{"text": item["content"]}]}
             for item in prior
@@ -87,9 +93,10 @@ class MonthlyBudget:
         self.limit = int(os.environ["MONTHLY_ALLOWANCE_CENTS"])
         self.per_chat = int(os.environ["CHAT_RESERVE_CENTS"])
 
-    def reserve(self, subject):
+    def reserve(self, subject, amount=None):
+        amount = self.per_chat if amount is None else amount
         month = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m")
-        remaining = self.limit - self.per_chat
+        remaining = self.limit - amount
         if remaining < 0:
             raise ApiError(429, "budget_hold", "Monthly processing allowance reached.")
         try:
@@ -97,7 +104,7 @@ class MonthlyBudget:
                 Key={"pk": f"USER#{subject}#BUDGET#{month}", "sk": "ALLOWANCE"},
                 UpdateExpression="ADD reservedCents :amount",
                 ConditionExpression="attribute_not_exists(reservedCents) OR reservedCents <= :remaining",
-                ExpressionAttributeValues={":amount": self.per_chat, ":remaining": remaining},
+                ExpressionAttributeValues={":amount": amount, ":remaining": remaining},
             )
         except ClientError as error:
             if error.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
@@ -106,6 +113,9 @@ class MonthlyBudget:
 
 
 SERVICE = Service(DynamoRepo(), BedrockModel(), MonthlyBudget())
+VOICE = VoiceService(
+    DynamoRepo(), MonthlyBudget(), os.environ.get("VOICE_GATEWAY_URL", ""),
+)
 
 
 def result(status, payload):
@@ -131,6 +141,12 @@ def handler(event, _context):
             raise ApiError(400, "invalid_body", "JSON object required.")
         if route == "POST /chat":
             return result(200, SERVICE.chat(subject, body))
+        if route == "POST /voice/session":
+            return result(200, VOICE.session(subject, body))
+        if route == "GET /voice/config":
+            return result(200, VOICE.config())
+        if route == "POST /voice/speech":
+            return result(200, VOICE.speech(subject, body))
         if route == "GET /messages":
             return result(200, SERVICE.history(subject, query.get("mode"), query.get("conversationId")))
         if route == "GET /facts":

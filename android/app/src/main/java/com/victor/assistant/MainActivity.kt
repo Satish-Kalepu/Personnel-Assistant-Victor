@@ -1,18 +1,17 @@
 package com.victor.assistant
 
 import android.app.AlertDialog
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.Gravity
+import android.Manifest
+import android.content.pm.PackageManager
 import android.view.View
+import android.view.WindowManager
+import android.net.Uri
+import java.util.UUID
 import android.widget.*
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.Lifecycle
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import net.openid.appauth.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -22,272 +21,150 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
-    private lateinit var authService: AuthorizationService
+    private lateinit var sessionStore: SessionStore
+    private lateinit var account: NativeAccount
+    private var sessionToken: String? = null
+    private var sessionGeneration = 0
     private val http = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
-    private var authState: AuthState? = null
     private var mode = "personal"
     private val conversationIds = mutableMapOf<String, String>()
     private lateinit var status: TextView
-    private lateinit var signInButton: Button
-    private lateinit var chat: LinearLayout
-    private lateinit var chatScroll: ScrollView
+    private lateinit var history: TextView
     private lateinit var input: EditText
     private lateinit var send: Button
     private lateinit var memory: Button
     private lateinit var practice: Button
     private lateinit var personal: Button
-
-    private val login = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val data = result.data ?: return@registerForActivityResult
-        val response = AuthorizationResponse.fromIntent(data)
-        val error = AuthorizationException.fromIntent(data)
-        if (response == null) {
-            showError(error?.errorDescription ?: "Sign-in cancelled")
-            return@registerForActivityResult
-        }
-        authState = AuthState(response, error)
-        authService.performTokenRequest(response.createTokenExchangeRequest()) { token, exchangeError ->
-            authState?.update(token, exchangeError)
-            runOnUiThread {
-                if (token?.accessToken != null) {
-                    signInButton.visibility = View.GONE
-                    status.text = "Signed in"
-                    status.visibility = View.VISIBLE
-                    refresh()
-                } else showError(exchangeError?.errorDescription ?: "Token exchange failed")
-            }
-        }
+    private var voice: VoiceConnection? = null
+    private var voiceGeneration = 0
+    private lateinit var voiceStart: Button
+    private lateinit var voiceStop: Button
+    private lateinit var voiceStatus: TextView
+    private lateinit var voiceTranscript: TextView
+    private lateinit var muteReplies: CheckBox
+    private lateinit var olderMessages: Button
+    private var messageCursor: String? = null
+    private val microphonePermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) startVoice() else showError("Allow microphone access to use voice.")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        authService = AuthorizationService(this)
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        sessionStore = SessionStore(this)
+        sessionToken = sessionStore.load()
+        account = NativeAccount(this, http, sessionStore) { token -> resetSession(token) }
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(color(R.color.victor_background))
+            setPadding(24, 24, 24, 24)
         }
-        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            view.setPadding(dp(16) + bars.left, dp(12) + bars.top, dp(16) + bars.right, dp(12) + bars.bottom)
-            insets
-        }
-
-        // Header: logo, name, tagline, sign-in
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        header.addView(ImageView(this).apply { setImageResource(R.drawable.ic_victor_logo) }, LinearLayout.LayoutParams(dp(48), dp(48)))
-        val titles = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), 0, dp(8), 0)
-        }
-        titles.addView(TextView(this).apply {
-            text = getString(R.string.app_title)
-            textSize = 22f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(color(R.color.victor_text))
-        })
-        titles.addView(TextView(this).apply {
-            text = getString(R.string.app_tagline)
-            textSize = 13f
-            setTextColor(color(R.color.victor_text_muted))
-        })
-        header.addView(titles, LinearLayout.LayoutParams(0, -2, 1f))
-        signInButton = pillButton("Sign in", filled = true).apply { setOnClickListener {
-            signIn()
-        } }
-        header.addView(signInButton)
-        root.addView(header)
-
-        status = TextView(this).apply {
-            visibility = View.GONE
-            textSize = 12f
-            setTextColor(color(R.color.victor_primary_dark))
-            background = rounded(color(R.color.victor_chip), dp(12).toFloat())
-            setPadding(dp(10), dp(4), dp(10), dp(4))
-        }
-        root.addView(status, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(12) })
-
-        // Mode switch
-        val modes = LinearLayout(this).apply {
-            background = rounded(color(R.color.victor_surface), dp(24).toFloat(), color(R.color.victor_outline))
-            setPadding(dp(4), dp(4), dp(4), dp(4))
-        }
-        personal = pillButton("Personal", filled = true).apply { setOnClickListener { chooseMode("personal") } }
-        practice = pillButton("English Practice", filled = false).apply { setOnClickListener { chooseMode("practice") } }
+        val title = TextView(this).apply { text = "Victor"; textSize = 26f }
+        root.addView(title)
+        status = TextView(this).apply { text = if (sessionToken == null) "Signed out" else "Signed in" }
+        root.addView(status)
+        val signIn = Button(this).apply { text = "Account / sign in"; setOnClickListener { signIn() } }
+        root.addView(signIn)
+        val modes = LinearLayout(this)
+        personal = Button(this).apply { text = "Personal"; setOnClickListener { chooseMode("personal") } }
+        practice = Button(this).apply { text = "English Practice"; setOnClickListener { chooseMode("practice") } }
         modes.addView(personal, LinearLayout.LayoutParams(0, -2, 1f))
         modes.addView(practice, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(modes, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-
-        // Secondary actions
-        val actions = LinearLayout(this).apply { gravity = Gravity.END }
-        memory = textButton("Memory").apply { setOnClickListener { showMemory() } }
-        val newChat = textButton("New chat").apply {
+        root.addView(modes)
+        val actions = LinearLayout(this)
+        memory = Button(this).apply { text = "Memory"; setOnClickListener { showMemory() } }
+        val newChat = Button(this).apply {
+            text = "New chat"
             setOnClickListener {
                 conversationIds.remove(mode)
-                renderMessages(emptyList())
+                stopVoice()
+                history.text = ""
+                messageCursor = null
+                olderMessages.visibility = View.GONE
             }
         }
-        actions.addView(memory)
-        actions.addView(newChat)
-        root.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
-
-        // Conversation
-        chatScroll = ScrollView(this).apply {
-            background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
-            setPadding(dp(12), dp(12), dp(12), dp(12))
-            clipToPadding = false
-        }
-        chat = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        chatScroll.addView(chat)
-        root.addView(chatScroll, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(4) })
-
-        // Composer
-        val composer = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        input = EditText(this).apply {
-            hint = "Message Victor"
-            minLines = 1
-            maxLines = 4
-            textSize = 15f
-            setTextColor(color(R.color.victor_text))
-            background = rounded(color(R.color.victor_surface), dp(24).toFloat(), color(R.color.victor_outline))
-            setPadding(dp(16), dp(10), dp(16), dp(10))
-        }
-        composer.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
-        send = pillButton("Send", filled = true).apply { setOnClickListener { sendMessage() } }
-        composer.addView(send, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(8) })
-        root.addView(composer, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-
+        actions.addView(memory, LinearLayout.LayoutParams(0, -2, 1f))
+        actions.addView(newChat, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(actions)
+        val historyActions = LinearLayout(this)
+        historyActions.addView(Button(this).apply { text = "Conversations"; setOnClickListener { showConversations() } }, LinearLayout.LayoutParams(0, -2, 1f))
+        historyActions.addView(Button(this).apply { text = "Delete chat"; setOnClickListener { deleteConversation() } }, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(historyActions)
+        val scroll = ScrollView(this)
+        history = TextView(this).apply { textSize = 16f }
+        scroll.addView(history)
+        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        olderMessages = Button(this).apply { text = "Earlier messages"; visibility = View.GONE; setOnClickListener { refresh(messageCursor, true) } }
+        root.addView(olderMessages)
+        val voiceActions = LinearLayout(this)
+        voiceStart = Button(this).apply { text = "Start voice"; setOnClickListener { startVoice() } }
+        voiceStop = Button(this).apply { text = "Stop voice"; isEnabled = false; setOnClickListener { stopVoice() } }
+        voiceActions.addView(voiceStart, LinearLayout.LayoutParams(0, -2, 1f))
+        voiceActions.addView(voiceStop, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(voiceActions)
+        val speechActions = LinearLayout(this)
+        speechActions.addView(Button(this).apply { text = "Stop speaking"; setOnClickListener { voice?.interrupt() } }, LinearLayout.LayoutParams(0, -2, 1f))
+        muteReplies = CheckBox(this).apply { text = "Mute replies"; setOnCheckedChangeListener { _, checked -> voice?.muteReplies(checked) } }
+        speechActions.addView(muteReplies, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(speechActions)
+        voiceStatus = TextView(this).apply { text = "Voice off" }; root.addView(voiceStatus)
+        voiceTranscript = TextView(this); root.addView(voiceTranscript)
+        input = EditText(this).apply { hint = "Message Victor"; minLines = 1; maxLines = 4 }
+        root.addView(input)
+        send = Button(this).apply { text = "Send"; setOnClickListener { sendMessage() } }
+        root.addView(send)
         setContentView(root)
         chooseMode("personal")
     }
 
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
-
-    private fun color(id: Int): Int = getColor(id)
-
-    private fun rounded(fill: Int, radius: Float, stroke: Int? = null) = GradientDrawable().apply {
-        setColor(fill)
-        cornerRadius = radius
-        if (stroke != null) setStroke(dp(1), stroke)
-    }
-
-    private fun pillButton(label: String, filled: Boolean) = Button(this).apply {
-        text = label
-        isAllCaps = false
-        textSize = 14f
-        stateListAnimator = null
-        minHeight = dp(40)
-        minimumHeight = dp(40)
-        setPadding(dp(16), 0, dp(16), 0)
-        stylePill(this, filled)
-    }
-
-    private fun stylePill(button: Button, filled: Boolean) {
-        button.background = rounded(
-            if (filled) color(R.color.victor_primary) else 0x00000000,
-            dp(20).toFloat()
-        )
-        button.setTextColor(if (filled) color(R.color.victor_surface) else color(R.color.victor_primary_dark))
-    }
-
-    private fun textButton(label: String) = Button(this).apply {
-        text = label
-        isAllCaps = false
-        textSize = 14f
-        stateListAnimator = null
-        background = null
-        setTextColor(color(R.color.victor_primary))
-    }
-
-    private fun renderMessages(messages: List<Pair<String, String>>) {
-        chat.removeAllViews()
-        if (messages.isEmpty()) {
-            chat.addView(TextView(this).apply {
-                text = if (mode == "practice") "Practice your English with Victor.\nSend a message to begin." else "Hi, I'm Victor.\nAsk me anything to get started."
-                gravity = Gravity.CENTER
-                textSize = 15f
-                setTextColor(color(R.color.victor_text_muted))
-                setPadding(dp(16), dp(48), dp(16), dp(48))
-            }, LinearLayout.LayoutParams(-1, -2))
-            return
-        }
-        val maxBubble = (resources.displayMetrics.widthPixels * 0.78).toInt()
-        for ((role, content) in messages) {
-            val mine = role == "user"
-            val bubble = TextView(this).apply {
-                text = content
-                textSize = 15f
-                maxWidth = maxBubble
-                setTextIsSelectable(true)
-                setLineSpacing(0f, 1.15f)
-                setPadding(dp(14), dp(10), dp(14), dp(10))
-                setTextColor(if (mine) color(R.color.victor_surface) else color(R.color.victor_text))
-                background = rounded(if (mine) color(R.color.victor_primary) else color(R.color.victor_chip), dp(18).toFloat())
-            }
-            chat.addView(bubble, LinearLayout.LayoutParams(-2, -2).apply {
-                gravity = if (mine) Gravity.END else Gravity.START
-                topMargin = dp(8)
-            })
-        }
-        chatScroll.post { chatScroll.fullScroll(View.FOCUS_DOWN) }
-    }
-
     private fun signIn() {
-        if (BuildConfig.CLIENT_ID.isBlank() || BuildConfig.COGNITO_DOMAIN.isBlank() || BuildConfig.API_URL.isBlank()) {
-            showError("Set android/victor.properties from the deployment outputs.")
-            return
-        }
-        val domain = BuildConfig.COGNITO_DOMAIN.trimEnd('/')
-        val config = AuthorizationServiceConfiguration(
-            android.net.Uri.parse("$domain/oauth2/authorize"),
-            android.net.Uri.parse("$domain/oauth2/token")
-        )
-        val request = AuthorizationRequest.Builder(
-            config, BuildConfig.CLIENT_ID, ResponseTypeValues.CODE,
-            android.net.Uri.parse("victor://oauth2redirect")
-        ).setScope("openid email").build()
-        login.launch(authService.getAuthorizationRequestIntent(request))
+        if (BuildConfig.API_URL.isBlank()) { showError("Set API_URL in android/victor.properties"); return }
+        account.show()
+    }
+
+    private fun resetSession(token: String?) {
+        sessionGeneration++
+        sessionToken = token
+        stopVoice()
+        conversationIds.clear()
+        history.text = ""
+        input.text.clear()
+        voiceTranscript.text = ""
+        status.text = if (token == null) "Signed out" else "Signed in"
+        if (token != null) refresh()
     }
 
     private fun chooseMode(selected: String) {
+        stopVoice()
+        voiceTranscript.text = ""
         mode = selected
         personal.isEnabled = selected != "personal"
         practice.isEnabled = selected != "practice"
-        stylePill(personal, selected == "personal")
-        stylePill(practice, selected == "practice")
         memory.visibility = if (selected == "personal") View.VISIBLE else View.GONE
-        renderMessages(emptyList())
-        if (authState?.isAuthorized == true) refresh()
+        history.text = ""
+        messageCursor = null
+        olderMessages.visibility = View.GONE
+        if (sessionToken != null) refresh()
     }
 
     private fun withToken(action: (String) -> Unit) {
-        val state = authState
-        if (state == null) {
-            showError("Sign in first")
-            return
-        }
-        state.performActionWithFreshTokens(authService) { token, _, error ->
-            runOnUiThread {
-                if (token != null) action(token)
-                else showError(error?.errorDescription ?: "Session expired. Sign in again.")
-            }
-        }
+        val token = sessionToken
+        if (token == null) { showError("Sign in first"); return }
+        action(token)
     }
 
-    private fun request(method: String, path: String, payload: JSONObject? = null, done: (JSONObject) -> Unit) {
+    private fun request(method: String, path: String, payload: JSONObject? = null, failed: () -> Unit = {}, done: (JSONObject) -> Unit) {
         withToken { token ->
+            val generation = sessionGeneration
             Thread {
                 try {
                     val builder = Request.Builder()
                         .url(BuildConfig.API_URL.trimEnd('/') + path)
                         .header("Authorization", "Bearer $token")
                         .header("Accept", "application/json")
+                        .header("X-Victor-Client", "android")
                     val jsonBody = payload?.toString()?.toRequestBody("application/json".toMediaType())
                     val request = when (method) {
                         "GET" -> builder.get().build()
@@ -296,66 +173,115 @@ class MainActivity : ComponentActivity() {
                         "DELETE" -> builder.delete().build()
                         else -> throw IllegalArgumentException("Unsupported request method")
                     }
-                    val (response, success) = http.newCall(request).execute().use { httpResponse ->
+                    val (response, success, statusCode) = http.newCall(request).execute().use { httpResponse ->
                         val body = JSONObject(httpResponse.body?.string() ?: "{}")
-                        Pair(body, httpResponse.isSuccessful)
+                        Triple(body, httpResponse.isSuccessful, httpResponse.code)
                     }
                     runOnUiThread {
-                        if (success) done(response) else showError(response.optString("message", "Request failed"))
+                        if (generation != sessionGeneration || isFinishing || isDestroyed) return@runOnUiThread
+                        if (statusCode == 401) { sessionStore.clear(); resetSession(null) }
+                        if (success) done(response) else { failed(); showError(response.optString("message", "Request failed")) }
                     }
                 } catch (_: Exception) {
-                    runOnUiThread { showError("Network request failed") }
+                    runOnUiThread { if (generation == sessionGeneration) { failed(); showError("Network request failed") } }
                 }
             }.start()
         }
     }
 
-    private fun refresh() {
+    private fun refresh(cursor: String? = null, append: Boolean = false) {
         val selected = mode
-        request("GET", "/messages?mode=$selected") { body ->
-            if (selected != mode) return@request
+        val conversation = conversationIds[selected]
+        var path = "/messages?mode=$selected"
+        if (conversation != null) path += "&conversationId=$conversation"
+        if (cursor != null) path += "&cursor=$cursor"
+        request("GET", path) { body ->
+            if (selected != mode || conversation != conversationIds[selected]) return@request
             val messages = body.optJSONArray("messages") ?: JSONArray()
-            val items = ArrayList<Pair<String, String>>()
-            for (index in 0 until messages.length()) {
+            val lines = (0 until messages.length()).map { index ->
                 val message = messages.getJSONObject(index)
-                items.add(message.optString("role") to message.optString("content"))
+                "${message.optString("role")}: ${message.optString("content")}"
             }
-            renderMessages(items)
+            val text = lines.joinToString("\n\n")
+            history.text = if (append) "$text\n\n${history.text}" else text
+            messageCursor = body.optString("nextCursor").takeUnless { it.isBlank() || it == "null" }
+            olderMessages.visibility = if (messageCursor == null) View.GONE else View.VISIBLE
         }
     }
 
     private fun sendMessage() {
+        stopVoice()
         val message = input.text.toString().trim()
         if (message.isEmpty()) return
         val selected = mode
-        val payload = JSONObject().put("mode", selected).put("message", message)
-        conversationIds[selected]?.let { payload.put("conversationId", it) }
         send.isEnabled = false
-        request("POST", "/chat", payload) { response ->
-            send.isEnabled = true
-            if (selected == mode) {
-                input.text.clear()
-                conversationIds[selected] = response.getString("conversationId")
-                refresh()
+        fun submit(id: String) {
+            val payload = JSONObject().put("mode", selected).put("message", message)
+                .put("conversationId", id).put("clientMessageId", UUID.randomUUID().toString())
+            request("POST", "/chat", payload, failed = { send.isEnabled = true }) { response ->
+                send.isEnabled = true
+                if (selected == mode) { input.text.clear(); conversationIds[selected] = response.getString("conversationId"); refresh() }
             }
         }
-        // The request may fail before the callback. Keep the button available for retry.
-        send.postDelayed({ send.isEnabled = true }, 35000)
+        val existing = conversationIds[selected]
+        if (existing != null) submit(existing)
+        else request("POST", "/conversations", JSONObject().put("mode", selected), failed = { send.isEnabled = true }) { response ->
+            val id = response.getString("conversationId")
+            conversationIds[selected] = id
+            submit(id)
+        }
     }
 
-    private fun showMemory() {
-        request("GET", "/facts") { response ->
-            val facts = response.optJSONArray("facts") ?: JSONArray()
-            val labels = ArrayList<String>()
-            for (i in 0 until facts.length()) {
-                val fact = facts.getJSONObject(i)
-                labels.add("${fact.optString("subject")} ${fact.optString("predicate")} ${fact.optString("object")}")
+    private fun showConversations(cursor: String? = null) {
+        val selected = mode
+        request("GET", "/conversations?mode=$selected" + (cursor?.let { "&cursor=$it" } ?: "")) { response ->
+            if (selected != mode) return@request
+            val rows = response.optJSONArray("conversations") ?: JSONArray()
+            val labels = (0 until rows.length()).map { rows.getJSONObject(it).optString("createdAt") }.toTypedArray()
+            val builder = AlertDialog.Builder(this).setTitle("Conversations").setItems(labels) { _, index ->
+                stopVoice(); conversationIds[selected] = rows.getJSONObject(index).getString("id"); refresh()
+            }.setPositiveButton("Close", null)
+            response.optString("nextCursor").takeUnless { it.isBlank() || it == "null" }?.let { next ->
+                builder.setNegativeButton("More") { _, _ -> showConversations(next) }
             }
-            AlertDialog.Builder(this)
-                .setTitle("Personal memory")
-                .setItems(labels.toTypedArray()) { _, index -> editFact(facts.getJSONObject(index)) }
-                .setPositiveButton("Close", null)
-                .show()
+            builder.show()
+        }
+    }
+
+    private fun deleteConversation() {
+        val selected = mode
+        val id = conversationIds[selected] ?: return showError("Select a conversation first")
+        AlertDialog.Builder(this).setTitle("Delete conversation?")
+            .setMessage("This permanently deletes the conversation and its derived memory.")
+            .setNegativeButton("Cancel", null).setPositiveButton("Delete") { _, _ ->
+                stopVoice()
+                request("DELETE", "/conversations/$id?mode=$selected") {
+                    conversationIds.remove(selected)
+                    if (mode == selected) history.text = ""
+                }
+            }.show()
+    }
+
+    private fun showMemory(pending: Boolean = true, cursor: String? = null) {
+        if (mode != "personal") return
+        var path = "/facts?" + if (pending) "reviewed=false" else ""
+        if (cursor != null) path += "&cursor=$cursor"
+        request("GET", path) { response ->
+            if (mode != "personal") return@request
+            val facts = response.optJSONArray("facts") ?: JSONArray()
+            val labels = (0 until facts.length()).map { index ->
+                val fact = facts.getJSONObject(index)
+                val added = try {
+                    java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy h:mm a z").withZone(java.time.ZoneId.systemDefault())
+                        .format(java.time.Instant.parse(fact.getString("createdAt")))
+                } catch (_: Exception) { "Unknown time" }
+                "${fact.optString("subject")} ${fact.optString("predicate")} ${fact.optString("object")}\nAdded $added"
+            }.toTypedArray()
+            val builder = AlertDialog.Builder(this).setTitle(if (pending) "Pending memory" else "All memory")
+                .setItems(labels) { _, index -> editFact(facts.getJSONObject(index)) }
+                .setPositiveButton("Close", null).setNeutralButton(if (pending) "All memory" else "Pending") { _, _ -> showMemory(!pending) }
+            response.optString("nextCursor").takeUnless { it.isBlank() || it == "null" }?.let { next -> builder.setNegativeButton("More") { _, _ -> showMemory(pending, next) } }
+            builder.show()
         }
     }
 
@@ -376,18 +302,68 @@ class MainActivity : ComponentActivity() {
             .setNegativeButton("Delete") { _, _ ->
                 request("DELETE", "/facts/${fact.getString("id")}") { showMemory() }
             }
-            .setNeutralButton("Cancel", null)
+            .setNeutralButton("Confirm") { _, _ ->
+                request("PATCH", "/facts/${fact.getString("id")}", JSONObject().put("reviewed", true)) { showMemory() }
+            }
             .show()
     }
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         status.text = message
-        status.visibility = View.VISIBLE
+    }
+
+    private fun startVoice() {
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            microphonePermission.launch(Manifest.permission.RECORD_AUDIO); return
+        }
+        stopVoice()
+        val generation = voiceGeneration
+        val selected = mode
+        request("GET", "/voice/config") { config ->
+            if (generation != voiceGeneration || selected != mode || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@request
+            val url = config.optString("gatewayUrl")
+            val endpoint = Uri.parse(url)
+            val base = Uri.parse(BuildConfig.API_URL)
+            val expectedScheme = if (base.scheme == "https") "wss" else if (BuildConfig.DEBUG) "ws" else "wss"
+            if (endpoint.scheme != expectedScheme || endpoint.authority != base.authority || endpoint.path != "/voice" || endpoint.query != null || endpoint.fragment != null) {
+                showError("Voice is not enabled yet. Text chat is available."); return@request
+            }
+            withToken { token ->
+                if (generation != voiceGeneration || selected != mode || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@withToken
+                voice = VoiceConnection(this, http, url, token, selected, conversationIds[selected],
+                    onState = stateChanged@{ state ->
+                        if (generation != voiceGeneration) return@stateChanged
+                        voiceStart.isEnabled = state == "idle"
+                        voiceStop.isEnabled = state != "idle"
+                        voiceStatus.text = when (state) {
+                            "connecting" -> "Connecting…"; "listening" -> "Listening…"
+                            "thinking" -> "Thinking…"; "speaking" -> "Speaking…"; else -> "Voice off"
+                        }
+                    },
+                    onTranscript = { text -> if (generation == voiceGeneration && selected == mode) voiceTranscript.text = text },
+                    onReply = { response ->
+                        if (generation == voiceGeneration && selected == mode) { conversationIds[selected] = response.getString("conversationId"); refresh() }
+                    },
+                    onError = { message -> if (generation == voiceGeneration) showError(message) },
+                ).also { it.start(muteReplies.isChecked) }
+            }
+        }
+    }
+
+    private fun stopVoice() {
+        voiceGeneration++
+        voice?.stop(); voice = null
+        if (this::voiceStart.isInitialized) { voiceStart.isEnabled = true; voiceStop.isEnabled = false; voiceStatus.text = "Voice off" }
+    }
+
+    override fun onStop() {
+        stopVoice()
+        super.onStop()
     }
 
     override fun onDestroy() {
-        authService.dispose()
+        stopVoice()
         super.onDestroy()
     }
 }

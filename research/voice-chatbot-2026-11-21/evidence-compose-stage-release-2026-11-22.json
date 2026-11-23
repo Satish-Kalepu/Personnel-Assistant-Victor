@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-22",
+  "deployedCommit": "f2f0646806e4210d02f70219bef7fdef758fae49",
+  "release": "stage-git-f2f0646806e4-20261122111218",
+  "publicUrl": "https://ai_test.satishk.com",
+  "compose": "docker-compose.yml",
+  "frontend": {
+    "source": "/home/ai_assistant/victor-stage/repository/deploy/.local/web/current",
+    "selectedRelease": "/home/ai_assistant/victor-stage/repository/deploy/.local/web/releases/stage-git-f2f0646806e4-20261122111218",
+    "target": "/usr/share/nginx/html",
+    "readOnly": true,
+    "indexMode": "0644",
+    "workletMode": "0644",
+    "checkoutParentMode": "0700"
+  },
+  "verification": {
+    "serverBuilds": 4,
+    "voiceRegressions": 18,
+    "localRoutingGroups": 10,
+    "nonRootMountPreflight": "passed",
+    "readiness": "passed",
+    "indexWorkletBuildAssets": "passed",
+    "anonymousSessionNull": true,
+    "privateRouteStatus": 401,
+    "csp": "passed",
+    "authenticatedSyntheticVoice": true,
+    "outputPcmBytes": 161280,
+    "peak": 27374,
+    "syntheticAccountCleanupVerified": true,
+    "emailSent": false,
+    "mongodbContainerUnchanged": true,
+    "redisContainerUnchanged": true
+  },
+  "constraints": {
+    "srvCreated": false,
+    "sudoUsed": false,
+    "hostTlsChanged": false,
+    "privateEnvOrDataTransferred": false
+  },
+  "limitations": [
+    "Synthetic voice is functional acceptance, not physical microphone/Pixel or latency-SLA evidence.",
+    "Coordinated rollback logic is implemented; deliberate rollback drill remains production follow-up."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-21",
+  "browser_replay_passed": false,
+  "transport_connected": true,
+  "data_channel_open": true,
+  "speech_started": true,
+  "turn_ended": false,
+  "received_vad_frames_before_wait": 114,
+  "received_vad_frames_after_1200_ms": 114,
+  "audio_context": "running",
+  "diagnosis": "Synthetic clip finishes without delivering trailing audio silence; backend silence endpoint receives no more frames.",
+  "cloud_python_check": "Passed separately with continuous trailing silence.",
+  "cosmetic_fixes": "Owner approved in prompt 019; fresh browser reload produced zero console errors."
+}
