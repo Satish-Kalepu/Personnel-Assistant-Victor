@@ -14,7 +14,8 @@ import { createUsage } from "./usage.js";
 import { createAssistant, type Tenant } from "./assistant.js";
 import { createModel, type Model } from "./model.js";
 import { AppError, passwordSchema, modeSchema, idSchema } from "./errors.js";
-import { checkOrigin, headersOf, rateLimit } from "./security.js";
+import { headersOf, rateLimit } from "./security.js";
+import { permissiveCors } from "./cors.js";
 export function createApplication(
   store: Store,
   config: Config,
@@ -27,6 +28,7 @@ export function createApplication(
     assistant = createAssistant(store, usage, model);
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
+  app.use(permissiveCors);
   app.use((req, res, next) => {
     res.set({
       "Cache-Control": "no-store",
@@ -45,7 +47,6 @@ export function createApplication(
   });
   app.use(async (req, _res, next) => {
     try {
-      checkOrigin(req, config);
       await rateLimit(
         store,
         config.AUTH_SECRET,
@@ -66,8 +67,7 @@ export function createApplication(
           30,
           60,
         );
-      // Native clients have no browser Origin; preserve a supplied browser
-      // Origin for validation, and bridge only the explicit native API mode.
+      // Native auth calls without an Origin use the configured base URL.
       if (!req.get("origin") && req.get("x-victor-client") === "android")
         req.headers.origin = config.APP_ORIGIN;
       next();

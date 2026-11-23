@@ -207,3 +207,11 @@ Tasks created from the v1 scope approved on 2026-11-09. Completion means the sta
 - **Completion criteria:** Docker command-line assembleDebug succeeds; inspect APK package/version/minSDK, signature and staging API setting; provide local artifact and SHA256. Preserve other projects, private configs and current Android source; record any compile failure before asking repair consent.
 - **Status:** Complete2026-11-23 through prompt007 approved required-changes rebuild. OkHttp5.4.0 pin passes assembleDebug37tasks; local signedAPK0.2.0 embeds https://ai-test.satishk.com/api, package/signature/18-private-value checks pass. Evidence: research/voice-chatbot-2026-11-21/evidence-android-apk-2026-11-23.json. DEBT-014 resolved. Backend-origin mismatch separately discovered/requested, pending DEBT-015; no device behavior acceptance claimed.
 - **Debt:** DEBT-012 native mute mismatch, UI parity and physical-device acceptance remain.
+
+
+### TASK-030 - Apply permissive CORS and correct staging origin
+
+- **Source:** IDEA-028; explicit owner repair prompt2026-11-23-008.
+- **Completion criteria:** Any origin/header/requested method passes credential-compatible preflight; login/session/sign-out accept foreign origins; anonymous/cross-tenant protection remains; canonical app/voice URL matches ai-test.satishk.com.42 isolated regressions pass; Git push/pull/server-build deployment, live synthetic login/cookie/voice-config checks and exact fixture cleanup pass with DB containers/settings preserved.
+- **Status:** In progress. Source/API build,2 focused CORS tests and42 isolated auth/tenant/voice tests pass. Deployment/live verification pending. Existing unrelated workspace work is included in the owner-authorized deployment snapshot, without unapproved repairs.
+- **Debt:** DEBT-016 accepted origin/CSRF exposure; DEBT-015 closes only after canonical runtime URL acceptance.

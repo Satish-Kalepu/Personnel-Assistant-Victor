@@ -6,7 +6,6 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 import type { Request } from "express";
-import type { Config } from "./config.js";
 import type { Store } from "./store.js";
 import { AppError } from "./errors.js";
 export function digest(secret: string, purpose: string, value: string) {
@@ -48,17 +47,6 @@ export function headersOf(request: Request) {
   for (const [key, value] of Object.entries(request.headers))
     if (typeof value === "string") headers.set(key, value);
   return headers;
-}
-export function checkOrigin(request: Request, config: Config) {
-  const origin = request.get("origin");
-  if (origin && origin !== config.APP_ORIGIN)
-    throw new AppError(403, "origin", "Request origin is not allowed.");
-  if (
-    !["GET", "HEAD", "OPTIONS"].includes(request.method) &&
-    !origin &&
-    request.get("x-victor-client") !== "android"
-  )
-    throw new AppError(403, "origin", "Request origin is required.");
 }
 const rateScript = `local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n`;
 export async function rateLimit(

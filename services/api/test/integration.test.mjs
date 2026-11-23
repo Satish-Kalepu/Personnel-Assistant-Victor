@@ -107,9 +107,10 @@ async function call(
     origin = config.APP_ORIGIN,
     native = false,
     clientIp,
+    extraHeaders = {},
   } = {},
 ) {
-  const headers = { "Content-Type": "application/json" };
+  const headers = { "Content-Type": "application/json", ...extraHeaders };
   if (clientIp) headers['X-Forwarded-For'] = clientIp;
   if (origin) headers.Origin = origin;
   if (native) headers["X-Victor-Client"] = "android";
@@ -123,6 +124,7 @@ async function call(
   const value = await response.json();
   return {
     status: response.status,
+    headers: response.headers,
     body: value,
     token: response.headers.get("set-auth-token"),
     cookie: response.headers
@@ -225,7 +227,7 @@ test("browser cookie and signed native bearer sessions authenticate; unsigned to
   );
   assert.equal((await call("/api/me")).status, 401);
 });
-test("auth endpoint allowlist, browser origin checks and strict tenant inputs block bypasses", async () => {
+test("auth endpoint allowlist and strict tenant inputs remain enforced with permissive origins", async () => {
   assert.equal(
     (
       await call("/api/auth/sign-up/email", {
@@ -244,16 +246,22 @@ test("auth endpoint allowlist, browser origin checks and strict tenant inputs bl
     ).status,
     404,
   );
-  assert.equal(
-    (
-      await call("/api/auth/sign-in/email", {
+  const crossOrigin = "https://different.example";
+  const crossLogin = await call("/api/auth/sign-in/email", {
         method: "POST",
-        origin: "https://attacker.invalid",
+        origin: crossOrigin,
+        clientIp: "192.0.2.41",
+        cookie: aliceCookie,
+        extraHeaders: { "Sec-Fetch-Site": "cross-site", "Sec-Fetch-Mode": "cors" },
         body: { email: alice, password },
-      })
-    ).status,
-    403,
-  );
+      });
+  assert.equal(crossLogin.status, 200);
+  assert.equal(crossLogin.headers.get("access-control-allow-origin"), crossOrigin);
+  assert.equal(crossLogin.headers.get("access-control-allow-credentials"), "true");
+  const crossProfile = await call("/api/me", { origin: crossOrigin, clientIp: "192.0.2.41", cookie: crossLogin.cookie });
+  assert.equal(crossProfile.status, 200);
+  assert.equal(crossProfile.body.user.email, alice);
+  assert.equal((await call("/api/auth/sign-out", { method: "POST", origin: crossOrigin, clientIp: "192.0.2.41", cookie: crossLogin.cookie, body: {} })).status, 200);
   assert.equal(
     (
       await call("/api/chat", {
@@ -682,7 +690,7 @@ test("authenticated voice uses one distributed lease, speaks an owned reply, and
       }
       ws.on("message", handler);
     });
-  const ws = new WebSocket(base.replace("http:", "ws:") + "/voice");
+  const ws = new WebSocket(base.replace("http:", "ws:") + "/voice", { origin: "https://different.example" });
   await once(ws, "open");
   const ready = waitFor(ws, "ready");
   ws.send(JSON.stringify({ type: "start", token: bobToken, mode: "practice" }));

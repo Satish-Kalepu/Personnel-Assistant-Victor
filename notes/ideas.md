@@ -391,3 +391,14 @@ Use one ID per idea (`IDEA-001`, `IDEA-002`, ...). Keep discussion and explicit 
 - **IDEA-026 dependency/domain decision (2026-11-23, prompt007):** Owner reports new staging domain ai-test.satishk.com and requests rebuild with required changes following the explicit OkHttp repair proposal. Finalized scoped5.4.0 pin to retain SDK36/AGP8.13.2, and use https://ai-test.satishk.com/api in the isolated staging build copy. Prior dependency choice was pending; now approved by this direct rebuild instruction. No native UI/mute repair approved. TASK-029/DEBT-014 verification pending.
 
 - **IDEA-026 baseline APK result (2026-11-23, prompt007):** Scoped5.4.0 repair verified: Docker build succeeds, signed v0.2.0 staging APK with corrected domain; package/signature/URL/known-private-value checks pass. TASK-029 baseline build complete; DEBT-014 resolved. Discovered server still configured with old APP_ORIGIN; proposed backend/check-script repair remains Discussing pending explicit owner response (DEBT-015). Native UI/mute/physical acceptance remain open.
+
+- **IDEA-023 local startup follow-up (2026-11-23, prompt009; Discussing repair):** Plain docker compose up misses the deliberately external parent env; explicit --env-file validates. Existing local parent file lacks WEB_ASSET_PATH, causing absent server-default deploy/.local/web/current mount; web/dist/index.html exists. Proposed one public setting WEB_ASSET_PATH=./web/dist plus explicit-env build/start/health checks, preserving credentials/SMTP/DB. Asked explicit repair consent, pending; no configuration/container change. Original parent-file decision remains finalized.
+
+
+### IDEA-028 - Permissive API/login origin policy
+
+- **Opened / status:** Finalized2026-11-23 by explicit owner repair instruction in prompt008; no additional consent needed for this scope.
+- **Summary / decision:** Owner reports sign-in origin rejection at ai-test.satishk.com and explicitly selects all origins, headers and methods. Implement credential-compatible reflected CORS, preflight responses and permissive auth/voice origin handling; update server-only canonical origin from old underscore hostname to the supplied hyphenated name.
+- **Options / rationale:** Correcting only the canonical hostname would fix this domain but retain restrictions; owner expressly chooses broader CORS instead. Preserve password/session/tenant/usage checks and Secure/HttpOnly/SameSite=Lax cookies. This removes origin-based CSRF protection and admits credentialed cross-origin requests (DEBT-016).
+- **Questions / acceptance:**42 isolated CORS/auth/tenant/voice tests pass. Git deployment, exact fixture-based live login/session/voice-URL acceptance, cleanup and preserved DB identities remain pending. No TLS/DNS/database reset or unrelated native repair authorized.
+- **Tasks / debt:** TASK-030, DEBT-015 canonical-origin repair, DEBT-016 accepted permissive policy.

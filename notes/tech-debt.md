@@ -149,3 +149,11 @@ No resolved entries yet.
 - **Status:** Open; explicit configuration-repair permission requested, pending.
 - **Evidence:** HTTPS readiness works at ai-test.satishk.com, but running API APP_ORIGIN is https://ai_test.satishk.com. app.ts derives voice gateway from APP_ORIGIN; Native MainActivity requires gateway authority to equal APK API_URL. security.ts/voice.ts/auth.ts reject differing browser origins.
 - **Proposed completion:** Approved update to server-only external APP_ORIGIN plus active staging check-script URLs, Git rollout and authenticated/new-origin/voice-config acceptance. No TLS/database changes required. APK itself embeds corrected new domain; native voice remains unavailable until backend correction.
+
+
+### DEBT-016 - Owner-selected permissive credentialed CORS
+
+- **Source:** IDEA-028/TASK-030; prompt2026-11-23-008 explicitly requests all origins/headers/methods.
+- **Status:** Accepted operating compromise; rollout verification pending.
+- **Behavior / impact:** Reflect every Origin including null for credentialed requests, permit requested header/method values on preflight, trust all auth origins and disable Better Auth CSRF checks; authenticated voice accepts all origins. Any website may request API access and use credentials available under browser cookie rules; CORS/origin-based CSRF is no longer a protective boundary. Existing SameSite=Lax/HttpOnly/Secure flags, password/session/tenant authorization, endpoint allowlists and usage limits remain. Browser third-party-cookie restrictions are not bypassed.
+- **Follow-up:** Reintroducing a reviewed origin allowlist or independent CSRF protection would be a later owner decision. Do not silently reverse the explicitly selected policy. Unauthenticated and cross-tenant negatives must keep passing.
