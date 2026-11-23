@@ -7,4 +7,9 @@
         <item name="android:windowBackground">@color/victor_background</item>
         <item name="android:textColorPrimary">@color/victor_text</item>
     </style>
+    <!-- Bottom sheet slide up / down -->
+    <style name="VictorSheetAnimation">
+        <item name="android:windowEnterAnimation">@anim/sheet_in</item>
+        <item name="android:windowExitAnimation">@anim/sheet_out</item>
+    </style>
 </resources>

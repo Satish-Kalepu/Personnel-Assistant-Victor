@@ -1,6 +1,7 @@
 package com.victor.assistant
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
@@ -51,14 +52,12 @@ class MainActivity : ComponentActivity() {
     private val shownMessages = mutableListOf<Pair<String, String>>()
     private lateinit var input: EditText
     private lateinit var send: Button
-    private lateinit var memory: Button
     private lateinit var practice: Button
     private lateinit var personal: Button
     private var voice: VoiceConnection? = null
     private var voiceGeneration = 0
     private lateinit var holdTalk: Button
     private lateinit var liveButton: Button
-    private lateinit var voiceStop: Button
     private var voiceKind: String? = null          // "live" | "push-to-talk" while a session is open
     private var pendingVoiceKind = "live"
     private var holding = false
@@ -72,16 +71,15 @@ class MainActivity : ComponentActivity() {
     private val liveBack = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() { stopVoice() }
     }
-    private lateinit var voiceStatus: TextView
     private lateinit var voiceTranscript: TextView
-    private lateinit var muteReplies: CheckBox
+    private var repliesMuted = false
     private lateinit var olderMessages: Button
     private var messageCursor: String? = null
     private val microphonePermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         when {
             !granted -> showError("Allow microphone access to use voice.")
             pendingVoiceKind == "live" -> startVoice("live")
-            else -> Toast.makeText(this, "Microphone allowed. Hold to talk again.", Toast.LENGTH_SHORT).show()
+            else -> Toast.makeText(this, "Microphone allowed. Press and speak again.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -135,39 +133,28 @@ class MainActivity : ComponentActivity() {
         }
         root.addView(status, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(10) })
 
-        // Mode switch
+        // Mode switch + conversation actions (like the web workspace bar)
+        val modeRow = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         val modes = LinearLayout(this).apply {
             background = rounded(color(R.color.victor_surface), dp(24).toFloat(), color(R.color.victor_outline))
             setPadding(dp(4), dp(4), dp(4), dp(4))
         }
         personal = pillButton("Personal", filled = true, dimWhenDisabled = false).apply { setOnClickListener { chooseMode("personal") } }
         practice = pillButton("English Practice", filled = false, dimWhenDisabled = false).apply { setOnClickListener { chooseMode("practice") } }
+        // Two pills + two icon buttons must fit narrow phones: one line, text shrinks to fit.
+        listOf(personal, practice).forEach {
+            it.maxLines = 1
+            it.setPadding(dp(8), 0, dp(8), 0)
+            it.setAutoSizeTextTypeUniformWithConfiguration(11, 14, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+        }
         modes.addView(personal, LinearLayout.LayoutParams(0, -2, 1f))
-        modes.addView(practice, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(modes, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-
-        // Conversation tools
-        val tools = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        memory = textButton("Memory").apply { setOnClickListener { showMemory() } }
-        tools.addView(memory)
-        tools.addView(textButton("Conversations").apply { setOnClickListener { showConversations() } })
-        tools.addView(textButton("New chat").apply {
-            setOnClickListener {
-                conversationIds.remove(mode)
-                stopVoice()
-                clearChat()
-                messageCursor = null
-                olderMessages.visibility = View.GONE
-            }
-        })
-        tools.addView(textButton("Delete").apply {
-            setTextColor(color(R.color.victor_danger))
-            setOnClickListener { deleteConversation() }
-        })
-        root.addView(HorizontalScrollView(this).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(tools)
-        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        modes.addView(practice, LinearLayout.LayoutParams(0, -2, 1.25f))
+        modeRow.addView(modes, LinearLayout.LayoutParams(0, -2, 1f))
+        modeRow.addView(iconButton(R.drawable.ic_list, "Conversations") { showConversations() },
+            LinearLayout.LayoutParams(dp(46), dp(46)).apply { marginStart = dp(8) })
+        modeRow.addView(iconButton(R.drawable.ic_add, "New chat") { startNewChat() },
+            LinearLayout.LayoutParams(dp(46), dp(46)).apply { marginStart = dp(6) })
+        root.addView(modeRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
 
         // Conversation card
         val chatCard = LinearLayout(this).apply {
@@ -183,44 +170,18 @@ class MainActivity : ComponentActivity() {
         chat = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         chatScroll.addView(chat)
         chatCard.addView(chatScroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        root.addView(chatCard, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(4) })
+        root.addView(chatCard, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(10) })
 
-        // Voice panel: press-and-speak, live mode, reply controls
+        // Voice: Press and speak + Live mode (status, mute and stop-speaking live in the Live mode screen)
         buildLiveOverlay()
-        val voicePanel = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = rounded(color(R.color.victor_chip), dp(18).toFloat())
-            setPadding(dp(12), dp(8), dp(12), dp(10))
-        }
-        val voiceTop = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        voiceStatus = TextView(this).apply {
-            text = "Voice off"
-            textSize = 13f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(color(R.color.victor_primary_dark))
-        }
-        voiceTop.addView(voiceStatus, LinearLayout.LayoutParams(0, -2, 1f))
-        muteReplies = CheckBox(this).apply {
-            text = "Mute replies"
-            textSize = 13f
-            setTextColor(color(R.color.victor_text))
-            buttonTintList = ColorStateList.valueOf(color(R.color.victor_primary))
-            setOnCheckedChangeListener { _, checked ->
-                voice?.muteReplies(checked)
-                liveMute.text = if (checked) "Unmute replies" else "Mute replies"
-            }
-        }
-        voiceTop.addView(muteReplies)
-        voicePanel.addView(voiceTop)
-        voiceTranscript = TextView(this).apply {
-            textSize = 14f
-            setTypeface(typeface, Typeface.ITALIC)
-            setTextColor(color(R.color.victor_text_muted))
-        }
-        voicePanel.addView(voiceTranscript)
         val voiceActions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        holdTalk = pillButton("Hold to talk", filled = true).apply {
-            contentDescription = "Hold to talk. Release to send."
+        holdTalk = pillButton("Press and speak", filled = true).apply {
+            minHeight = dp(46); minimumHeight = dp(46)
+            setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_mic, 0, 0, 0)
+            compoundDrawableTintList = ColorStateList.valueOf(color(R.color.victor_surface))
+            compoundDrawablePadding = dp(8)
+            setPadding(dp(18), 0, dp(20), 0)
+            contentDescription = "Press and speak. Release to send."
             // Hold = record, release = send, finger slides off / gesture cancelled = discard.
             setOnTouchListener { view, event ->
                 when (event.actionMasked) {
@@ -234,18 +195,31 @@ class MainActivity : ComponentActivity() {
             setOnClickListener { if (voiceKind == "push-to-talk" && voice != null) releaseTalk() else startVoice("push-to-talk") }
         }
         liveButton = pillButton("Live mode", filled = false).apply {
-            background = rounded(color(R.color.victor_surface), dp(20).toFloat(), color(R.color.victor_outline))
+            minHeight = dp(46); minimumHeight = dp(46)
+            background = rounded(color(R.color.victor_chip), dp(20).toFloat())
+            val dot = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color(R.color.victor_primary)); setSize(dp(9), dp(9)) }
+            setCompoundDrawablesRelativeWithIntrinsicBounds(dot, null, null, null)
+            compoundDrawablePadding = dp(10)
+            setPadding(dp(18), 0, dp(20), 0)
             setOnClickListener { if (voiceKind == "live") stopVoice() else startVoice("live") }
         }
+        // Equal halves (1:1), so the row doesn't jump as the button text changes.
         voiceActions.addView(holdTalk, LinearLayout.LayoutParams(0, -2, 1f))
-        voiceActions.addView(liveButton, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(8) })
-        voicePanel.addView(voiceActions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        val replyActions = LinearLayout(this).apply { gravity = Gravity.END }
-        voiceStop = textButton("Stop voice").apply { isEnabled = false; setOnClickListener { stopVoice() } }
-        replyActions.addView(voiceStop)
-        replyActions.addView(textButton("Stop speaking").apply { setOnClickListener { voice?.interrupt() } })
-        voicePanel.addView(replyActions)
-        root.addView(voicePanel, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+        voiceActions.addView(liveButton, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(10) })
+        listOf(holdTalk, liveButton).forEach {
+            it.gravity = Gravity.CENTER
+            it.maxLines = 1
+            it.setAutoSizeTextTypeUniformWithConfiguration(11, 15, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+        }
+        root.addView(voiceActions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+        voiceTranscript = TextView(this).apply {
+            textSize = 14f
+            visibility = View.GONE
+            setTypeface(typeface, Typeface.ITALIC)
+            setTextColor(color(R.color.victor_text_muted))
+            setPadding(dp(4), dp(6), dp(4), 0)
+        }
+        root.addView(voiceTranscript)
 
         // Composer
         val composer = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -274,7 +248,8 @@ class MainActivity : ComponentActivity() {
 
     private fun signIn() {
         if (BuildConfig.API_URL.isBlank()) { showError("Set API_URL in android/victor.properties"); return }
-        account.show()
+        // Memory lives in the account menu, like the web profile menu.
+        account.show(if (mode == "personal") listOf("Memory" to { showMemory() }) else emptyList())
     }
 
     private fun resetSession(token: String?) {
@@ -297,7 +272,6 @@ class MainActivity : ComponentActivity() {
         practice.isEnabled = selected != "practice"
         stylePill(personal, selected == "personal")
         stylePill(practice, selected == "practice")
-        memory.visibility = if (selected == "personal") View.VISIBLE else View.GONE
         clearChat()
         messageCursor = null
         olderMessages.visibility = View.GONE
@@ -387,34 +361,160 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun showConversations(cursor: String? = null) {
-        val selected = mode
-        request("GET", "/conversations?mode=$selected" + (cursor?.let { "&cursor=$it" } ?: "")) { response ->
-            if (selected != mode) return@request
-            val rows = response.optJSONArray("conversations") ?: JSONArray()
-            val labels = (0 until rows.length()).map { rows.getJSONObject(it).optString("createdAt") }.toTypedArray()
-            val builder = AlertDialog.Builder(this).setTitle("Conversations").setItems(labels) { _, index ->
-                stopVoice(); conversationIds[selected] = rows.getJSONObject(index).getString("id"); refresh()
-            }.setPositiveButton("Close", null)
-            response.optString("nextCursor").takeUnless { it.isBlank() || it == "null" }?.let { next ->
-                builder.setNegativeButton("More") { _, _ -> showConversations(next) }
-            }
-            builder.show()
-        }
+    private fun startNewChat() {
+        conversationIds.remove(mode)
+        stopVoice()
+        clearChat()
+        messageCursor = null
+        olderMessages.visibility = View.GONE
     }
 
-    private fun deleteConversation() {
+    private fun formatDate(iso: String): String = try {
+        java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy, h:mm a").withZone(java.time.ZoneId.systemDefault())
+            .format(java.time.Instant.parse(iso))
+    } catch (_: Exception) { iso }
+
+    /** Standard Android touch ripple over [content]; the rounded shape also masks the ripple. */
+    private fun ripple(content: GradientDrawable) = android.graphics.drawable.RippleDrawable(
+        ColorStateList.valueOf(0x334F46E5), content, GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = content.cornerRadius })
+
+    private fun iconButton(icon: Int, description: String, tint: Int = color(R.color.victor_primary_dark),
+                           fill: Int = color(R.color.victor_chip), onClick: () -> Unit) = ImageButton(this).apply {
+        setImageResource(icon)
+        imageTintList = ColorStateList.valueOf(tint)
+        background = ripple(rounded(fill, dp(14).toFloat()))
+        contentDescription = description
+        tooltipText = description
+        setOnClickListener { onClick() }
+    }
+
+    /** Conversation list with per-item delete, shown as an Android bottom sheet. */
+    private fun showConversations() {
         val selected = mode
-        val id = conversationIds[selected] ?: return showError("Select a conversation first")
-        AlertDialog.Builder(this).setTitle("Delete conversation?")
-            .setMessage("This permanently deletes the conversation and its derived memory.")
-            .setNegativeButton("Cancel", null).setPositiveButton("Delete") { _, _ ->
-                stopVoice()
-                request("DELETE", "/conversations/$id?mode=$selected") {
-                    conversationIds.remove(selected)
-                    if (mode == selected) clearChat()
+        val dialog = Dialog(this)
+        val sheetRadius = dp(28).toFloat()
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(8), dp(16), dp(12))
+            background = GradientDrawable().apply {
+                setColor(color(R.color.victor_surface))
+                cornerRadii = floatArrayOf(sheetRadius, sheetRadius, sheetRadius, sheetRadius, 0f, 0f, 0f, 0f)
+            }
+        }
+        // Drag handle + title + close; dragging this area down dismisses the sheet.
+        val top = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        top.addView(View(this).apply { background = rounded(color(R.color.victor_outline), dp(3).toFloat()) },
+            LinearLayout.LayoutParams(dp(36), dp(5)).apply { gravity = Gravity.CENTER_HORIZONTAL; bottomMargin = dp(10) })
+        val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        val titles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(4), 0, dp(8), 0) }
+        titles.addView(TextView(this).apply {
+            text = "Conversations"
+            textSize = 20f
+            setTypeface(typeface, Typeface.BOLD)
+            setTextColor(color(R.color.victor_text))
+        })
+        titles.addView(TextView(this).apply {
+            text = if (selected == "practice") "English Practice" else "Personal"
+            textSize = 13f
+            setTextColor(color(R.color.victor_text_muted))
+        })
+        header.addView(titles, LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(iconButton(R.drawable.ic_close, "Close", fill = 0x00000000) { dialog.dismiss() }, LinearLayout.LayoutParams(dp(44), dp(44)))
+        top.addView(header)
+        root.addView(top)
+        var dragStart = 0f
+        top.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> dragStart = event.rawY
+                MotionEvent.ACTION_MOVE -> root.translationY = (event.rawY - dragStart).coerceAtLeast(0f)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                    if (root.translationY > dp(120)) dialog.dismiss()
+                    else root.animate().translationY(0f).setDuration(150).start()
+            }
+            true
+        }
+
+        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val empty = TextView(this).apply {
+            text = "No conversations yet."
+            gravity = Gravity.CENTER
+            textSize = 14f
+            visibility = View.GONE
+            setTextColor(color(R.color.victor_text_muted))
+            setPadding(0, dp(32), 0, dp(32))
+        }
+        val more = textButton("Load more").apply { visibility = View.GONE }
+        val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        content.addView(list); content.addView(empty)
+        content.addView(more, LinearLayout.LayoutParams(-2, -2).apply { gravity = Gravity.CENTER_HORIZONTAL })
+        root.addView(ScrollView(this).apply { addView(content) }, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(10) })
+
+        fun addRow(row: JSONObject) {
+            val id = row.getString("id")
+            val date = formatDate(row.optString("createdAt"))
+            val current = conversationIds[selected] == id
+            val line = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+            line.addView(TextView(this).apply {
+                text = if (current) "$date  · current" else date
+                textSize = 15f
+                setTextColor(color(R.color.victor_primary_dark))
+                if (current) setTypeface(typeface, Typeface.BOLD)
+                background = ripple(rounded(color(if (current) R.color.victor_outline else R.color.victor_chip), dp(14).toFloat()))
+                setPadding(dp(16), dp(14), dp(16), dp(14))
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    dialog.dismiss()
+                    stopVoice(); conversationIds[selected] = id; messageCursor = null; refresh()
                 }
-            }.show()
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            line.addView(iconButton(R.drawable.ic_delete, "Delete conversation from $date",
+                tint = color(R.color.victor_danger), fill = 0x1FDC2626) {
+                AlertDialog.Builder(this).setTitle("Delete conversation?")
+                    .setMessage("This permanently deletes the conversation from $date and its derived memory.")
+                    .setNegativeButton("Cancel", null).setPositiveButton("Delete") { _, _ ->
+                        request("DELETE", "/conversations/$id?mode=$selected") {
+                            list.removeView(line)
+                            if (conversationIds[selected] == id) {
+                                conversationIds.remove(selected)
+                                if (mode == selected) { stopVoice(); clearChat() }
+                            }
+                            if (list.childCount == 0 && more.visibility == View.GONE) empty.visibility = View.VISIBLE
+                        }
+                    }.show()
+            }, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
+            list.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        }
+
+        fun load(cursor: String?) {
+            more.isEnabled = false
+            request("GET", "/conversations?mode=$selected" + (cursor?.let { "&cursor=$it" } ?: ""), failed = { more.isEnabled = true }) { response ->
+                if (!dialog.isShowing || selected != mode) return@request
+                val rows = response.optJSONArray("conversations") ?: JSONArray()
+                for (index in 0 until rows.length()) addRow(rows.getJSONObject(index))
+                val next = response.optString("nextCursor").takeUnless { it.isBlank() || it == "null" }
+                more.isEnabled = true
+                more.visibility = if (next == null) View.GONE else View.VISIBLE
+                more.setOnClickListener { load(next) }
+                empty.visibility = if (list.childCount == 0 && next == null) View.VISIBLE else View.GONE
+            }
+        }
+
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setContentView(root)
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.window?.apply {
+            if (!BuildConfig.DEBUG) addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+            setGravity(Gravity.BOTTOM)
+            setWindowAnimations(R.style.VictorSheetAnimation)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            setDimAmount(0.4f)
+            decorView.setPadding(0, 0, 0, 0) // full-width sheet, no dialog insets
+            setLayout(WindowManager.LayoutParams.MATCH_PARENT, (resources.displayMetrics.heightPixels * 0.7).toInt())
+        }
+        dialog.show()
+        load(null)
     }
 
     private fun showMemory(pending: Boolean = true, cursor: String? = null) {
@@ -478,6 +578,7 @@ class MainActivity : ComponentActivity() {
         stopVoice()
         voiceKind = kind
         voiceTranscript.text = ""
+        voiceTranscript.visibility = View.GONE
         liveTranscript.text = ""
         if (kind == "live") showLive(true)
         updateVoiceUi("connecting")
@@ -501,13 +602,17 @@ class MainActivity : ComponentActivity() {
                         updateVoiceUi(state)
                     },
                     onTranscript = { text ->
-                        if (generation == voiceGeneration && selected == mode) { voiceTranscript.text = text; liveTranscript.text = text }
+                        if (generation == voiceGeneration && selected == mode) {
+                            liveTranscript.text = text
+                            voiceTranscript.text = text
+                            voiceTranscript.visibility = if (voiceKind == "push-to-talk" && text.isNotBlank()) View.VISIBLE else View.GONE
+                        }
                     },
                     onReply = { response ->
                         if (generation == voiceGeneration && selected == mode) { conversationIds[selected] = response.getString("conversationId"); refresh() }
                     },
                     onError = { message -> if (generation == voiceGeneration) showError(message) },
-                ).also { it.start(muteReplies.isChecked) }
+                ).also { it.start(repliesMuted) }
             }
         }
     }
@@ -537,20 +642,15 @@ class MainActivity : ComponentActivity() {
             "connecting" -> "Connecting…"; "listening" -> "Listening…"
             "thinking" -> "Thinking…"; "speaking" -> "Speaking…"; else -> "Voice off"
         }
-        voiceStatus.text = when {
-            kind == "push-to-talk" && state == "listening" -> "Listening… release to send"
-            kind == "live" && active -> "Live mode · $label"
-            else -> label
-        }
         holdTalk.text = when {
             kind == "push-to-talk" && state == "listening" -> "Release to send"
             kind == "push-to-talk" && active -> label
-            else -> "Hold to talk"
+            else -> "Press and speak"
         }
+        if (!active) voiceTranscript.visibility = View.GONE
         holdTalk.isEnabled = !active || kind == "push-to-talk"
         liveButton.text = if (kind == "live") "Exit live mode" else "Live mode"
         liveButton.isEnabled = !active || kind == "live"
-        voiceStop.isEnabled = active
         liveState.text = label
         liveHint.text = when (state) {
             "listening" -> "Speak naturally. Interrupt Victor any time by speaking."
@@ -672,7 +772,13 @@ class MainActivity : ComponentActivity() {
             background = rounded(Color.parseColor("#1AFFFFFF"), dp(22).toFloat(), Color.parseColor("#4DFFFFFF"))
         }
         val controls = LinearLayout(this)
-        liveMute = ghost("Mute replies").apply { setOnClickListener { muteReplies.isChecked = !muteReplies.isChecked } }
+        liveMute = ghost("Mute replies").apply {
+            setOnClickListener {
+                repliesMuted = !repliesMuted
+                voice?.muteReplies(repliesMuted)
+                text = if (repliesMuted) "Unmute replies" else "Mute replies"
+            }
+        }
         controls.addView(liveMute, LinearLayout.LayoutParams(0, dp(46), 1f))
         controls.addView(ghost("Stop speaking").apply { setOnClickListener { voice?.interrupt() } },
             LinearLayout.LayoutParams(0, dp(46), 1f).apply { marginStart = dp(10) })

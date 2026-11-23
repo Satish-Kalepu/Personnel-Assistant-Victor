@@ -357,7 +357,8 @@ class NativeAccount(
 
     // ---------- Screens ----------
 
-    fun show() {
+    /** [extras]: app-level entries shown first when signed in (e.g. Memory, like the web profile menu). */
+    fun show(extras: List<Pair<String, () -> Unit>> = emptyList()) {
         val signedIn = store.load() != null
         val (dialog, root) = sheet(
             "Your Victor account",
@@ -369,6 +370,7 @@ class NativeAccount(
             }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
         if (signedIn) {
+            extras.forEach { (label, action) -> option(label) { action() } }
             option("Change password") { changePassword() }
             option("Replace recovery codes") { regenerate() }
             option("Sign out", danger = true) { call("/auth/sign-out", JSONObject(), true) { store.clear(); changed(null) } }
